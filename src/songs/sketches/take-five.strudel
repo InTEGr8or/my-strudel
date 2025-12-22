@@ -1,0 +1,30 @@
+// Take Five - Piano & Joe Morello Drums
+setcps(120/60/5)
+
+stack(
+  // PIANO: Added .late for swing and formal .struct
+  note("[eb4,gb4,bb4,db5,f5] [db4,f4,ab4,c5]")
+  .struct("~ x ~ x ~") // This defines the "hits" on beats 2 and 4
+  .s("piano")
+  .late(0.03)
+  .gain(0.8),
+
+  // BASS: Steady 3+2 feel
+  note("eb2*3 bb1*2")
+  .s("piano")
+  .gain(0.9)
+  .room(0.3),
+
+  // DRUMS: Joe Morello 5/4 Rhythm
+  stack(
+    // Ride Cymbal: Standard jazz 5/4 swing
+    s("hc*5").gain(0.7).pan(0.3), 
+    
+    // Kick: On the downbeat
+    s("bd").struct("x ~ ~ ~ ~").gain(0.8),
+    
+    // Snare: That light, syncopated jazz touch
+    s("sd").struct("~ ~ ~ x [~ x]").gain(0.6).room(0.2)
+  )
+)
+

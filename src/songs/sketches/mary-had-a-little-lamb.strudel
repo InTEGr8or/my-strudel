@@ -1,0 +1,18 @@
+// Mary Had a Little Lamb - Structural Example
+
+// 1. Define the repeating "Theme"
+const theme = "e4 d4 c4 d4 e4 e4 e4";
+// 2. Define the variations
+const phrase2 = "d4 d4 d4 e4 g4 g4";
+const phrase4 = "e4 d4 d4 e4 c4";
+
+// 3. Combine them into the full song
+// We use 'slow' to stretch the sequence so it doesn't loop too fast
+const fullSong = note(`${theme} ${phrase2} ${theme} ${phrase4}`)
+  .s("piano")
+  .lpf(2000) // Softens the piano sound
+  .gain(0.8);
+
+// 4. Play it
+// .once() tells Strudel to play the sequence through one time and stop
+fullSong.once()

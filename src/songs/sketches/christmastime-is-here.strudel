@@ -1,0 +1,32 @@
+// Christmas Time Is Here - Piano & Brushes
+// Set to 3/4 time at a slow tempo (~92 BPM)
+setcps(92/60/3) 
+
+stack(
+  // PIANO CHORDS: Fmaj7 to Eb7(#11)
+  // We use voicing that captures that lush Guaraldi sound
+  note("[f3,a3,c4,e4] [eb3,a3,db4,g4]")
+  .struct("x(1,3) x(1,3)") // Play each chord for one full bar (3 beats)
+  .s("piano")
+  .late(0.04) // Keep it "behind the beat"
+  .gain(0.8)
+  .room(0.4),
+
+  // BASS: Simple root notes on the downbeat
+  note("f1 eb1")
+  .struct("x ~ ~") 
+  .s("piano")
+  .gain(0.9),
+
+  // DRUMS: Soft Jazz Waltz (Brushes style)
+  stack(
+    // Ride/Hi-hat on every beat
+    s("hc*3").gain(0.5).pan(-0.2),
+    
+    // Snare "Brushes": A soft triplet shuffle feel
+    s("sd").struct("~ ~ [~ x]").gain(0.4).room(0.5),
+    
+    // Kick: Very soft on the downbeat
+    s("bd").struct("x ~ ~").gain(0.6)
+  )
+)
