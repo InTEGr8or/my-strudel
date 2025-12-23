@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} - My Strudel</title>
-    <script src="https://unpkg.com/@strudel/repl"></script>
+    <script src="https://unpkg.com/@strudel/repl@1.0.2"></script>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -60,7 +60,7 @@
             position: relative;
         }
         aside {
-            width: 300px;
+            width: 250px;
             display: flex;
             flex-direction: column;
             background: #111;
@@ -108,28 +108,13 @@
         .ref-item strong { display: block; color: #58a6ff; font-size: 0.9rem; }
         .ref-item span { font-size: 0.8rem; color: #888; }
         
-        #audio-init-banner {
-            background: #c58d00;
-            color: black;
-            padding: 0.3rem 1rem;
-            text-align: center;
-            font-size: 0.8rem;
-            font-weight: bold;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        
-        /* DO NOT HIDE THE COMPONENT ENTIRELY */
         strudel-editor { 
             display: block;
-            height: 0; /* It creates a sibling, so it doesn't need height */
+            height: 0;
         }
     </style>
 </head>
 <body>
-    <div id="audio-init-banner" onclick="initAudio()">
-        Audio not started. Click anywhere or here to enable sound.
-    </div>
     <header>
         <div class="controls">
             <a href="/">← Songs</a>
@@ -141,51 +126,39 @@
     </header>
     <div class="app-container">
         <main>
+            <!-- Hidden template to store the raw song text reliably -->
+            <template id="song-source">{{ strudelCode | safe }}</template>
             <div class="editor-container" id="editor-parent">
-                <strudel-editor id="strudel-repl">
-                    <!--
-{{ strudelCode | safe }}
-                    -->
-                </strudel-editor>
+                <strudel-editor id="strudel-repl"></strudel-editor>
             </div>
         </main>
         <aside>
             <div class="tabs">
                 <div class="tab active" onclick="showTab('sounds')">Sounds</div>
-                <div class="tab" onclick="showTab('ref')">Reference</div>
+                <div class="tab" onclick="showTab('ref')">Ref</div>
             </div>
             <div id="sounds" class="tab-content active">
-                <div class="ref-item"><strong>Common Banks</strong></div>
-                <code>bd</code>, <code>sd</code>, <code>hh</code>, <code>cp</code>, <code>kick</code>, <code>snare</code>, <code>clap</code>, <code>bass</code>, <code>perc</code>, <code>vibe</code>, <code>birds</code>, <code>industrial</code>
-                <p>Use <code>.bank("name")</code> or <code>s("name:0")</code></p>
+                <code>bd</code>, <code>sd</code>, <code>hh</code>, <code>cp</code>, <code>bass</code>
             </div>
             <div id="ref" class="tab-content">
-                <div class="ref-item"><strong>Core Functions</strong></div>
-                <div class="ref-item"><strong>s(pattern)</strong><span>Play a sample</span></div>
-                <div class="ref-item"><strong>n(pattern)</strong><span>Set notes</span></div>
-                <div class="ref-item"><strong>gain(value)</strong><span>Set volume</span></div>
-                <div class="ref-item"><strong>pan(value)</strong><span>Set stereo position</span></div>
-                <div class="ref-item"><strong>room(value)</strong><span>Reverb amount</span></div>
-                <div class="ref-item"><strong>lpf(freq)</strong><span>Low pass filter</span></div>
-                <div class="ref-item"><strong>hpf(freq)</strong><span>High pass filter</span></div>
-                <div class="ref-item"><strong>jux(fn)</strong><span>Apply function to right channel</span></div>
-                <div class="ref-item"><strong>rev()</strong><span>Reverse the pattern</span></div>
-                <div class="ref-item"><strong>stack(...patterns)</strong><span>Layer patterns</span></div>
+                <code>s()</code>, <code>n()</code>, <code>gain()</code>
             </div>
         </aside>
     </div>
     <script type="module">
         import { initAudioOnFirstClick } from 'https://unpkg.com/@strudel/webaudio?module';
-        
-        const audioReady = initAudioOnFirstClick();
-        window.initAudio = async () => {
-            await audioReady;
-            document.getElementById('audio-init-banner').style.display = 'none';
-        };
-        // Also trigger on first click anywhere
-        document.body.addEventListener('click', window.initAudio, { once: true });
+        initAudioOnFirstClick();
 
         const repl = document.getElementById('strudel-repl');
+        const source = document.getElementById('song-source');
+        
+        // Wait for the editor to initialize then push the code
+        const interval = setInterval(() => {
+            if (repl.editor) {
+                repl.editor.setCode(source.innerHTML.trim());
+                clearInterval(interval);
+            }
+        }, 50);
         
         document.getElementById('play-btn').onclick = () => {
             repl.editor?.evaluate();

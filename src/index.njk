@@ -3,52 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Strudel Songs</title>
+    <title>My Strudel Dashboard</title>
+    <script>window.process = { env: { NODE_ENV: 'production' } };</script>
+    <script src="https://unpkg.com/@strudel/repl@1.0.2"></script>
     <style>
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #1a1a1a;
+            font-family: system-ui, sans-serif;
+            background: #121212;
             color: #eee;
-            margin: 2rem;
+            margin: 0;
+            padding: 2rem;
         }
-        h1 { border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
-        ul { list-style: none; padding: 0; }
-        li { margin: 1rem 0; }
-        a { 
-            display: block;
-            padding: 1rem;
-            background: #222;
+        h1 { border-bottom: 1px solid #333; padding-bottom: 1rem; margin-bottom: 2rem; }
+        
+        .song-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .song-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
             border-radius: 8px;
-            color: #58a6ff;
-            text-decoration: none;
-            transition: background 0.2s;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 450px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
-        a:hover { background: #333; }
-        .folder {
-            color: #888;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+
+        .song-card-header {
+            background: #252525;
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
         }
+
+        .controls { display: flex; gap: 0.5rem; }
+        button {
+            background: #333;
+            border: 1px solid #444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        button:hover { background: #444; }
+        button.play { background: #005cc5; border-color: #0366d6; }
+
+        .song-title { font-weight: bold; font-size: 0.9rem; color: #ccc; }
+        .open-link { font-size: 0.8rem; color: #58a6ff; text-decoration: none; }
+        
+        .editor-container { flex: 1; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+        .editor-container div.cm-editor { flex: 1; height: 100% !important; font-size: 13px; }
+        
+        strudel-editor { display: block; height: 0; }
     </style>
 </head>
 <body>
-    <h1>My Strudel Songs</h1>
-    <ul>
+    <h1>My Strudel Dashboard</h1>
+    
+    <div class="song-grid">
     {%- for song in collections.all -%}
       {%- if song.inputPath.endsWith('.strudel') or song.inputPath.endsWith('.tidal') -%}
-        <li>
-            <a href="{{ song.url }}">
-                <div class="folder">
-                    <span style="background:#444; padding:2px 4px; border-radius:3px; margin-right:5px; font-size:0.7rem; color:white;">
-                        {{ song.inputPath.split('.').pop() | upper }}
-                    </span>
-                    {{ song.filePathStem | replace("/songs/", "") | replace(song.fileSlug, "") }}
+        <div class="song-card" id="card-{{ loop.index }}">
+            <div class="song-card-header">
+                <div class="controls">
+                    <button class="play" onclick="playSong('{{ loop.index }}')">▶ Play</button>
+                    <button onclick="stopSong('{{ loop.index }}')">■ Stop</button>
+                    <span class="song-title">{{ song.data.title }}</span>
                 </div>
-                <strong>{{ song.data.title }}</strong>
-            </a>
-        </li>
+                <a href="{{ song.url }}" class="open-link">Open ↗</a>
+            </div>
+            <div class="editor-container">
+                <template id="code-{{ loop.index }}">{{ song.data.strudelCode | safe }}</template>
+                <strudel-editor id="repl-{{ loop.index }}"></strudel-editor>
+            </div>
+        </div>
       {%- endif -%}
     {%- endfor -%}
-    </ul>
+    </div>
+
+    <script type="module">
+        import { initAudioOnFirstClick } from 'https://unpkg.com/@strudel/webaudio?module';
+        initAudioOnFirstClick();
+
+        window.getRepl = (idx) => {
+            return document.getElementById('repl-' + idx);
+        }
+
+        window.playSong = (idx) => {
+            getRepl(idx).editor?.evaluate();
+        }
+
+        window.stopSong = (idx) => {
+            getRepl(idx).editor?.stop();
+        }
+
+        // Initialize all editors with their code
+        window.addEventListener('load', () => {
+            const cards = document.querySelectorAll('.song-card');
+            cards.forEach((card, i) => {
+                const idx = i + 1;
+                const repl = getRepl(idx);
+                const code = document.getElementById('code-' + idx).innerHTML.trim();
+                
+                // Polling for the component to be ready
+                const interval = setInterval(() => {
+                    if (repl.editor) {
+                        repl.editor.setCode(code);
+                        clearInterval(interval);
+                    }
+                }, 100);
+            });
+        });
+    </script>
 </body>
 </html>

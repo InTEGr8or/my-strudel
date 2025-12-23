@@ -6,8 +6,8 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addExtension('strudel', strudelExtension);
   eleventyConfig.addExtension('tidal', strudelExtension);
 
-  eleventyConfig.addPassthroughCopy('src/js');
-  eleventyConfig.addPassthroughCopy('src/css');
+  eleventyConfig.addPassthroughCopy({ 'src/js': 'js' });
+  eleventyConfig.addPassthroughCopy({ 'src/css': 'css' });
 
   return {
     dir: {
