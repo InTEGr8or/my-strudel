@@ -1,0 +1,14 @@
+/*
+  @title learning music theory #4
+*/
+
+$: stack(
+  sound("sbd!4").mask("<0 1>/8"),
+  sound("hh*16").gain("[<.5 .4> <.15 .1>]*8"),
+  note("<<ab3,b3,e4, e2> <gb3,bb3,ds4, ds2>>/2").scale("b:major")
+    .sound("<gm_orchestral_harp,gm_orchestral_harp:2>").room(.2)
+    .delay(.1).attack(.3).release(1).gain(.4),
+  note("<[<cs4,cs3>!8 <ds4,ds3>!6 e4!2] [<cs4,cs3>!8 <e4,e3>!6 ds4!2]>/2")
+    .scale("b:major").sound("<<gm_epiano2:1 ->*4 gm_epiano2:1!2>/4").delay(.8)
+    .room(.3).gain("[<.8 .6> <.4 .3>]*4"),
+);
