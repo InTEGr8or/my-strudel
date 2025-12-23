@@ -28,8 +28,11 @@ module.exports = function (eleventyConfig) {
     }
   });
 
+  // Only use pathPrefix if we are in a GitHub Actions environment
+  const pathPrefix = process.env.GITHUB_ACTIONS ? "/my-strudel/" : "/";
+
   return {
-    pathPrefix: "/my-strudel/",
+    pathPrefix: pathPrefix,
     dir: {
       input: 'src',
       output: '_site',
