@@ -69,20 +69,20 @@
     
     <div class="song-grid">
     {%- set songCount = 0 -%}
-    {%- for song in collections.all -%}
-      {%- if song.inputPath.endsWith('.strudel') or song.inputPath.endsWith('.tidal') -%}
+    {%- for item in collections.all -%}
+      {%- if item.data.strudelCode and item.url -%}
         {%- set songCount = songCount + 1 -%}
         <div class="song-card" id="card-{{ songCount }}">
             <div class="song-card-header">
                 <div class="controls">
                     <button class="play" onclick="playSong('{{ songCount }}')">▶ Play</button>
                     <button onclick="stopSong('{{ songCount }}')">■ Stop</button>
-                    <span class="song-title">{{ song.data.title }}</span>
+                    <span class="song-title">{{ item.data.title }}</span>
                 </div>
-                <a href="{{ song.url }}" class="open-link">Open ↗</a>
+                <a href="{{ item.url }}" class="open-link">Open ↗</a>
             </div>
             <div class="editor-container">
-                <template id="code-{{ songCount }}">{{ song.data.strudelCode | safe }}</template>
+                <template id="code-{{ songCount }}">{{ item.data.strudelCode | safe }}</template>
                 <strudel-editor id="repl-{{ songCount }}"></strudel-editor>
             </div>
         </div>
@@ -115,10 +115,8 @@
                 const codeTemplate = document.getElementById('code-' + idx);
                 
                 if (!codeTemplate) return;
-                // Using textContent to prevent character escaping issues
                 const code = codeTemplate.content.textContent.trim();
                 
-                // Polling for the component to be ready
                 const interval = setInterval(() => {
                     if (repl.editor) {
                         repl.editor.setCode(code);
