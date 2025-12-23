@@ -38,32 +38,68 @@
         button:hover { background: #444; }
         button.primary { background: #005cc5; border-color: #0366d6; }
         
-        .app-container { display: flex; flex: 1; overflow: hidden; }
+        .app-container { display: flex; flex: 1; overflow: hidden; position: relative; }
         main {
             flex: 1; display: flex; flex-direction: column;
-            padding: 0; overflow: hidden; border-right: 1px solid #333;
+            padding: 0; overflow: hidden;
             position: relative;
         }
         
         /* Documentation Area */
         .doc-container {
-            flex: 0 0 40%; /* Take up 40% of the screen */
+            flex: 0 0 auto; 
+            max-height: 40%;
             background: #1e1e1e;
             padding: 1.5rem;
             overflow-y: auto;
+            overflow-x: hidden;
             border-bottom: 2px solid #333;
             line-height: 1.6;
+            box-sizing: border-box;
         }
         .doc-container h1, .doc-container h2 { margin-top: 0; color: #58a6ff; }
         .doc-container p { margin-bottom: 1rem; }
+        .doc-container pre { 
+            background: #111; 
+            padding: 1rem; 
+            border-radius: 4px; 
+            overflow-x: auto;
+            max-width: 100%;
+        }
         
         /* Music Notation Styling */
-        .abc-notation { background: white; border-radius: 8px; margin: 1rem 0; padding: 0.5rem; }
+        .abc-notation { 
+            background: #1a1a1a; 
+            border: 1px solid #333;
+            border-radius: 8px; 
+            margin: 1rem 0; 
+            padding: 1rem;
+            filter: invert(90%) hue-rotate(180deg) brightness(1.2);
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        .abc-notation svg {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
         
-        .editor-container { flex: 1; display: flex; flex-direction: column; }
+        .editor-container { flex: 1; display: flex; flex-direction: column; min-height: 100px; }
         .editor-container div.cm-editor { flex: 1; height: 100% !important; font-size: 15px; }
         
-        aside { width: 250px; display: flex; flex-direction: column; background: #111; flex-shrink: 0; }
+        /* Sidebar Styling */
+        aside { 
+            width: 250px; 
+            display: flex; 
+            flex-direction: column; 
+            background: #111; 
+            flex-shrink: 0;
+            border-left: 1px solid #333;
+            transition: margin-right 0.3s ease;
+        }
+        aside.collapsed {
+            margin-right: -250px;
+        }
         .tabs { display: flex; background: #222; border-bottom: 1px solid #333; }
         .tab { padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem; border-bottom: 2px solid transparent; }
         .tab.active { border-bottom-color: #58a6ff; background: #111; }
@@ -72,17 +108,32 @@
         
         strudel-editor { display: block; height: 0; }
         a { color: #58a6ff; text-decoration: none; }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            body { height: auto; overflow: auto; }
+            header { position: sticky; top: 0; z-index: 100; }
+            .app-container { flex-direction: column; overflow: visible; }
+            main { border-right: none; overflow: visible; }
+            .doc-container { flex: none; max-height: none; height: auto; border-bottom: 4px solid #333; }
+            .editor-container { height: 500px; }
+            aside { width: 100%; height: auto; border-left: none; }
+            aside.collapsed { margin-right: 0; display: none; }
+            .tab-content { height: 300px; }
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="controls">
             <a href="/">← Songs</a>
-            <button id="play-btn" class="primary">▶ Play (Ctrl+Enter)</button>
+            <button id="play-btn" class="primary">▶ Play</button>
             <button id="stop-btn">■ Stop</button>
         </div>
-        <h1 style="font-size: 1.1rem; margin: 0;">{{ title }}</h1>
-        <div style="width: 100px"></div>
+        <h1 style="font-size: 1.1rem; margin: 0; flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 1rem;">{{ title }}</h1>
+        <div class="controls">
+            <button id="sidebar-toggle" title="Toggle Sidebar">☰</button>
+        </div>
     </header>
     <div class="app-container">
         <main>
@@ -97,7 +148,7 @@
                 <strudel-editor id="strudel-repl"></strudel-editor>
             </div>
         </main>
-        <aside>
+        <aside id="sidebar">
             <div class="tabs">
                 <div class="tab active" onclick="showTab('sounds')">Sounds</div>
                 <div class="tab" onclick="showTab('ref')">Ref</div>
@@ -111,12 +162,20 @@
         </aside>
     </div>
     <script>
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        toggleBtn.onclick = () => {
+            sidebar.classList.toggle('collapsed');
+        };
+
         // Render ABC Notation
         window.addEventListener('load', () => {
-            document.querySelectorAll('pre.language-abc').forEach((el) => {
+            document.querySelectorAll('code.language-abc').forEach((el) => {
+                const pre = el.parentNode;
                 const target = document.createElement('div');
                 target.className = 'abc-notation';
-                el.parentNode.replaceChild(target, el);
+                pre.parentNode.replaceChild(target, pre);
                 ABCJS.renderAbc(target, el.textContent.trim(), { responsive: 'resize' });
             });
         });
@@ -137,7 +196,9 @@
 
         window.showTab = (id) => {
             document.querySelectorAll('.tab, .tab-content').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
             document.getElementById(id).classList.add('active');
         }
     </script>
