@@ -29,6 +29,7 @@ module.exports = function (eleventyConfig) {
   });
 
   return {
+    pathPrefix: "/my-strudel/",
     dir: {
       input: 'src',
       output: '_site',
