@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} - My Strudel</title>
-    <script src="https://unpkg.com/@strudel/repl@1.0.2"></script>
+    <!-- Polyfill for Strudel dependencies -->
+    <script>window.process = { env: { NODE_ENV: 'production' } };</script>
+    <script src="https://unpkg.com/@strudel/repl"></script>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -126,7 +128,7 @@
     </header>
     <div class="app-container">
         <main>
-            <!-- Hidden template to store the raw song text reliably -->
+            <!-- Use template and read as textContent to avoid HTML interpretation of '<' and '>' -->
             <template id="song-source">{{ strudelCode | safe }}</template>
             <div class="editor-container" id="editor-parent">
                 <strudel-editor id="strudel-repl"></strudel-editor>
@@ -145,17 +147,15 @@
             </div>
         </aside>
     </div>
-    <script type="module">
-        import { initAudioOnFirstClick } from 'https://unpkg.com/@strudel/webaudio?module';
-        initAudioOnFirstClick();
-
+    <script>
         const repl = document.getElementById('strudel-repl');
         const source = document.getElementById('song-source');
         
         // Wait for the editor to initialize then push the code
         const interval = setInterval(() => {
             if (repl.editor) {
-                repl.editor.setCode(source.innerHTML.trim());
+                // Using textContent instead of innerHTML to prevent character escaping issues
+                repl.editor.setCode(source.innerHTML ? source.content.textContent.trim() : '');
                 clearInterval(interval);
             }
         }, 50);
