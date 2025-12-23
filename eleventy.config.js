@@ -11,6 +11,10 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'src/js': 'js' });
   eleventyConfig.addPassthroughCopy({ 'src/css': 'css' });
 
+  // Add the base plugin to handle GitHub Pages subpaths
+  const { EleventyHtmlBasePlugin } = require("@11ty/eleventy");
+  eleventyConfig.addPlugin(EleventyHtmlBasePlugin);
+
   eleventyConfig.addGlobalData('eleventyComputed', {
     strudelCode: (data) => {
       // If we are in a folder with a song.strudel, use that for the Markdown page

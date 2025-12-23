@@ -79,7 +79,7 @@
                     <button onclick="stopSong('{{ songCount }}')">■ Stop</button>
                     <span class="song-title">{{ item.data.title }}</span>
                 </div>
-                <a href="{{ item.url }}" class="open-link">Open ↗</a>
+                <a href="{{ item.url | htmlBaseUrl }}" class="open-link">Open ↗</a>
             </div>
             <div class="editor-container">
                 <template id="code-{{ songCount }}">{{ item.data.strudelCode | safe }}</template>
