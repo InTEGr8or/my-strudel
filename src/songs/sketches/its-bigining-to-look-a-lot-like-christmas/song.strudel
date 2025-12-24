@@ -1,0 +1,17 @@
+// It's Beginning to Look a Lot Like Christmas
+// Set a nice medium swing tempo
+setcps(120/60/4)
+
+stack(
+  // TREBLE: The Melody
+  note("g4 [c4 e4 g4 c5] e5*3 d5 [c5 b4 a4 b4] c5 g4")
+  .s("piano")
+  .gain(0.9),
+
+  // BASS: The Foundation
+  // Here is the low A (a2) playing against the high E (e5)
+  note("~ [c3 e3] a2!2 g2!2 c3 ~")
+  .s("piano")
+  .gain(0.8)
+  .room(0.3)
+)

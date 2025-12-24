@@ -10,128 +10,99 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.4.1/abcjs-basic-min.js"></script>
     <style>
         body {
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Comic Neue", cursive, sans-serif;
             background: #1a1a1a;
             color: #eee;
             margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
         header {
-            padding: 0.5rem 1rem;
-            background: #222;
-            border-bottom: 2px solid #58a6ff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 50px;
-            box-sizing: border-box;
-            flex-shrink: 0;
+            padding: 0.5rem 1rem; background: #222; border-bottom: 3px solid #58a6ff;
+            display: flex; justify-content: space-between; align-items: center; height: 60px;
+            box-sizing: border-box; flex-shrink: 0;
         }
         .controls { display: flex; gap: 0.5rem; align-items: center; }
         button {
-            background: #333; color: white; border: 1px solid #444;
-            padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem;
+            background: #333; color: white; border: 2px solid #444;
+            padding: 0.4rem 1rem; border-radius: 12px; cursor: pointer; 
+            font-family: inherit; font-weight: bold; font-size: 1rem;
         }
-        button:hover { background: #444; }
-        button.primary { background: #005cc5; border-color: #0366d6; }
+        button:hover { background: #444; border-color: #58a6ff; }
+        button.primary { background: #28a745; border-color: #1e7e34; }
         
         .app-container { display: flex; flex: 1; overflow: hidden; position: relative; }
-        main {
-            flex: 1; display: flex; flex-direction: column;
-            padding: 0; overflow-y: auto; /* Allow the main content area to scroll */
-            position: relative;
-        }
+        main { flex: 1; display: flex; flex-direction: column; padding: 0; overflow-y: auto; position: relative; }
         
         /* Documentation Area */
-        .doc-container {
-            background: #1e1e1e;
-            padding: 1.5rem;
-            border-bottom: 2px solid #333;
-            line-height: 1.6;
-            flex-shrink: 0;
-        }
-        .doc-container h1, .doc-container h2 { margin-top: 0; color: #58a6ff; }
+        .doc-container { background: #1e1e1e; padding: 1.5rem; border-bottom: 2px solid #333; line-height: 1.6; flex-shrink: 0; }
+        .doc-container h1, .doc-container h2 { margin-top: 0; color: #ffcc00; }
         
-        /* Music Notation Styling */
+        /* Music Notation Styling - Enhanced Dark Mode */
         .abc-notation { 
-            background: #fff; /* Start with white for inversion */
-            border: 1px solid #333;
-            border-radius: 8px; 
+            background: #222; /* Specific dark background */
+            border: 3px solid #ffcc00; /* Fun yellow border for kids */
+            border-radius: 15px; 
             margin: 1rem 0; 
-            padding: 1rem;
-            /* Invert to get white-on-black */
-            filter: invert(1) hue-rotate(180deg) brightness(1.1);
+            padding: 1.5rem;
             max-width: 100%;
             overflow-x: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        .abc-notation svg { display: block; margin: 0 auto; max-width: 100%; }
+        .abc-notation svg { 
+            display: block; margin: 0 auto; max-width: 100%; 
+            /* Only invert the SVG content, not the container */
+            filter: invert(1) hue-rotate(180deg) brightness(1.2) contrast(1.1);
+        }
         
-        .editor-container { 
-            flex-shrink: 0;
-            display: flex; 
-            flex-direction: column; 
-            min-height: 400px; /* Keep editor large enough to see code */
-            background: #111;
-        }
-        .editor-container div.cm-editor { flex: 1; height: 100% !important; font-size: 16px; }
+        .editor-container { flex-shrink: 0; display: flex; flex-direction: column; min-height: 400px; background: #111; }
+        .editor-container div.cm-editor { flex: 1; height: 100% !important; font-size: 18px; }
 
         /* The Piano Visualizer */
         #piano-container {
-            flex-shrink: 0;
-            background: #000; display: flex; 
-            justify-content: center; align-items: flex-end; padding: 20px 0;
-            border-top: 2px solid #333;
+            flex-shrink: 0; background: #000; display: flex; 
+            justify-content: center; align-items: flex-end; padding: 25px 0;
+            border-top: 3px solid #333;
         }
         .piano-key { 
-            border: 1px solid #444; background: white; height: 100px; width: 30px; 
-            margin: 1px; border-radius: 0 0 5px 5px; box-sizing: border-box;
+            border: 1px solid #444; background: white; height: 110px; width: 35px; 
+            margin: 1px; border-radius: 0 0 8px 8px; box-sizing: border-box;
             position: relative;
         }
         .piano-key.black { 
-            background: #222; height: 60px; width: 20px; 
-            margin-left: -11px; margin-right: -11px; z-index: 2; 
+            background: #111; height: 65px; width: 22px; 
+            margin-left: -12px; margin-right: -12px; z-index: 2; 
             border-color: #000;
         }
-        .piano-key.active { background: #58a6ff !important; box-shadow: 0 0 15px #58a6ff; z-index: 3; }
+        .piano-key.active { background: #58a6ff !important; box-shadow: 0 0 20px #58a6ff; z-index: 3; }
         
         strudel-editor { display: block; height: 0; }
         a { color: #58a6ff; text-decoration: none; }
 
         /* Sidebar Styling */
         aside { 
-            width: 250px;
-            display: flex; 
-            flex-direction: column; 
-            background: #111; 
-            flex-shrink: 0;
-            border-left: 1px solid #333;
+            width: 250px; display: flex; flex-direction: column; background: #111; 
+            flex-shrink: 0; border-left: 2px solid #333;
             transition: transform 0.3s ease, margin-right 0.3s ease;
         }
-        aside.collapsed {
-            margin-right: -250px;
-            transform: translateX(100%);
-        }
+        aside.collapsed { margin-right: -250px; transform: translateX(100%); }
         .tabs { display: flex; background: #222; border-bottom: 1px solid #333; }
-        .tab { padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem; border-bottom: 2px solid transparent; }
-        .tab.active { border-bottom-color: #58a6ff; background: #111; }
-        .tab-content { flex: 1; overflow-y: auto; padding: 1rem; display: none; }
+        .tab { padding: 0.75rem 1rem; cursor: pointer; font-size: 1rem; border-bottom: 3px solid transparent; font-family: inherit; }
+        .tab.active { border-bottom-color: #58a6ff; background: #111; color: #58a6ff; }
+        .tab-content { flex: 1; overflow-y: auto; padding: 1.5rem; display: none; }
         .tab-content.active { display: block; }
         
         #sounds code {
-            cursor: pointer; background: #333; padding: 2px 6px; border-radius: 4px; margin: 2px; display: inline-block;
+            cursor: pointer; background: #333; padding: 6px 10px; border-radius: 10px; 
+            margin: 5px; display: inline-block; font-family: monospace; font-size: 1rem;
+            color: #ffcc00; border: 1px solid #444;
         }
-        #sounds code:hover { background: #444; color: #58a6ff; }
+        #sounds code:hover { background: #444; border-color: #ffcc00; }
 
-        /* Mobile Responsiveness */
         @media (max-width: 768px) {
             body { height: auto; overflow: auto; }
             header { position: sticky; top: 0; z-index: 100; }
             .app-container { flex-direction: column; overflow: visible; }
             main { overflow: visible; }
-            .doc-container { border-bottom: 4px solid #333; }
             .editor-container { min-height: 500px; }
             aside { width: 100%; border-left: none; }
             aside.collapsed { margin-right: 0; transform: none; display: none; }
@@ -141,11 +112,11 @@
 <body>
     <header>
         <div class="controls">
-            <a href="{{ '/' | htmlBaseUrl }}">← Songs</a>
-            <button id="play-btn" class="primary">▶ Play</button>
-            <button id="stop-btn">■ Stop</button>
+            <a href="{{ '/' | htmlBaseUrl }}">← Home</a>
+            <button id="play-btn" class="primary">▶ PLAY</button>
+            <button id="stop-btn" style="background: #dc3545; border-color: #bd2130;">■ STOP</button>
         </div>
-        <h1 style="font-size: 1.1rem; margin: 0; color: #ffcc00;">{{ title }}</h1>
+        <h1 style="font-size: 1.3rem; margin: 0; color: #ffcc00; text-transform: uppercase;">{{ title }}</h1>
         <div class="controls">
             <div id="midi-status" style="font-size: 0.8rem; color: #888; margin-right: 1rem;">MIDI: checking...</div>
             <button id="sidebar-toggle" title="Toggle Sidebar">☰</button>
@@ -172,7 +143,7 @@
                 <div class="tab" onclick="showTab('ref')">Ref</div>
             </div>
             <div id="sounds" class="tab-content active">
-                <p style="font-size: 0.8rem; color: #888; margin-top: 0;">Click to preview:</p>
+                <p style="font-size: 1rem; color: #888; margin-top: 0;">Tap to hear!</p>
                 <code onclick="previewSound('bd')">bd</code>
                 <code onclick="previewSound('sd')">sd</code>
                 <code onclick="previewSound('hh')">hh</code>
@@ -188,14 +159,12 @@
     <strudel-editor id="preview-repl" style="position: absolute; visibility: hidden; width: 0; height: 0;"></strudel-editor>
 
     <script>
-        // Sidebar Toggle
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('sidebar-toggle');
         toggleBtn.onclick = () => {
             sidebar.classList.toggle('collapsed');
         };
 
-        // Sound Preview
         window.previewSound = (sound) => {
             const previewRepl = document.getElementById('preview-repl');
             if (previewRepl && previewRepl.editor) {
@@ -203,7 +172,6 @@
             }
         };
 
-        // Initialize Piano
         const piano = document.getElementById('piano-container');
         const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         const keys = {};
@@ -229,7 +197,6 @@
             }
         }
 
-        // Initialize Strudel
         const repl = document.getElementById('strudel-repl');
         const source = document.getElementById('song-source');
         
