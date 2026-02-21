@@ -1,35 +1,31 @@
-# My Strudel Project Plan
+# My Strudel Project Plan: Kids Lab Edition
 
 ## Overview
-A minimalist, personal music live-coding environment built with [11ty](https://www.11ty.dev/) and the [Strudel](https://strudel.cc/) REPL web component. This project allows for local organization of Strudel and TidalCycles patterns in a directory-based structure while providing a fast, web-based playback and editing interface.
+A fun, educational music live-coding environment built for children (and grandfathers!). It uses [11ty](https://www.11ty.dev/) and the [Strudel](https://strudel.cc/) REPL to bridge the gap between code, traditional music notation (ABC), and physical piano keys.
 
-## Current State
-- **Engine**: Using `@strudel/repl` web component via unpkg CDN.
-- **SSG**: 11ty (Eleventy) v3.
-- **Directory Structure**:
-  - `src/songs/`: Primary location for `.strudel` and `.tidal` files.
-  - `src/_includes/layout.njk`: Main template for song pages.
-  - `src/index.njk`: Home page listing all discovered songs.
+## Current State: "Strudel Kids Lab"
+- **Engine**: Latest `@strudel/repl` web component via unpkg.
+- **Visuals**: 
+  - **Visual Piano**: An interactive keyboard that lights up as code plays.
+  - **ABC Notation**: Standard sheet music rendering (via `abcjs`) that automatically adapts to Dark/Light themes.
+  - **Kid-Friendly UI**: High-contrast colors, large buttons, and "Comic Sans" for readability and fun.
+- **SSG**: 11ty (Eleventy) v3 with automated GitHub Pages deployment.
+- **Theme Support**: Full adaptive Dark/Light mode support via CSS variables.
 - **Features**:
-  - Automatic song discovery with recursive directory support.
-  - Metadata extraction (e.g., `@title` tags) from song comments.
-  - Integrated CodeMirror editor with keyboard controls (`Ctrl+Enter` to play).
-  - Basic Sidebar for quick reference.
-  - Audio context initialization handling.
-
-## Key Configuration Details
-- **11ty Extension**: Custom extension for `.strudel` and `.tidal` files in `eleventy.config.js`.
-- **Environment**: A `window.process` polyfill is injected in the layout to satisfy `nanostores` dependencies.
-- **Code Loading**: Code is passed from 11ty to the browser via a `<template>` tag and injected into the REPL component using a polling `setInterval` to handle component initialization timing.
+  - **Lesson Folders**: Support for `index.md` documentation alongside `song.strudel` code.
+  - **Sound Previews**: Clickable sound names in the sidebar to hear `bd`, `sd`, etc., instantly.
+  - **Collapsible Sidebar**: Toggleable help panel to maximize workspace.
 
 ## Roadmap & Next Steps
-- [ ] **Sidebar Enhancements**: Implement a fully functional "Sounds" tab that lists available sample banks and a "Reference" tab with common functions.
-- [ ] **Local Samples**: Investigate integration with the `strudel-sampler` or local filesystem via the Tauri bridge if moved to a desktop app context.
-- [ ] **Metadata Expansion**: Support more tags like `@by`, `@genre`, and `@version` in the UI.
-- [ ] **UI Polish**: Improve the "Songs Browser" on the home page with better grouping and perhaps search/filter capabilities.
-- [ ] **Version Control**: Move `my-strudel` into its own Git repository to track music changes independently of the Strudel engine.
+- [ ] **Reference Tab**: Fully populate the "Ref" tab with easy-to-understand explanations of functions like `slow()`, `fast()`, `stack()`, and `note()`.
+- [ ] **Interactive Lessons**: Expand the "sketches" into a series of progressive lessons (e.g., "Notes", "Rhythms", "Layers", "Chords").
+- [ ] **Oscilloscope**: Add a waveform or spectrum visualizer to show the "shape" of the sound alongside the piano keys.
+- [ ] **Local Samples**: Investigate integration with the `strudel-sampler` to allow using custom sound libraries or recorded voices.
+- [ ] **Song Metadata**: Support and display tags like `@by`, `@genre`, and `@version` in a nice header card for each lesson.
+- [ ] **Search & Filter**: Add a simple search bar to the "Dashboard" home page as the collection grows.
 
-## Troubleshooting / Knowledge Base
-- **Empty Editor**: If the editor is empty, check the `setInterval` logic in `layout.njk` that calls `repl.editor.setCode()`.
-- **Audio Error**: Ensure `initAudioOnFirstClick` is called from the `@strudel/webaudio` module or via the `repl.editor` internal state.
-- **Duplicate Core**: Avoid importing `@strudel/core` separately if using the bundled `@strudel/repl` script, as it includes core.
+## Knowledge Base
+- **ABC Notation**: Use ` ```abc ` code blocks in Markdown. The layout automatically renders these using `abcjs` and applies a dark-mode filter if needed.
+- **Piano Sync**: The visual piano is "monkey-patched" into the Strudel `onDraw` cycle to ensure perfect timing with the audio.
+- **Path Prefixing**: The site uses `EleventyHtmlBasePlugin` and conditional `pathPrefix` in `eleventy.config.js` to ensure navigation works both locally and on GitHub Pages (`/my-strudel/`).
+- **Code Injection**: Raw code is read from `<template>` tags using `.content.textContent` to prevent HTML entity escaping (e.g., `<` staying as `<` instead of `&lt;`).
