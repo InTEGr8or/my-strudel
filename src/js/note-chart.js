@@ -13,12 +13,13 @@ class NoteChart extends HTMLElement {
     }
 
     render() {
-        const SPACING = 18;
+        const scale = parseFloat(this._cssVar('--ui-scale')) || 1;
+        const SPACING = 18 * scale;
         const BAND_H = SPACING;
-        const SVG_W = 640;
-        const LEFT_PAD = 80;
-        const STAFF_R = SVG_W - 20;
-        const PAD = 30;
+        const SVG_W = 640 * scale;
+        const LEFT_PAD = 80 * scale;
+        const STAFF_R = SVG_W - 20 * scale;
+        const PAD = 30 * scale;
 
         const noteAlpha = parseFloat(this._cssVar('--note-alpha')) || 0.2;
         const noteDAlpha = parseFloat(this._cssVar('--note-d-alpha')) || 0.4;
@@ -100,11 +101,11 @@ class NoteChart extends HTMLElement {
 
         for (const l of bassLines) {
             const y = getY(l.note, l.oct);
-            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="1.5"/>`;
+            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="${1.5 * scale}"/>`;
         }
         for (const l of trebleLines) {
             const y = getY(l.note, l.oct);
-            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="1.5"/>`;
+            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="${1.5 * scale}"/>`;
         }
 
         const bBot = getY('G', 2);
@@ -116,9 +117,9 @@ class NoteChart extends HTMLElement {
         const bCenter = (bBot + bTop) / 2;
         const braceMid = (bTop + tBot) / 2;
 
-        svg += `<text x="10" y="${tCenter}" font-size="80" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
-        svg += `<text x="10" y="${bCenter}" font-size="70" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
-        svg += `<text x="48" y="${braceMid}" font-size="70" dy="0.35em" font-family="serif" fill="${staffColor}">{</text>`;
+        svg += `<text x="10" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
+        svg += `<text x="10" y="${bCenter}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
+        svg += `<text x="${48 * scale}" y="${braceMid}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">{</text>`;
 
         svg += `</svg>`;
         this.innerHTML = svg;
