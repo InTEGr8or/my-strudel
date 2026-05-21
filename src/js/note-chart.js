@@ -36,7 +36,7 @@ class NoteChart extends HTMLElement {
             return (28 - (oct * 7 + (ni[note] || 0))) * halfStep;
         };
 
-        const positions = [
+        this._positions = [
             { note: 'G', oct: 2 },
             { note: 'A', oct: 2 },
             { note: 'B', oct: 2 },
@@ -61,7 +61,7 @@ class NoteChart extends HTMLElement {
         ];
 
         let rMin = Infinity, rMax = -Infinity;
-        for (const p of positions) {
+        for (const p of this._positions) {
             const y = getRawY(p.note, p.oct);
             if (y < rMin) rMin = y;
             if (y > rMax) rMax = y;
@@ -72,13 +72,16 @@ class NoteChart extends HTMLElement {
 
         let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}" viewBox="0 0 ${SVG_W} ${SVG_H}">`;
         svg += `<rect width="100%" height="100%" fill="${activeBg}"/>`;
+        svg += `<g id="staff-bands">`;
 
-        for (const p of positions) {
+        for (const p of this._positions) {
             const y = getY(p.note, p.oct);
             const band = this._octaveBand(p.note, p.oct);
             const alpha = p.note === 'D' ? noteDAlpha : noteAlpha;
-            svg += `<rect x="${LEFT_PAD}" y="${y - BAND_H/2}" width="${STAFF_R - LEFT_PAD}" height="${BAND_H}" fill="rgba(${octaveColors[band]}, ${alpha})"/>`;
+            svg += `<rect x="${LEFT_PAD}" y="${y - BAND_H/2}" width="${STAFF_R - LEFT_PAD}" height="${BAND_H}" fill="rgba(${octaveColors[band]}, ${alpha})" data-note="${p.note}" data-oct="${p.oct}"/>`;
         }
+
+        svg += `</g>`;
 
         const bassLines = [
             { note: 'G', oct: 2 },
@@ -132,6 +135,21 @@ class NoteChart extends HTMLElement {
                 }
             }
         });
+    }
+
+    highlightStaffNote(noteName, on) {
+        const match = noteName.match(/^([a-g])(s?)(\d+)$/);
+        if (!match) return;
+        const note = match[1].toUpperCase();
+        const oct = parseInt(match[3], 10);
+        const bandEl = this.querySelector(`rect[data-note="${note}"][data-oct="${oct}"]`);
+        if (bandEl) {
+            if (on) {
+                bandEl.setAttribute('fill-opacity', '0.9');
+            } else {
+                bandEl.removeAttribute('fill-opacity');
+            }
+        }
     }
 }
 

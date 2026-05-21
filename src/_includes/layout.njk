@@ -212,7 +212,7 @@
     {
         "id": "donner-n-32",
         "name": "Donner N-32",
-        "range": { "low": 29, "high": 72 },
+        "range": { "low": 41, "high": 72 },
         "noteCount": 32,
         "description": "32-key mini keyboard, F2-C5"
     }
@@ -293,6 +293,37 @@
 
         const activeMidi = new Map();
 
+        function staffNote(noteName, on) {
+            const chart = document.querySelector('note-chart');
+            if (chart && chart.highlightStaffNote) {
+                chart.highlightStaffNote(noteName, on);
+            }
+        }
+
+        function midiToFreq(midi) {
+            return 440 * Math.pow(2, (midi - 69) / 12);
+        }
+
+        let midiAudioCtx = null;
+
+        function playMidiNote(midiNote, velocity) {
+            if (!midiAudioCtx) {
+                midiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const freq = midiToFreq(midiNote);
+            const osc = midiAudioCtx.createOscillator();
+            const gain = midiAudioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            const vol = (velocity / 127) * 0.3;
+            gain.gain.setValueAtTime(vol, midiAudioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 0.8);
+            osc.connect(gain);
+            gain.connect(midiAudioCtx.destination);
+            osc.start();
+            osc.stop(midiAudioCtx.currentTime + 0.8);
+        }
+
         function updateMidiNotes() {
             const el = document.getElementById('midi-notes');
             if (activeMidi.size === 0) {
@@ -301,10 +332,7 @@
             }
             const sorted = Array.from(activeMidi.keys()).sort((a, b) => a - b);
             const notes = sorted.map(midiNoteDisplay);
-            const minOct = Math.floor(sorted[0] / 12) - 1;
-            const maxOct = Math.floor(sorted[sorted.length - 1] / 12) - 1;
-            const range = minOct === maxOct ? `[Oct ${minOct}]` : `[Oct ${minOct}–${maxOct}]`;
-            el.textContent = `${notes.join('  ')}  ${range}`;
+            el.textContent = notes.join('  ');
         }
 
         function handleMidiMessage(event) {
@@ -317,6 +345,8 @@
                 if (noteName) {
                     activeMidi.set(midiNote, noteName);
                     keyOn(noteName);
+                    staffNote(noteName, true);
+                    playMidiNote(midiNote, velocity);
                     updateMidiNotes();
                 }
             } else if (isNoteOff) {
@@ -324,6 +354,7 @@
                 if (noteName) {
                     activeMidi.delete(midiNote);
                     keyOff(noteName);
+                    staffNote(noteName, false);
                     updateMidiNotes();
                 }
             }
