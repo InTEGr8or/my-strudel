@@ -139,12 +139,13 @@
         .tab-content { flex: 1; overflow-y: auto; padding: 1.5rem; display: none; }
         .tab-content.active { display: block; }
         
-        #sounds code {
+        #sounds code, #synth code {
             cursor: pointer; background: var(--header-bg); padding: 6px 10px; border-radius: 10px; 
             margin: 5px; display: inline-block; font-family: monospace; font-size: 1rem;
             color: var(--highlight); border: 1px solid var(--border);
         }
-        #sounds code:hover { border-color: var(--highlight); }
+        #sounds code:hover, #synth code:hover { border-color: var(--highlight); }
+        #synth code.active { border-color: var(--accent); background: var(--accent); color: white; }
 
         @media (max-width: 768px) {
             body { height: auto; overflow: auto; }
@@ -190,6 +191,7 @@
         <aside id="sidebar">
             <div class="tabs">
                 <div class="tab active" onclick="showTab('sounds')">Sounds</div>
+                <div class="tab" onclick="showTab('synth')">Synth</div>
                 <div class="tab" onclick="showTab('ref')">Ref</div>
             </div>
             <div id="sounds" class="tab-content active">
@@ -199,6 +201,14 @@
                 <code onclick="previewSound('hh')">hh</code>
                 <code onclick="previewSound('cp')">cp</code>
                 <code onclick="previewSound('bass')">bass</code>
+            </div>
+            <div id="synth" class="tab-content">
+                <p style="font-size: 1rem; color: #888; margin-top: 0;">MIDI voice:</p>
+                <code class="synth-voice active" data-voice="grand-piano" onclick="selectVoice('grand-piano')">Grand Piano</code>
+                <code class="synth-voice" data-voice="triangle" onclick="selectVoice('triangle')">Triangle</code>
+                <code class="synth-voice" data-voice="sine" onclick="selectVoice('sine')">Sine</code>
+                <code class="synth-voice" data-voice="sawtooth" onclick="selectVoice('sawtooth')">Sawtooth</code>
+                <code class="synth-voice" data-voice="square" onclick="selectVoice('square')">Square</code>
             </div>
             <div id="ref" class="tab-content">
                 <code>s()</code>, <code>n()</code>, <code>gain()</code>
@@ -304,6 +314,19 @@
             return 440 * Math.pow(2, (midi - 69) / 12);
         }
 
+        const VOICES = {
+            'grand-piano': { type: 'piano', label: 'Grand Piano' },
+            'triangle': { type: 'triangle', label: 'Triangle' },
+            'sine': { type: 'sine', label: 'Sine' },
+            'sawtooth': { type: 'sawtooth', label: 'Sawtooth' },
+            'square': { type: 'square', label: 'Square' },
+        };
+        let selectedVoice = 'grand-piano';
+        window.selectVoice = (id) => {
+            selectedVoice = id;
+            document.querySelectorAll('.synth-voice').forEach(el => el.classList.toggle('active', el.dataset.voice === id));
+        };
+
         let midiAudioCtx = null;
 
         function playMidiNote(midiNote, velocity) {
@@ -311,17 +334,35 @@
                 midiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
             const freq = midiToFreq(midiNote);
-            const osc = midiAudioCtx.createOscillator();
-            const gain = midiAudioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.value = freq;
             const vol = (velocity / 127) * 0.3;
-            gain.gain.setValueAtTime(vol, midiAudioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 0.8);
-            osc.connect(gain);
-            gain.connect(midiAudioCtx.destination);
-            osc.start();
-            osc.stop(midiAudioCtx.currentTime + 0.8);
+            const voice = VOICES[selectedVoice];
+
+            if (voice.type === 'piano') {
+                // three oscillators: fundamental + two detuned for that piano chorus
+                [1, 1.003, 0.997].forEach((detune, i) => {
+                    const osc = midiAudioCtx.createOscillator();
+                    const g = midiAudioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq * detune;
+                    g.gain.setValueAtTime(vol * (i === 0 ? 0.6 : 0.2), midiAudioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 1.5);
+                    osc.connect(g);
+                    g.connect(midiAudioCtx.destination);
+                    osc.start();
+                    osc.stop(midiAudioCtx.currentTime + 1.5);
+                });
+            } else {
+                const osc = midiAudioCtx.createOscillator();
+                const gain = midiAudioCtx.createGain();
+                osc.type = voice.type;
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(vol, midiAudioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 0.8);
+                osc.connect(gain);
+                gain.connect(midiAudioCtx.destination);
+                osc.start();
+                osc.stop(midiAudioCtx.currentTime + 0.8);
+            }
         }
 
         function updateMidiNotes() {
