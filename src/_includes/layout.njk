@@ -163,8 +163,7 @@
         </div>
         <h1 style="font-size: 1.3rem; margin: 0; color: var(--highlight); text-transform: uppercase;">{{ title }}</h1>
         <div class="controls">
-            <div id="midi-status" style="font-size: 0.8rem; color: #888; margin-right: 0.5rem;">MIDI: checking...</div>
-            <span id="midi-note" style="font-size: 1.2rem; font-weight: bold; color: var(--accent); min-width: 3rem; text-align: center;"></span>
+            <div id="midi-status" style="font-size: 0.8rem; color: #888; margin-right: 1rem;">MIDI: checking...</div>
             <button id="sidebar-toggle" title="Toggle Sidebar">☰</button>
         </div>
     </header>
@@ -181,6 +180,7 @@
             </div>
 
             <div id="note-chart-container"><note-chart></note-chart></div>
+            <div id="midi-notes" style="padding: 0.5rem 1rem; font-size: 1.5rem; font-weight: bold; color: var(--accent); text-align: center; min-height: 1.8rem; letter-spacing: 0.3em; font-family: monospace;"></div>
             <div id="piano-container"></div>
         </main>
         
@@ -235,12 +235,80 @@
             });
         }
 
-        function highlightKey(note) {
+        const activeKeys = new Set();
+
+        function flashKey(note) {
             const id = `key-${note.toLowerCase()}`;
             const el = document.getElementById(id);
             if (el) {
                 el.classList.add('active');
-                setTimeout(() => el.classList.remove('active'), 150);
+                setTimeout(() => {
+                    if (!activeKeys.has(note.toLowerCase())) {
+                        el.classList.remove('active');
+                    }
+                }, 150);
+            }
+        }
+
+        function keyOn(noteName) {
+            const el = document.getElementById(`key-${noteName}`);
+            if (el) el.classList.add('active');
+        }
+
+        function keyOff(noteName) {
+            const el = document.getElementById(`key-${noteName}`);
+            if (el) el.classList.remove('active');
+        }
+
+        const NOTE_LABELS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        function midiToNoteName(midi) {
+            const names = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
+            const oct = Math.floor(midi / 12) - 1;
+            if (oct < 3 || oct > 5) return null;
+            return `${names[midi % 12]}${oct}`;
+        }
+
+        function midiNoteDisplay(midi) {
+            const oct = Math.floor(midi / 12) - 1;
+            return `${NOTE_LABELS[midi % 12]}${oct}`;
+        }
+
+        const activeMidi = new Map();
+
+        function updateMidiNotes() {
+            const el = document.getElementById('midi-notes');
+            if (activeMidi.size === 0) {
+                el.textContent = '';
+                return;
+            }
+            const sorted = Array.from(activeMidi.keys()).sort((a, b) => a - b);
+            const notes = sorted.map(midiNoteDisplay);
+            const minOct = Math.floor(sorted[0] / 12) - 1;
+            const maxOct = Math.floor(sorted[sorted.length - 1] / 12) - 1;
+            const range = minOct === maxOct ? `[Oct ${minOct}]` : `[Oct ${minOct}–${maxOct}]`;
+            el.textContent = `${notes.join('  ')}  ${range}`;
+        }
+
+        function handleMidiMessage(event) {
+            const [status, midiNote, velocity] = event.data;
+            const isNoteOn = (status & 0xf0) === 0x90 && velocity > 0;
+            const isNoteOff = (status & 0xf0) === 0x80 || ((status & 0xf0) === 0x90 && velocity === 0);
+
+            if (isNoteOn) {
+                const noteName = midiToNoteName(midiNote);
+                if (noteName) {
+                    activeMidi.set(midiNote, noteName);
+                    keyOn(noteName);
+                    updateMidiNotes();
+                }
+            } else if (isNoteOff) {
+                const noteName = activeMidi.get(midiNote);
+                if (noteName) {
+                    activeMidi.delete(midiNote);
+                    keyOff(noteName);
+                    updateMidiNotes();
+                }
             }
         }
 
@@ -256,7 +324,7 @@
                     const currentFrame = haps.filter((hap) => hap.isActive(time));
                     currentFrame.forEach(hap => {
                         if (hap.value && hap.value.note) {
-                            highlightKey(hap.value.note);
+                            flashKey(hap.value.note);
                         }
                     });
                     if (originalDraw) originalDraw(haps, time, painters);
@@ -299,36 +367,6 @@
                 updateMidi();
                 access.onstatechange = updateMidi;
             });
-        }
-
-        function handleMidiMessage(event) {
-            const [status, note, velocity] = event.data;
-            const isNoteOn = (status & 0xf0) === 0x90 && velocity > 0;
-            const noteEl = document.getElementById('midi-note');
-            if (isNoteOn) {
-                const noteName = midiToNoteNameLong(note);
-                if (noteName) {
-                    highlightKey(midiToNoteName(note));
-                    noteEl.textContent = noteName;
-                    noteEl.style.opacity = '1';
-                }
-            } else if (((status & 0xf0) === 0x80) || ((status & 0xf0) === 0x90 && velocity === 0)) {
-                noteEl.style.opacity = '0.3';
-            }
-        }
-
-        function midiToNoteName(note) {
-            const names = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
-            const oct = Math.floor(note / 12) - 1;
-            const name = names[note % 12];
-            if (oct < 3 || oct > 5) return null;
-            return `${name}${oct}`;
-        }
-
-        const NOTE_LABELS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-        function midiToNoteNameLong(note) {
-            const oct = Math.floor(note / 12) - 1;
-            return `${NOTE_LABELS[note % 12]}${oct}`;
         }
 
         window.showTab = (id) => {
