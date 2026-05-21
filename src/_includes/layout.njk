@@ -163,7 +163,8 @@
         </div>
         <h1 style="font-size: 1.3rem; margin: 0; color: var(--highlight); text-transform: uppercase;">{{ title }}</h1>
         <div class="controls">
-            <div id="midi-status" style="font-size: 0.8rem; color: #888; margin-right: 1rem;">MIDI: checking...</div>
+            <div id="midi-status" style="font-size: 0.8rem; color: #888; margin-right: 0.5rem;">MIDI: checking...</div>
+            <span id="midi-note" style="font-size: 1.2rem; font-weight: bold; color: var(--accent); min-width: 3rem; text-align: center;"></span>
             <button id="sidebar-toggle" title="Toggle Sidebar">☰</button>
         </div>
     </header>
@@ -303,9 +304,16 @@
         function handleMidiMessage(event) {
             const [status, note, velocity] = event.data;
             const isNoteOn = (status & 0xf0) === 0x90 && velocity > 0;
+            const noteEl = document.getElementById('midi-note');
             if (isNoteOn) {
-                const noteName = midiToNoteName(note);
-                if (noteName) highlightKey(noteName);
+                const noteName = midiToNoteNameLong(note);
+                if (noteName) {
+                    highlightKey(midiToNoteName(note));
+                    noteEl.textContent = noteName;
+                    noteEl.style.opacity = '1';
+                }
+            } else if (((status & 0xf0) === 0x80) || ((status & 0xf0) === 0x90 && velocity === 0)) {
+                noteEl.style.opacity = '0.3';
             }
         }
 
@@ -315,6 +323,12 @@
             const name = names[note % 12];
             if (oct < 3 || oct > 5) return null;
             return `${name}${oct}`;
+        }
+
+        const NOTE_LABELS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        function midiToNoteNameLong(note) {
+            const oct = Math.floor(note / 12) - 1;
+            return `${NOTE_LABELS[note % 12]}${oct}`;
         }
 
         window.showTab = (id) => {
