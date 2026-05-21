@@ -106,8 +106,9 @@
 
         #piano-container {
             flex-shrink: 0; background: var(--piano-bg); display: flex; 
-            justify-content: center; align-items: flex-end; padding: 25px 0;
+            justify-content: flex-start; align-items: flex-end; padding: 25px 10px;
             border-top: 3px solid var(--border);
+            overflow-x: auto;
         }
         .piano-key { 
             border: 1px solid #444; background: white; height: 110px; width: 35px; 
@@ -120,6 +121,8 @@
             border-color: #000;
         }
         .piano-key.active { background: #58a6ff !important; box-shadow: 0 0 20px #58a6ff; z-index: 3; }
+        .piano-key.dimmed { opacity: 0.35; }
+        .piano-key.dimmed.active { opacity: 1; }
         
         strudel-editor { display: block; height: 0; }
         a { color: var(--accent); text-decoration: none; }
@@ -205,6 +208,16 @@
     
     <strudel-editor id="preview-repl" style="position: absolute; visibility: hidden; width: 0; height: 0;"></strudel-editor>
 
+    <script type="application/json" id="device-config">
+    {
+        "id": "donner-n-32",
+        "name": "Donner N-32",
+        "range": { "low": 29, "high": 72 },
+        "noteCount": 32,
+        "description": "32-key mini keyboard, F2-C5"
+    }
+    </script>
+
     <script>
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('sidebar-toggle');
@@ -220,19 +233,24 @@
         };
 
         const piano = document.getElementById('piano-container');
-        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         const keys = {};
+        const deviceCfg = JSON.parse(document.getElementById('device-config').textContent);
 
-        for (let oct = 3; oct <= 5; oct++) {
-            notes.forEach(note => {
-                const key = document.createElement('div');
-                const isBlack = note.includes('#');
-                key.className = `piano-key ${isBlack ? 'black' : 'white'}`;
-                const noteFull = `${note.toLowerCase()}${oct}`.replace('#', 's');
-                key.id = `key-${noteFull}`;
-                piano.appendChild(key);
-                keys[noteFull] = key;
-            });
+        for (let midi = 21; midi <= 108; midi++) {
+            const oct = Math.floor(midi / 12) - 1;
+            const noteName = NOTES[midi % 12];
+            const isBlack = noteName.includes('#');
+            const fullName = `${noteName.toLowerCase()}${oct}`.replace('#', 's');
+            const key = document.createElement('div');
+            key.className = `piano-key ${isBlack ? 'black' : 'white'}`;
+            key.id = `key-${fullName}`;
+            key.dataset.midi = midi;
+            if (midi < deviceCfg.range.low || midi > deviceCfg.range.high) {
+                key.classList.add('dimmed');
+            }
+            piano.appendChild(key);
+            keys[fullName] = key;
         }
 
         const activeKeys = new Set();
@@ -265,7 +283,6 @@
         function midiToNoteName(midi) {
             const names = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
             const oct = Math.floor(midi / 12) - 1;
-            if (oct < 3 || oct > 5) return null;
             return `${names[midi % 12]}${oct}`;
         }
 
