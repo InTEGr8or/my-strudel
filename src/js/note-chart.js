@@ -18,7 +18,7 @@ class NoteChart extends HTMLElement {
         const SVG_W = 640;
         const LEFT_PAD = 80;
         const STAFF_R = SVG_W - 20;
-        const C4_Y = 200;
+        const PAD = 30;
 
         const noteAlpha = parseFloat(this._cssVar('--note-alpha')) || 0.2;
         const noteDAlpha = parseFloat(this._cssVar('--note-d-alpha')) || 0.4;
@@ -29,11 +29,11 @@ class NoteChart extends HTMLElement {
         const activeBg = this._cssVar('--abc-bg') || 'transparent';
         const staffColor = this._cssVar('--abc-text') || '#666';
 
-        const getY = (note, oct) => {
+        const halfStep = SPACING / 2;
+
+        const getRawY = (note, oct) => {
             const ni = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
-            const idx = oct * 7 + (ni[note] || 0);
-            const c4 = 4 * 7 + 0;
-            return C4_Y + (c4 - idx) * (SPACING / 2);
+            return (28 - (oct * 7 + (ni[note] || 0))) * halfStep;
         };
 
         const positions = [
@@ -60,9 +60,15 @@ class NoteChart extends HTMLElement {
             { note: 'F', oct: 5 },
         ];
 
-        const minY = getY('F', 5);
-        const maxY = getY('G', 2);
-        const SVG_H = maxY + 40;
+        let rMin = Infinity, rMax = -Infinity;
+        for (const p of positions) {
+            const y = getRawY(p.note, p.oct);
+            if (y < rMin) rMin = y;
+            if (y > rMax) rMax = y;
+        }
+        const shift = PAD - rMin;
+        const SVG_H = (rMax - rMin) + 2 * PAD;
+        const getY = (note, oct) => getRawY(note, oct) + shift;
 
         let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}" viewBox="0 0 ${SVG_W} ${SVG_H}">`;
         svg += `<rect width="100%" height="100%" fill="${activeBg}"/>`;
@@ -106,11 +112,13 @@ class NoteChart extends HTMLElement {
         const tBot = getY('E', 4);
         const tTop = getY('F', 5);
 
-        svg += `<text x="10" y="${(tBot + tTop)/2 + 30}" font-size="80" font-family="serif" fill="${staffColor}">𝄞</text>`;
-        svg += `<text x="10" y="${(bBot + bTop)/2 + 20}" font-size="70" font-family="serif" fill="${staffColor}">𝄢</text>`;
-
+        const tCenter = (tBot + tTop) / 2;
+        const bCenter = (bBot + bTop) / 2;
         const braceMid = (bTop + tBot) / 2;
-        svg += `<text x="48" y="${braceMid + 16}" font-size="70" font-family="serif" fill="${staffColor}">{</text>`;
+
+        svg += `<text x="10" y="${tCenter}" font-size="80" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
+        svg += `<text x="10" y="${bCenter}" font-size="70" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
+        svg += `<text x="48" y="${braceMid}" font-size="70" dy="0.35em" font-family="serif" fill="${staffColor}">{</text>`;
 
         const barX = LEFT_PAD + 80;
         svg += `<line x1="${barX}" y1="${bTop}" x2="${barX}" y2="${tBot}" stroke="${staffColor}" stroke-width="1" stroke-dasharray="3,3"/>`;
