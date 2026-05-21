@@ -104,9 +104,6 @@ class NoteChart extends HTMLElement {
             svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="1.5"/>`;
         }
 
-        const c4Y = getY('C', 4);
-        svg += `<line x1="${LEFT_PAD}" y1="${c4Y}" x2="${LEFT_PAD + 40}" y2="${c4Y}" stroke="${staffColor}" stroke-width="1.5"/>`;
-
         const bBot = getY('G', 2);
         const bTop = getY('A', 3);
         const tBot = getY('E', 4);
