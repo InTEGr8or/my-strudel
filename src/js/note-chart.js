@@ -117,9 +117,6 @@ class NoteChart extends HTMLElement {
         svg += `<text x="10" y="${bCenter}" font-size="70" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
         svg += `<text x="48" y="${braceMid}" font-size="70" dy="0.35em" font-family="serif" fill="${staffColor}">{</text>`;
 
-        const barX = LEFT_PAD + 80;
-        svg += `<line x1="${barX}" y1="${bTop}" x2="${barX}" y2="${tBot}" stroke="${staffColor}" stroke-width="1" stroke-dasharray="3,3"/>`;
-
         svg += `</svg>`;
         this.innerHTML = svg;
     }
