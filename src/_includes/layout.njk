@@ -285,13 +285,36 @@
             navigator.requestMIDIAccess().then(access => {
                 const updateMidi = () => {
                     const inputs = Array.from(access.inputs.values());
-                    document.getElementById('midi-status').textContent = inputs.length > 0 
-                        ? `MIDI: ${inputs[0].name}` 
-                        : "MIDI: Disconnected";
+                    const status = document.getElementById('midi-status');
+                    if (inputs.length > 0) {
+                        status.textContent = `MIDI: ${inputs[0].name}`;
+                        inputs.forEach(input => {
+                            input.onmidimessage = handleMidiMessage;
+                        });
+                    } else {
+                        status.textContent = "MIDI: Disconnected";
+                    }
                 }
                 updateMidi();
                 access.onstatechange = updateMidi;
             });
+        }
+
+        function handleMidiMessage(event) {
+            const [status, note, velocity] = event.data;
+            const isNoteOn = (status & 0xf0) === 0x90 && velocity > 0;
+            if (isNoteOn) {
+                const noteName = midiToNoteName(note);
+                if (noteName) highlightKey(noteName);
+            }
+        }
+
+        function midiToNoteName(note) {
+            const names = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
+            const oct = Math.floor(note / 12) - 1;
+            const name = names[note % 12];
+            if (oct < 3 || oct > 5) return null;
+            return `${name}${oct}`;
         }
 
         window.showTab = (id) => {
