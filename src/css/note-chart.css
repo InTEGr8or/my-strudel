@@ -13,13 +13,13 @@
 
 note-chart {
     display: block;
-    min-height: 160px;
 }
 
 note-chart svg {
     display: block;
     margin: 0 auto;
     max-width: none;
+    height: auto;
 }
 
 @media (prefers-color-scheme: dark) {

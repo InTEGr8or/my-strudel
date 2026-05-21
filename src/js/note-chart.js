@@ -1,9 +1,4 @@
 class NoteChart extends HTMLElement {
-    constructor() {
-        super();
-        this._notes = this._generateNotes();
-    }
-
     connectedCallback() {
         this.render();
     }
@@ -12,38 +7,18 @@ class NoteChart extends HTMLElement {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
 
-    _generateNotes() {
-        const notes = [];
-        notes.push({ note: 'A', octave: 0 });
-        notes.push({ note: 'B', octave: 0 });
-        for (let oct = 1; oct <= 7; oct++) {
-            for (const n of ['C', 'D', 'E', 'F', 'G', 'A', 'B']) {
-                notes.push({ note: n, octave: oct });
-            }
-        }
-        notes.push({ note: 'C', octave: 8 });
-        return notes;
-    }
-
-    _octaveBand(noteObj) {
-        if (noteObj.note === 'A' || noteObj.note === 'B') {
-            return noteObj.octave;
-        }
-        return noteObj.octave - 1;
-    }
-
-    _getY(note, oct) {
-        const noteIdx = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
-        const c4Idx = 4 * 7 + 0;
-        const thisIdx = oct * 7 + (noteIdx[note] || 0);
-        return 185 + (c4Idx - thisIdx) * 6;
+    _octaveBand(note, oct) {
+        if (note === 'A' || note === 'B') return oct;
+        return oct - 1;
     }
 
     render() {
-        const SPACING = 12;
-        const NOTE_W = 24;
-        const LEFT_PAD = 70;
-        const SVG_H = 350;
+        const SPACING = 18;
+        const BAND_H = SPACING;
+        const SVG_W = 640;
+        const LEFT_PAD = 80;
+        const STAFF_R = SVG_W - 20;
+        const C4_Y = 200;
 
         const noteAlpha = parseFloat(this._cssVar('--note-alpha')) || 0.2;
         const noteDAlpha = parseFloat(this._cssVar('--note-d-alpha')) || 0.4;
@@ -51,24 +26,52 @@ class NoteChart extends HTMLElement {
         for (let i = 0; i <= 8; i++) {
             octaveColors.push(this._cssVar(`--octave-${i}`) || '128, 128, 128');
         }
-
-        const total = this._notes.length;
-        const staffW = total * NOTE_W;
-        const svgW = LEFT_PAD + staffW + 20;
-        const staffRight = LEFT_PAD + staffW;
-
         const activeBg = this._cssVar('--abc-bg') || 'transparent';
         const staffColor = this._cssVar('--abc-text') || '#666';
 
-        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${SVG_H}" viewBox="0 0 ${svgW} ${SVG_H}">`;
+        const getY = (note, oct) => {
+            const ni = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+            const idx = oct * 7 + (ni[note] || 0);
+            const c4 = 4 * 7 + 0;
+            return C4_Y + (c4 - idx) * (SPACING / 2);
+        };
+
+        const positions = [
+            { note: 'G', oct: 2 },
+            { note: 'A', oct: 2 },
+            { note: 'B', oct: 2 },
+            { note: 'C', oct: 3 },
+            { note: 'D', oct: 3 },
+            { note: 'E', oct: 3 },
+            { note: 'F', oct: 3 },
+            { note: 'G', oct: 3 },
+            { note: 'A', oct: 3 },
+            { note: 'B', oct: 3 },
+            { note: 'C', oct: 4 },
+            { note: 'D', oct: 4 },
+            { note: 'E', oct: 4 },
+            { note: 'F', oct: 4 },
+            { note: 'G', oct: 4 },
+            { note: 'A', oct: 4 },
+            { note: 'B', oct: 4 },
+            { note: 'C', oct: 5 },
+            { note: 'D', oct: 5 },
+            { note: 'E', oct: 5 },
+            { note: 'F', oct: 5 },
+        ];
+
+        const minY = getY('F', 5);
+        const maxY = getY('G', 2);
+        const SVG_H = maxY + 40;
+
+        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}" viewBox="0 0 ${SVG_W} ${SVG_H}">`;
         svg += `<rect width="100%" height="100%" fill="${activeBg}"/>`;
 
-        for (let i = 0; i < total; i++) {
-            const n = this._notes[i];
-            const band = this._octaveBand(n);
-            const alpha = n.note === 'D' ? noteDAlpha : noteAlpha;
-            const x = LEFT_PAD + i * NOTE_W;
-            svg += `<rect x="${x}" y="0" width="${NOTE_W}" height="${SVG_H}" fill="rgba(${octaveColors[band]}, ${alpha})" />`;
+        for (const p of positions) {
+            const y = getY(p.note, p.oct);
+            const band = this._octaveBand(p.note, p.oct);
+            const alpha = p.note === 'D' ? noteDAlpha : noteAlpha;
+            svg += `<rect x="${LEFT_PAD}" y="${y - BAND_H/2}" width="${STAFF_R - LEFT_PAD}" height="${BAND_H}" fill="rgba(${octaveColors[band]}, ${alpha})"/>`;
         }
 
         const bassLines = [
@@ -87,59 +90,30 @@ class NoteChart extends HTMLElement {
         ];
 
         for (const l of bassLines) {
-            const y = this._getY(l.note, l.oct);
-            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${staffRight}" y2="${y}" stroke="${staffColor}" stroke-width="1.5"/>`;
+            const y = getY(l.note, l.oct);
+            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="1.5"/>`;
         }
         for (const l of trebleLines) {
-            const y = this._getY(l.note, l.oct);
-            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${staffRight}" y2="${y}" stroke="${staffColor}" stroke-width="1.5"/>`;
+            const y = getY(l.note, l.oct);
+            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="1.5"/>`;
         }
 
-        const c4Y = this._getY('C', 4);
-        svg += `<line x1="${LEFT_PAD}" y1="${c4Y}" x2="${LEFT_PAD + 35}" y2="${c4Y}" stroke="${staffColor}" stroke-width="1.5"/>`;
+        const c4Y = getY('C', 4);
+        svg += `<line x1="${LEFT_PAD}" y1="${c4Y}" x2="${LEFT_PAD + 40}" y2="${c4Y}" stroke="${staffColor}" stroke-width="1.5"/>`;
 
-        const lowLedgers = [
-            { note: 'E', oct: 2 },
-            { note: 'C', oct: 2 },
-            { note: 'A', oct: 1 },
-            { note: 'F', oct: 1 },
-            { note: 'D', oct: 1 },
-            { note: 'B', oct: 0 },
-        ];
-        for (const l of lowLedgers) {
-            const y = this._getY(l.note, l.oct);
-            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${LEFT_PAD + 30}" y2="${y}" stroke="${staffColor}" stroke-width="1.5"/>`;
-        }
+        const bBot = getY('G', 2);
+        const bTop = getY('A', 3);
+        const tBot = getY('E', 4);
+        const tTop = getY('F', 5);
 
-        const highLedgers = [
-            { note: 'A', oct: 5 },
-            { note: 'C', oct: 6 },
-            { note: 'E', oct: 6 },
-            { note: 'G', oct: 6 },
-            { note: 'B', oct: 6 },
-            { note: 'D', oct: 7 },
-            { note: 'F', oct: 7 },
-            { note: 'A', oct: 7 },
-            { note: 'C', oct: 8 },
-        ];
-        for (const l of highLedgers) {
-            const y = this._getY(l.note, l.oct);
-            svg += `<line x1="${staffRight - 30}" y1="${y}" x2="${staffRight}" y2="${y}" stroke="${staffColor}" stroke-width="1.5"/>`;
-        }
+        svg += `<text x="10" y="${(tBot + tTop)/2 + 30}" font-size="80" font-family="serif" fill="${staffColor}">𝄞</text>`;
+        svg += `<text x="10" y="${(bBot + bTop)/2 + 20}" font-size="70" font-family="serif" fill="${staffColor}">𝄢</text>`;
 
-        const trebleBot = this._getY('E', 4);
-        const trebleTop = this._getY('F', 5);
-        const bassBot = this._getY('G', 2);
-        const bassTop = this._getY('A', 3);
+        const braceMid = (bTop + tBot) / 2;
+        svg += `<text x="48" y="${braceMid + 16}" font-size="70" font-family="serif" fill="${staffColor}">{</text>`;
 
-        svg += `<text x="12" y="${(trebleBot + trebleTop) / 2 + 22}" font-size="65" font-family="serif" fill="${staffColor}">𝄞</text>`;
-        svg += `<text x="12" y="${(bassBot + bassTop) / 2 + 8}" font-size="55" font-family="serif" fill="${staffColor}">𝄢</text>`;
-
-        const braceY = (bassTop + trebleBot) / 2;
-        svg += `<text x="42" y="${braceY + 8}" font-size="60" font-family="serif" fill="${staffColor}">{</text>`;
-
-        const barX = LEFT_PAD + 75;
-        svg += `<line x1="${barX}" y1="${bassTop}" x2="${barX}" y2="${trebleBot}" stroke="${staffColor}" stroke-width="1" stroke-dasharray="3,3"/>`;
+        const barX = LEFT_PAD + 80;
+        svg += `<line x1="${barX}" y1="${bTop}" x2="${barX}" y2="${tBot}" stroke="${staffColor}" stroke-width="1" stroke-dasharray="3,3"/>`;
 
         svg += `</svg>`;
         this.innerHTML = svg;
@@ -147,18 +121,15 @@ class NoteChart extends HTMLElement {
 
     highlightOctave(index) {
         const noteAlpha = parseFloat(this._cssVar('--note-alpha')) || 0.2;
-        const band = index;
         this.querySelectorAll('rect').forEach((r, i) => {
             if (i > 0) {
-                const n = this._notes[i - 1];
-                if (n && this._octaveBand(n) === band) {
+                const pIdx = i - 1;
+                const pos = this._positions[pIdx];
+                if (pos && this._octaveBand(pos.note, pos.oct) === index) {
                     r.setAttribute('fill-opacity', noteAlpha * 3);
                 }
             }
         });
-    }
-
-    highlightNote(noteFull) {
     }
 }
 
