@@ -123,6 +123,102 @@ class NoteChart extends HTMLElement {
 
         svg += `</svg>`;
         this.innerHTML = svg;
+
+        this._ctx = { getY, LEFT_PAD, STAFF_R, scale, staffColor, SPACING };
+    }
+
+    _noteY(note, oct) {
+        const ni = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+        const halfStep = this._ctx.SPACING / 2;
+        const raw = (28 - (oct * 7 + (ni[note] || 0))) * halfStep;
+        const getY = this._ctx.getY;
+        if (getY) return getY(note, oct);
+        return raw;
+    }
+
+    clearNoteHeads() {
+        const g = this.querySelector('#note-heads');
+        if (g) g.innerHTML = '';
+    }
+
+    renderNoteHead(noteName, type) {
+        const match = noteName.match(/^([a-g])(s?)(\d+)$/);
+        if (!match) return;
+        const note = match[1].toUpperCase();
+        const oct = parseInt(match[3], 10);
+        const ctx = this._ctx;
+        if (!ctx) return;
+        const { getY, LEFT_PAD, STAFF_R, scale, staffColor, SPACING } = ctx;
+
+        const cx = (LEFT_PAD + STAFF_R) / 2;
+        const y = getY(note, oct);
+        const headW = SPACING * 0.9;
+        const headH = SPACING * 0.65;
+        const stemLen = SPACING * 3.5;
+
+        let g = this.querySelector('#note-heads');
+        if (!g) {
+            g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('id', 'note-heads');
+            this.querySelector('svg').appendChild(g);
+        }
+        const svgNs = 'http://www.w3.org/2000/svg';
+        const el = document.createElementNS(svgNs, 'g');
+
+        // ledger lines for notes outside the visible G2–F5 range
+        const ni = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+        const isBelow = oct < 2 || (oct === 2 && (ni[note] || 0) < 4);
+        const isAbove = oct > 5 || (oct === 5 && (ni[note] || 0) > 3);
+        const isMiddleC = oct === 4 && note === 'C';
+        if (isBelow || isAbove || isMiddleC) {
+            const line = document.createElementNS(svgNs, 'line');
+            line.setAttribute('x1', cx - SPACING * 1.2);
+            line.setAttribute('y1', y);
+            line.setAttribute('x2', cx + SPACING * 1.2);
+            line.setAttribute('y2', y);
+            line.setAttribute('stroke', staffColor);
+            line.setAttribute('stroke-width', 1 * scale);
+            el.appendChild(line);
+        }
+
+        // note head
+        const head = document.createElementNS(svgNs, 'ellipse');
+        head.setAttribute('cx', cx);
+        head.setAttribute('cy', y);
+        head.setAttribute('rx', headW / 2);
+        head.setAttribute('ry', headH / 2);
+        head.setAttribute('transform', `rotate(-15, ${cx}, ${y})`);
+
+        if (type === 'correct') {
+            head.setAttribute('fill', '#28a745');
+            head.setAttribute('stroke', '#28a745');
+            head.setAttribute('stroke-width', 1.5 * scale);
+        } else if (type === 'ghost') {
+            head.setAttribute('fill', 'none');
+            head.setAttribute('stroke', staffColor);
+            head.setAttribute('stroke-width', 1.5 * scale);
+            head.setAttribute('stroke-dasharray', `${3 * scale} ${2 * scale}`);
+        } else {
+            head.setAttribute('fill', staffColor);
+            head.setAttribute('stroke', staffColor);
+            head.setAttribute('stroke-width', 1 * scale);
+        }
+        el.appendChild(head);
+
+        // stem
+        const stem = document.createElementNS(svgNs, 'line');
+        stem.setAttribute('x1', cx + headW / 2);
+        stem.setAttribute('y1', y);
+        stem.setAttribute('x2', cx + headW / 2);
+        stem.setAttribute('y2', y - stemLen);
+        stem.setAttribute('stroke', type === 'ghost' ? staffColor : (type === 'correct' ? '#28a745' : staffColor));
+        stem.setAttribute('stroke-width', 1.5 * scale);
+        if (type === 'ghost') {
+            stem.setAttribute('stroke-dasharray', `${3 * scale} ${2 * scale}`);
+        }
+        el.appendChild(stem);
+
+        g.appendChild(el);
     }
 
     highlightOctave(index) {

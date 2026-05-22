@@ -378,6 +378,8 @@
             el.textContent = notes.join('  ');
         }
 
+        window.__midiObservers = [];
+
         function handleMidiMessage(event) {
             const [status, midiNote, velocity] = event.data;
             const isNoteOn = (status & 0xf0) === 0x90 && velocity > 0;
@@ -401,6 +403,7 @@
                     updateMidiNotes();
                 }
             }
+            __midiObservers.forEach(fn => fn(midiNote, isNoteOn, isNoteOff));
         }
 
         const repl = document.getElementById('strudel-repl');
