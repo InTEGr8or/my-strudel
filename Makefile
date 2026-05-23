@@ -11,8 +11,8 @@ help: ## Display this help screen
 run: ## Start the dev server
 	@npm start
 
-test: ## Run the tests
-	@npm test
+test: ## Run the e2e tests
+	@npx playwright test
 
 build: ## Build the project
 	@npm run build
