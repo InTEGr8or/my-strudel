@@ -27,6 +27,10 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     font-size: 0.9rem;
     color: var(--text);
     opacity: 0.8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
 }
 .score-item strong {
     display: block;
@@ -42,8 +46,6 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     font-weight: bold;
     color: var(--accent);
 }
-#trainer-status.wrong { color: #dc3545; }
-#trainer-status.correct { color: #28a745; }
 </style>
 
 <div id="trainer-status">Play the highlighted note to begin!</div>
@@ -55,6 +57,14 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     <div class="score-item wrong">
         Wrong
         <strong id="score-wrong">0</strong>
+    </div>
+    <div class="score-item">
+        Notes at once
+        <select id="trainer-chord">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
     </div>
     <select id="trainer-range">
         <option value="full">Grand Staff (G2–F5)</option>
@@ -70,15 +80,21 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     const scoreEl = document.getElementById('score-correct');
     const wrongEl = document.getElementById('score-wrong');
     const rangeEl = document.getElementById('trainer-range');
+    const chordEl = document.getElementById('trainer-chord');
 
-    const VISIBLE = 7;
     const SCALE = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
     const SCALE_MIDI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+    const MIDI_NAMES = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
 
     let correct = 0, wrong = 0;
-    let window = [];
-    let currentIdx = 0;
+    let windowNotes = [];
     let busy = false;
+    let ghostEl = null;
+
+    function midiToNatural(midi) {
+        const oct = Math.floor(midi / 12) - 1;
+        return MIDI_NAMES[midi % 12] + oct;
+    }
 
     function naturalToMidi(note, oct) {
         return (oct + 1) * 12 + SCALE_MIDI[note];
@@ -105,16 +121,14 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         return pool[Math.floor(Math.random() * pool.length)];
     }
 
-    // Musical pattern generator: diatonic stepwise melody
     function generateNext() {
         const pool = getRange();
-        if (window.length === 0) return pickRandomNote();
+        if (windowNotes.length === 0) return pickRandomNote();
 
-        const prev = window[window.length - 1];
+        const prev = windowNotes[windowNotes.length - 1];
         const prevIdx = SCALE.indexOf(prev.note);
         if (prevIdx === -1) return pickRandomNote();
 
-        // try up to 10 times to find a valid note in range
         for (let attempt = 0; attempt < 15; attempt++) {
             const r = Math.random();
             let step;
@@ -136,7 +150,6 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
             const rangeMax = posToMidi(pool[pool.length - 1]);
 
             if (midi >= rangeMin && midi <= rangeMax) {
-                // slightly favour changing direction to avoid staircasing
                 return candidate;
             }
         }
@@ -144,8 +157,9 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     }
 
     function fillWindow() {
-        while (window.length < VISIBLE + 5) {
-            window.push(generateNext());
+        const chordSize = parseInt(chordEl.value, 10);
+        while (windowNotes.length < chordSize + 3) {
+            windowNotes.push(generateNext());
         }
     }
 
@@ -153,17 +167,15 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         chart.clearNoteHeads();
         const ctx = chart._ctx;
         if (!ctx) return;
+        const chordSize = parseInt(chordEl.value, 10);
         const staffW = ctx.STAFF_R - ctx.LEFT_PAD - 60;
-        const spacing = staffW / (VISIBLE + 1);
+        const spacing = staffW / (chordSize + 1);
         const offset = 30;
 
-        for (let i = 0; i < VISIBLE && i < window.length; i++) {
-            const pos = window[i];
+        for (let i = 0; i < chordSize && i < windowNotes.length; i++) {
+            const pos = windowNotes[i];
             const cx = ctx.LEFT_PAD + offset + spacing * (i + 1);
-            let type;
-            if (i < currentIdx) type = 'correct';
-            else if (i === currentIdx) type = 'target';
-            else type = 'pending';
+            const type = i === 0 ? 'target' : 'pending';
             chart.renderNoteHead(noteName(pos), type, cx);
         }
     }
@@ -172,26 +184,19 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         busy = false;
         correct = 0;
         wrong = 0;
-        window = [];
-        currentIdx = 0;
+        windowNotes = [];
+        removeGhost();
         fillWindow();
         renderWindow();
         statusEl.textContent = 'Play the highlighted note!';
-        statusEl.className = '';
         updateScore();
     }
 
-    function advance() {
-        currentIdx++;
-        if (currentIdx >= VISIBLE) {
-            // slide window forward
-            window.splice(0, Math.floor(VISIBLE / 2));
-            currentIdx -= Math.floor(VISIBLE / 2);
-            fillWindow();
-        }
+    function shiftWindow() {
+        windowNotes.shift();
+        fillWindow();
         renderWindow();
         statusEl.textContent = '';
-        statusEl.className = '';
     }
 
     function updateScore() {
@@ -199,34 +204,52 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         wrongEl.textContent = wrong;
     }
 
+    function removeGhost() {
+        if (ghostEl) {
+            ghostEl.remove();
+            ghostEl = null;
+        }
+    }
+
     function handleCorrect() {
         if (busy) return;
         busy = true;
         correct++;
-        statusEl.textContent = '✓';
-        statusEl.className = 'correct';
         updateScore();
+
+        // flash green briefly, then shift
+        const ctx = chart._ctx;
+        const staffW = ctx.STAFF_R - ctx.LEFT_PAD - 60;
+        const spacing = staffW / (parseInt(chordEl.value, 10) + 1);
+        const cx = ctx.LEFT_PAD + 30 + spacing;
+        chart.renderNoteHead(noteName(windowNotes[0]), 'correct', cx);
+
+        statusEl.textContent = '✓';
         setTimeout(function () {
             busy = false;
-            advance();
-        }, 300);
+            shiftWindow();
+        }, 200);
     }
 
-    function handleWrong() {
+    function handleWrong(midiPlayed) {
         if (busy) return;
         busy = true;
         wrong++;
-        const pos = window[currentIdx];
-        chart.renderNoteHead(noteName(pos), 'ghost');
-        statusEl.textContent = '✗ Try again';
-        statusEl.className = 'wrong';
         updateScore();
-        setTimeout(function () {
-            busy = false;
-            renderWindow();
-            statusEl.textContent = '';
-            statusEl.className = '';
-        }, 800);
+
+        // show ghost at the wrong note's staff position
+        const name = midiToNatural(midiPlayed);
+        const naturalName = name.replace('s', '');
+        const ctx = chart._ctx;
+        const staffW = ctx.STAFF_R - ctx.LEFT_PAD - 60;
+        const spacing = staffW / (parseInt(chordEl.value, 10) + 1);
+        const cx = ctx.LEFT_PAD + 30 + spacing;
+
+        chart.clearNoteHeads();
+        renderWindow();
+        chart.renderNoteHead(naturalName, 'ghost', cx);
+
+        statusEl.textContent = '✗';
     }
 
     function init() {
@@ -235,18 +258,27 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
             return;
         }
         window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
-            if (!isNoteOn || currentIdx >= window.length || busy) return;
-            const target = window[currentIdx];
-            if (midiNote === posToMidi(target)) {
-                handleCorrect();
-            } else {
-                handleWrong();
+            if (isNoteOn) {
+                if (windowNotes.length === 0 || busy) return;
+                const target = windowNotes[0];
+                if (midiNote === posToMidi(target)) {
+                    handleCorrect();
+                } else {
+                    handleWrong(midiNote);
+                }
+            } else if (isNoteOff) {
+                if (ghostEl) {
+                    removeGhost();
+                    busy = false;
+                    renderWindow();
+                }
             }
         });
         startExercise();
     }
 
     rangeEl.addEventListener('change', startExercise);
+    chordEl.addEventListener('change', startExercise);
 
     setTimeout(init, 0);
 })();

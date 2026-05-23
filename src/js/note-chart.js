@@ -152,8 +152,8 @@ class NoteChart extends HTMLElement {
 
         const centerX = cx !== undefined ? cx : (LEFT_PAD + STAFF_R) / 2;
         const y = getY(note, oct);
-        const headW = SPACING * 0.9;
-        const headH = SPACING * 0.65;
+        const headW = SPACING * 1.2;
+        const headH = SPACING * 0.75;
         const stemLen = SPACING * 3.5;
 
         let g = this.querySelector('#note-heads');
@@ -189,7 +189,13 @@ class NoteChart extends HTMLElement {
         head.setAttribute('ry', headH / 2);
         head.setAttribute('transform', `rotate(-15, ${centerX}, ${y})`);
 
-        if (type === 'correct') {
+        const accentColor = this._cssVar('--accent') || '#005cc5';
+
+        if (type === 'target') {
+            head.setAttribute('fill', accentColor);
+            head.setAttribute('stroke', accentColor);
+            head.setAttribute('stroke-width', 2 * scale);
+        } else if (type === 'correct') {
             head.setAttribute('fill', '#28a745');
             head.setAttribute('stroke', '#28a745');
             head.setAttribute('stroke-width', 1.5 * scale);
@@ -211,7 +217,9 @@ class NoteChart extends HTMLElement {
         el.appendChild(head);
 
         // stem
-        const stemColor = type === 'correct' ? '#28a745' : staffColor;
+        let stemColor = staffColor;
+        if (type === 'target') stemColor = accentColor;
+        else if (type === 'correct') stemColor = '#28a745';
         const stem = document.createElementNS(svgNs, 'line');
         stem.setAttribute('x1', centerX + headW / 2);
         stem.setAttribute('y1', y);
