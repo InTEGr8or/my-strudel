@@ -1,6 +1,7 @@
 ---
 title: Sight Reading Trainer
 type: trainer
+description: Practice reading notes on the grand staff with your MIDI keyboard. Notes highlight green on correct, ghost on wrong.
 ---
 
 <style>

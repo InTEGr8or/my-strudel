@@ -16,10 +16,14 @@
         }
         h1 { border-bottom: 1px solid #333; padding-bottom: 1rem; margin-bottom: 2rem; }
         
-        .song-grid {
+        .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
             gap: 2rem;
+        }
+
+        .card-grid.compact {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         }
 
         .song-card {
@@ -32,6 +36,49 @@
             height: 450px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
+
+        .activity-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .activity-card .title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        .activity-card .desc {
+            font-size: 0.9rem;
+            color: #888;
+            line-height: 1.5;
+            flex: 1;
+        }
+        .activity-card .open-btn {
+            align-self: flex-start;
+            background: #005cc5;
+            border: none;
+            color: white;
+            padding: 0.4rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        .activity-card .open-btn:hover { filter: brightness(1.2); }
+
+        .section-heading {
+            font-size: 1.3rem;
+            color: #888;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #333;
+        }
+        .section-heading:first-of-type { margin-top: 0; }
 
         .song-card-header {
             background: #252525;
@@ -66,8 +113,9 @@
 </head>
 <body>
     <h1>My Strudel Dashboard</h1>
-    
-    <div class="song-grid">
+
+    <h2 class="section-heading">Songs</h2>
+    <div class="card-grid">
     {%- set songCount = 0 -%}
     {%- for item in collections.all -%}
       {%- if item.data.strudelCode and item.url -%}
@@ -85,6 +133,21 @@
                 <template id="code-{{ songCount }}">{{ item.data.strudelCode | safe }}</template>
                 <strudel-editor id="repl-{{ songCount }}"></strudel-editor>
             </div>
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+    </div>
+
+    <h2 class="section-heading">Activities</h2>
+    <div class="card-grid compact">
+    {%- for item in collections.all -%}
+      {%- if item.data.type and item.data.type !== 'song' and not item.data.strudelCode and item.url -%}
+        <div class="activity-card">
+            <div class="title">{{ item.data.title }}</div>
+            {%- if item.data.description -%}
+            <div class="desc">{{ item.data.description }}</div>
+            {%- endif -%}
+            <a href="{{ item.url }}" class="open-btn">Open ↗</a>
         </div>
       {%- endif -%}
     {%- endfor -%}

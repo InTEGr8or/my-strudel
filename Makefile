@@ -8,11 +8,11 @@ help: ## Display this help screen
 # Application Tasks
 # ==============================================================================
 
-run: ## Start the server and tail the log
-	@eleventy --serve
+run: ## Start the dev server
+	@npx eleventy --serve
 
 test: ## Run the tests
 	@npm test
 
 build: ## Build the project
-	@npm build
+	@npm run build
