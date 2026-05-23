@@ -9,7 +9,7 @@ help: ## Display this help screen
 # ==============================================================================
 
 run: ## Start the dev server
-	@npx eleventy --serve
+	@npm start
 
 test: ## Run the tests
 	@npm test
