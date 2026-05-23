@@ -5,6 +5,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 ---
 
 <style>
+#play-btn, #stop-btn { display: none; }
 #trainer-panel {
     display: flex;
     justify-content: center;
@@ -49,7 +50,6 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     opacity: 1;
 }
 .score-item.wrong strong { color: #dc3545; }
-.score-item.streak strong { color: var(--highlight); }
 #trainer-status {
     text-align: center;
     min-height: 1.8rem;
@@ -59,6 +59,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 }
 #trainer-status.wrong { color: #dc3545; }
 #trainer-status.correct { color: #28a745; }
+#trainer-status.done { color: var(--highlight); }
 </style>
 
 <div id="trainer-status">Press a key to begin!</div>
@@ -71,16 +72,11 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         Wrong
         <strong id="score-wrong">0</strong>
     </div>
-    <div class="score-item streak">
-        Streak
-        <strong id="score-streak">0</strong>
-    </div>
     <select id="trainer-range">
         <option value="full">Grand Staff (G2–F5)</option>
         <option value="treble">Treble Clef (E4–F5)</option>
         <option value="bass">Bass Clef (G2–A3)</option>
     </select>
-    <button id="btn-next">Next Note</button>
 </div>
 
 <script>
@@ -91,14 +87,13 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     const statusEl = document.getElementById('trainer-status');
     const scoreEl = document.getElementById('score-correct');
     const wrongEl = document.getElementById('score-wrong');
-    const streakEl = document.getElementById('score-streak');
     const rangeEl = document.getElementById('trainer-range');
-    const nextBtn = document.getElementById('btn-next');
 
+    const SEQ_LEN = 6;
     const NATURAL_MIDI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-    let correct = 0, wrong = 0, streak = 0;
-    let targetPos = null;
-    let targetMidi = null;
+    let correct = 0, wrong = 0;
+    let sequence = [];
+    let currentIdx = 0;
     let busy = false;
 
     function naturalToMidi(note, oct) {
@@ -122,75 +117,113 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         return pos.note.toLowerCase() + pos.oct;
     }
 
-    function showTarget(pos) {
+    function generateSequence() {
+        const seq = [];
+        for (let i = 0; i < SEQ_LEN; i++) {
+            seq.push(pickRandomNote());
+        }
+        return seq;
+    }
+
+    function renderSequence() {
         chart.clearNoteHeads();
-        chart.renderNoteHead(noteName(pos), 'target');
-        targetPos = pos;
-        targetMidi = naturalToMidi(pos.note, pos.oct);
-        statusEl.textContent = '';
+        const ctx = chart._ctx;
+        if (!ctx) return;
+        const staffW = ctx.STAFF_R - ctx.LEFT_PAD;
+        const spacing = staffW / (SEQ_LEN + 1);
+
+        sequence.forEach((pos, i) => {
+            const cx = ctx.LEFT_PAD + spacing * (i + 1);
+            let type;
+            if (i < currentIdx) {
+                type = 'correct';
+            } else if (i === currentIdx) {
+                type = 'target';
+            } else {
+                type = 'pending';
+            }
+            chart.renderNoteHead(noteName(pos), type, cx);
+        });
+    }
+
+    function startSequence() {
+        busy = false;
+        sequence = generateSequence();
+        currentIdx = 0;
+        renderSequence();
+        statusEl.textContent = 'Play the highlighted note';
         statusEl.className = '';
     }
 
-    function nextNote() {
-        busy = false;
-        showTarget(pickRandomNote());
+    function advanceSequence() {
+        currentIdx++;
+        if (currentIdx >= sequence.length) {
+            statusEl.textContent = '✓ Sequence complete! New one coming...';
+            statusEl.className = 'done';
+            renderSequence();
+            setTimeout(startSequence, 1500);
+        } else {
+            renderSequence();
+            statusEl.textContent = '';
+            statusEl.className = '';
+        }
     }
 
     function updateScore() {
         scoreEl.textContent = correct;
         wrongEl.textContent = wrong;
-        streakEl.textContent = streak;
     }
 
     function handleCorrect() {
         if (busy) return;
         busy = true;
         correct++;
-        streak++;
-        chart.clearNoteHeads();
-        chart.renderNoteHead(noteName(targetPos), 'correct');
-        statusEl.textContent = '✓ Correct!';
+        statusEl.textContent = '✓';
         statusEl.className = 'correct';
         updateScore();
-        setTimeout(nextNote, 600);
+        renderSequence();
+        setTimeout(function () {
+            busy = false;
+            advanceSequence();
+        }, 400);
     }
 
-    function handleWrong(midiPlayed) {
+    function handleWrong() {
         if (busy) return;
         busy = true;
         wrong++;
-        streak = 0;
-        chart.clearNoteHeads();
-        chart.renderNoteHead(noteName(targetPos), 'ghost');
+        chart.renderNoteHead(noteName(sequence[currentIdx]), 'ghost');
         statusEl.textContent = '✗ Try again';
         statusEl.className = 'wrong';
         updateScore();
-        setTimeout(nextNote, 1000);
+        setTimeout(function () {
+            busy = false;
+            renderSequence();
+            statusEl.textContent = '';
+            statusEl.className = '';
+        }, 800);
     }
 
     function init() {
-        if (!window.__midiObservers || !chart || !chart._positions) {
+        if (!window.__midiObservers || !chart || !chart._positions || !chart._ctx) {
             setTimeout(init, 20);
             return;
         }
         window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
-            if (!isNoteOn || targetMidi === null || busy) return;
+            if (!isNoteOn || currentIdx >= sequence.length || busy) return;
+            const target = sequence[currentIdx];
+            const targetMidi = naturalToMidi(target.note, target.oct);
             if (midiNote === targetMidi) {
                 handleCorrect();
             } else {
-                handleWrong(midiNote);
+                handleWrong();
             }
         });
-        nextNote();
+        startSequence();
     }
 
     rangeEl.addEventListener('change', function () {
-        nextNote();
-    });
-
-    nextBtn.addEventListener('click', function () {
-        busy = false;
-        nextNote();
+        startSequence();
     });
 
     setTimeout(init, 0);
