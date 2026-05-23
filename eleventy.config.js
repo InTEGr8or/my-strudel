@@ -10,6 +10,7 @@ module.exports = function (eleventyConfig) {
 
   eleventyConfig.addPassthroughCopy({ 'src/js': 'js' });
   eleventyConfig.addPassthroughCopy({ 'src/css': 'css' });
+  eleventyConfig.addPassthroughCopy({ 'src/soundfonts': 'soundfonts' });
 
   // Add the base plugin to handle GitHub Pages subpaths
   const { EleventyHtmlBasePlugin } = require("@11ty/eleventy");

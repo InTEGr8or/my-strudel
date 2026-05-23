@@ -114,17 +114,21 @@ class NoteChart extends HTMLElement {
         const tTop = getY('F', 5);
 
         const tCenter = (tBot + tTop) / 2;
-        const bCenter = (bBot + bTop) / 2;
+        const bassClefY = getY('F', 3);
         const braceMid = (bTop + tBot) / 2;
 
         svg += `<text x="10" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
-        svg += `<text x="10" y="${bCenter}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
-        svg += `<text x="${48 * scale}" y="${braceMid}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">{</text>`;
+        svg += `<text x="10" y="${bassClefY}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
+        const fDotX = 48 * scale;
+        const fDotR = 3 * scale;
+        svg += `<circle cx="${fDotX}" cy="${getY('G', 3)}" r="${fDotR}" fill="${staffColor}"/>`;
+        svg += `<circle cx="${fDotX}" cy="${getY('E', 3)}" r="${fDotR}" fill="${staffColor}"/>`;
+        svg += `<text x="${fDotX + 6 * scale}" y="${braceMid}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">{</text>`;
 
         svg += `</svg>`;
         this.innerHTML = svg;
 
-        this._ctx = { getY, LEFT_PAD, STAFF_R, scale, staffColor, SPACING };
+        this._ctx = { getY, LEFT_PAD, STAFF_R, scale, staffColor, SPACING, SVG_H };
     }
 
     _noteY(note, oct) {
@@ -164,6 +168,7 @@ class NoteChart extends HTMLElement {
         }
         const svgNs = 'http://www.w3.org/2000/svg';
         const el = document.createElementNS(svgNs, 'g');
+        el.style.transition = 'transform 150ms ease-out';
 
         // ledger lines for notes outside the visible G2–F5 range
         const ni = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
@@ -236,6 +241,31 @@ class NoteChart extends HTMLElement {
         el.appendChild(stem);
 
         g.appendChild(el);
+        return el;
+    }
+
+    renderBarLine(x) {
+        const ctx = this._ctx;
+        if (!ctx) return;
+        const { getY, staffColor, scale } = ctx;
+        const svgNs = 'http://www.w3.org/2000/svg';
+        const barline = document.createElementNS(svgNs, 'line');
+        const y1 = getY('G', 2);
+        const y2 = getY('F', 5);
+        barline.setAttribute('x1', x);
+        barline.setAttribute('y1', y1);
+        barline.setAttribute('x2', x);
+        barline.setAttribute('y2', y2);
+        barline.setAttribute('stroke', staffColor);
+        barline.setAttribute('stroke-width', 1.5 * scale);
+        barline.style.transition = 'transform 150ms ease-out';
+        let g = this.querySelector('#note-heads');
+        if (!g) {
+            g = document.createElementNS(svgNs, 'g');
+            g.setAttribute('id', 'note-heads');
+            this.querySelector('svg').appendChild(g);
+        }
+        g.appendChild(barline);
     }
 
     highlightOctave(index) {

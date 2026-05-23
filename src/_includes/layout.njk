@@ -199,11 +199,11 @@
         
         <aside id="sidebar">
             <div class="tabs">
-                <div class="tab active" onclick="showTab('sounds')">Sounds</div>
-                <div class="tab" onclick="showTab('synth')">Synth</div>
-                <div class="tab" onclick="showTab('ref')">Ref</div>
+                <div class="tab" data-tab="sounds" onclick="showTab('sounds')">Sounds</div>
+                <div class="tab" data-tab="synth" onclick="showTab('synth')">Synth</div>
+                <div class="tab" data-tab="ref" onclick="showTab('ref')">Ref</div>
             </div>
-            <div id="sounds" class="tab-content active">
+            <div id="sounds" class="tab-content">
                 <p style="font-size: 1rem; color: #888; margin-top: 0;">Tap to hear!</p>
                 <code onclick="previewSound('bd')">bd</code>
                 <code onclick="previewSound('sd')">sd</code>
@@ -213,7 +213,8 @@
             </div>
             <div id="synth" class="tab-content">
                 <p style="font-size: 1rem; color: #888; margin-top: 0;">MIDI voice:</p>
-                <code class="synth-voice active" data-voice="grand-piano" onclick="selectVoice('grand-piano')">Grand Piano</code>
+                <code class="synth-voice" data-voice="grand-piano" onclick="selectVoice('grand-piano')">Grand Piano <span id="piano-status" style="font-size:0.7em;"></span></code>
+                <code class="synth-voice" data-voice="epiano" onclick="selectVoice('epiano')">Roland EP <span id="epiano-status" style="font-size:0.7em;"></span></code>
                 <code class="synth-voice" data-voice="triangle" onclick="selectVoice('triangle')">Triangle</code>
                 <code class="synth-voice" data-voice="sine" onclick="selectVoice('sine')">Sine</code>
                 <code class="synth-voice" data-voice="sawtooth" onclick="selectVoice('sawtooth')">Sawtooth</code>
@@ -323,54 +324,158 @@
             return 440 * Math.pow(2, (midi - 69) / 12);
         }
 
-        const VOICES = {
-            'grand-piano': { type: 'piano', label: 'Grand Piano' },
-            'triangle': { type: 'triangle', label: 'Triangle' },
-            'sine': { type: 'sine', label: 'Sine' },
-            'sawtooth': { type: 'sawtooth', label: 'Sawtooth' },
-            'square': { type: 'square', label: 'Square' },
-        };
-        let selectedVoice = 'grand-piano';
-        window.selectVoice = (id) => {
-            selectedVoice = id;
-            document.querySelectorAll('.synth-voice').forEach(el => el.classList.toggle('active', el.dataset.voice === id));
+        let midiAudioCtx = null;
+        const fontCache = {};
+
+        async function loadFontData(name) {
+            if (fontCache[name]) return fontCache[name];
+            const text = await fetch(`/soundfonts/${name}.js`).then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.text();
+            });
+            const [, data] = text.split('={');
+            const preset = eval('{' + data);
+            fontCache[name] = preset;
+            return preset;
+        }
+
+        function findZone(preset, pitch) {
+            return preset.find(z => z.keyRangeLow <= pitch && z.keyRangeHigh + 1 >= pitch);
+        }
+
+        function decodeBuffer(zone, ac) {
+            if (!zone.file) throw new Error('no audio data');
+            const decoded = atob(zone.file);
+            const buf = new ArrayBuffer(decoded.length);
+            const view = new Uint8Array(buf);
+            for (let i = 0; i < decoded.length; i++) view[i] = decoded.charCodeAt(i);
+            return new Promise((resolve, reject) => {
+                ac.decodeAudioData(buf, resolve, reject);
+            });
+        }
+
+        function sfStatus(type, ok) {
+            const el = document.getElementById(type === 'piano' ? 'piano-status' : 'epiano-status');
+            if (el) { el.textContent = ok ? '✓' : '⚠'; el.style.color = ok ? '#28a745' : '#dc3545'; }
+        }
+
+        const SF_FONTS = {
+            'grand-piano': '0000_JCLive_sf2_file',
+            'epiano': '0050_JCLive_sf2_file',
         };
 
-        let midiAudioCtx = null;
+        // probe one font on load to set status
+        (async () => {
+            try {
+                await loadFontData(SF_FONTS['grand-piano']);
+                sfStatus('piano', true);
+                sfStatus('epiano', true);
+            } catch (_) {
+                sfStatus('piano', false);
+                sfStatus('epiano', false);
+            }
+        })();
+
+        async function playFromLocalSoundfont(midiNote, vol, voiceType) {
+            const fontName = SF_FONTS[voiceType];
+            if (!fontName) throw new Error(`unknown voice ${voiceType}`);
+            const preset = await loadFontData(fontName);
+            const zone = findZone(preset, midiNote);
+            if (!zone) throw new Error(`no zone for MIDI ${midiNote} in ${fontName}`);
+            const buffer = await decodeBuffer(zone, midiAudioCtx);
+            const src = midiAudioCtx.createBufferSource();
+            src.buffer = buffer;
+            const baseDetune = zone.originalPitch - 100 * zone.coarseTune - zone.fineTune;
+            src.playbackRate.value = Math.pow(2, (100 * midiNote - baseDetune) / 1200);
+            const gain = midiAudioCtx.createGain();
+            gain.gain.setValueAtTime(vol, midiAudioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 2);
+            src.connect(gain);
+            gain.connect(midiAudioCtx.destination);
+            src.start(midiAudioCtx.currentTime);
+            src.stop(midiAudioCtx.currentTime + 2);
+        }
+
+        function playOscillator(midiNote, vol, type) {
+            const freq = midiToFreq(midiNote);
+            const osc = midiAudioCtx.createOscillator();
+            const gain = midiAudioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(vol, midiAudioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 0.8);
+            osc.connect(gain);
+            gain.connect(midiAudioCtx.destination);
+            osc.start();
+            osc.stop(midiAudioCtx.currentTime + 0.8);
+        }
+
+        function playFallbackPiano(midiNote, vol) {
+            const freq = midiToFreq(midiNote);
+            [1, 1.003, 0.997].forEach((detune, i) => {
+                const osc = midiAudioCtx.createOscillator();
+                const g = midiAudioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq * detune;
+                g.gain.setValueAtTime(vol * (i === 0 ? 0.6 : 0.2), midiAudioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 1.5);
+                osc.connect(g);
+                g.connect(midiAudioCtx.destination);
+                osc.start();
+                osc.stop(midiAudioCtx.currentTime + 1.5);
+            });
+        }
+
+        function playFallbackEpiano(midiNote, vol) {
+            const freq = midiToFreq(midiNote);
+            [1, 1.003].forEach((detune) => {
+                const osc = midiAudioCtx.createOscillator();
+                const g = midiAudioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.value = freq * detune;
+                g.gain.setValueAtTime(vol * 0.5, midiAudioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 1.5);
+                osc.connect(g);
+                g.connect(midiAudioCtx.destination);
+                osc.start();
+                osc.stop(midiAudioCtx.currentTime + 1.5);
+            });
+        }
+
+        const VOICES = {
+            'grand-piano': { type: 'sf', label: 'Grand Piano', fallback: playFallbackPiano },
+            'epiano': { type: 'sf', label: 'Roland EP', fallback: playFallbackEpiano },
+            'triangle': { type: 'osc', label: 'Triangle' },
+            'sine': { type: 'osc', label: 'Sine' },
+            'sawtooth': { type: 'osc', label: 'Sawtooth' },
+            'square': { type: 'osc', label: 'Square' },
+        };
+        let selectedVoice = localStorage.getItem('midi-voice') || 'grand-piano';
+        window.selectVoice = (id) => {
+            selectedVoice = id;
+            localStorage.setItem('midi-voice', id);
+            document.querySelectorAll('.synth-voice').forEach(el => el.classList.toggle('active', el.dataset.voice === id));
+        };
+        document.querySelectorAll('.synth-voice').forEach(el => el.classList.toggle('active', el.dataset.voice === selectedVoice));
 
         function playMidiNote(midiNote, velocity) {
             if (!midiAudioCtx) {
                 midiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
-            const freq = midiToFreq(midiNote);
+            if (midiAudioCtx.state === 'suspended') {
+                midiAudioCtx.resume();
+            }
             const vol = (velocity / 127) * 0.3;
             const voice = VOICES[selectedVoice];
 
-            if (voice.type === 'piano') {
-                // three oscillators: fundamental + two detuned for that piano chorus
-                [1, 1.003, 0.997].forEach((detune, i) => {
-                    const osc = midiAudioCtx.createOscillator();
-                    const g = midiAudioCtx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.value = freq * detune;
-                    g.gain.setValueAtTime(vol * (i === 0 ? 0.6 : 0.2), midiAudioCtx.currentTime);
-                    g.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 1.5);
-                    osc.connect(g);
-                    g.connect(midiAudioCtx.destination);
-                    osc.start();
-                    osc.stop(midiAudioCtx.currentTime + 1.5);
+            if (voice.type === 'osc') {
+                playOscillator(midiNote, vol, selectedVoice);
+            } else if (voice.type === 'sf') {
+                playFromLocalSoundfont(midiNote, vol, selectedVoice).catch(() => {
+                    if (voice.fallback) voice.fallback(midiNote, vol);
                 });
             } else {
-                const osc = midiAudioCtx.createOscillator();
-                const gain = midiAudioCtx.createGain();
-                osc.type = voice.type;
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(vol, midiAudioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 0.8);
-                osc.connect(gain);
-                gain.connect(midiAudioCtx.destination);
-                osc.start();
-                osc.stop(midiAudioCtx.currentTime + 0.8);
+                playOscillator(midiNote, vol, 'triangle');
             }
         }
 
@@ -472,12 +577,18 @@
             });
         }
 
-        window.showTab = (id) => {
+        function activateTab(id) {
             document.querySelectorAll('.tab, .tab-content').forEach(t => t.classList.remove('active'));
-            if (event && event.target) {
-                event.target.classList.add('active');
-            }
-            document.getElementById(id).classList.add('active');
+            document.querySelector(`.tab[data-tab="${id}"]`)?.classList.add('active');
+            document.getElementById(id)?.classList.add('active');
+            localStorage.setItem('selected-tab', id);
+        }
+        window.showTab = (id) => activateTab(id);
+        const savedTab = localStorage.getItem('selected-tab');
+        if (savedTab && document.querySelector(`.tab[data-tab="${savedTab}"]`)) {
+            activateTab(savedTab);
+        } else {
+            activateTab('sounds');
         }
     </script>
     <script type="module" src="/js/note-chart.js"></script>

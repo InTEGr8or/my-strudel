@@ -17,5 +17,8 @@
     "@strudel/core": "^1.2.5",
     "@strudel/repl": "^1.2.7",
     "@strudel/web": "^1.2.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
   }
 }
