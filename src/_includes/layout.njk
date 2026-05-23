@@ -81,6 +81,7 @@
         
         .doc-container { background: var(--panel-bg); padding: 1.5rem; border-bottom: 2px solid var(--border); line-height: 1.6; flex-shrink: 0; }
         .doc-container h1, .doc-container h2 { margin-top: 0; color: var(--highlight); }
+        #trainer-content { flex-shrink: 0; }
         
         /* Music Notation Styling */
         .abc-notation { 
@@ -164,8 +165,8 @@
     <header>
         <div class="controls">
             <a href="{{ '/' | htmlBaseUrl }}">← Home</a>
-            <button id="play-btn" class="primary">▶ PLAY</button>
-            <button id="stop-btn" style="background: #dc3545; color: white; border-color: #bd2130;">■ STOP</button>
+            {% if type !== 'trainer' %}<button id="play-btn" class="primary">▶ PLAY</button>
+            <button id="stop-btn" style="background: #dc3545; color: white; border-color: #bd2130;">■ STOP</button>{% endif %}
         </div>
         <h1 style="font-size: 1.3rem; margin: 0; color: var(--highlight); text-transform: uppercase;">{{ title }}</h1>
         <div class="controls">
@@ -177,13 +178,19 @@
     <div class="app-container">
         <main>
             {% if content %}
+            {% if type !== 'trainer' %}
             <div class="doc-container">{{ content | safe }}</div>
+            {% else %}
+            <div id="trainer-content">{{ content | safe }}</div>
+            {% endif %}
             {% endif %}
 
+            {% if type !== 'trainer' %}
             <template id="song-source">{{ strudelCode | safe }}</template>
             <div class="editor-container">
                 <strudel-editor id="strudel-repl"></strudel-editor>
             </div>
+            {% endif %}
 
             <div id="note-chart-container"><note-chart></note-chart></div>
             <div id="midi-notes" style="padding: 0.5rem 1rem; font-size: 1.5rem; font-weight: bold; color: var(--accent); text-align: center; min-height: 1.8rem; letter-spacing: 0.3em; font-family: monospace;"></div>
@@ -406,6 +413,7 @@
             __midiObservers.forEach(fn => fn(midiNote, isNoteOn, isNoteOff));
         }
 
+        {% if type !== 'trainer' %}
         const repl = document.getElementById('strudel-repl');
         const source = document.getElementById('song-source');
         
@@ -433,6 +441,7 @@
             repl.editor?.stop();
             document.getElementById('preview-repl').editor?.stop();
         };
+        {% endif %}
 
         window.addEventListener('load', () => {
             document.querySelectorAll('code.language-abc').forEach((el) => {

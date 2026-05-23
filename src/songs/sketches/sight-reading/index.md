@@ -5,7 +5,6 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 ---
 
 <style>
-#play-btn, #stop-btn { display: none; }
 #trainer-panel {
     display: flex;
     justify-content: center;
@@ -13,20 +12,6 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     gap: 2rem;
     padding: 0.5rem 0;
     flex-wrap: wrap;
-}
-#trainer-panel button {
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 0.5rem 1.2rem;
-    border-radius: 10px;
-    font-family: inherit;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-}
-#trainer-panel button:hover {
-    filter: brightness(1.2);
 }
 #trainer-panel select {
     background: var(--header-bg);
@@ -59,10 +44,9 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 }
 #trainer-status.wrong { color: #dc3545; }
 #trainer-status.correct { color: #28a745; }
-#trainer-status.done { color: var(--highlight); }
 </style>
 
-<div id="trainer-status">Press a key to begin!</div>
+<div id="trainer-status">Play the highlighted note to begin!</div>
 <div id="trainer-panel">
     <div class="score-item">
         Score
@@ -81,23 +65,23 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 
 <script>
 (function () {
-    document.querySelector('.editor-container').style.display = 'none';
-
     const chart = document.querySelector('note-chart');
     const statusEl = document.getElementById('trainer-status');
     const scoreEl = document.getElementById('score-correct');
     const wrongEl = document.getElementById('score-wrong');
     const rangeEl = document.getElementById('trainer-range');
 
-    const SEQ_LEN = 6;
-    const NATURAL_MIDI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+    const VISIBLE = 7;
+    const SCALE = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    const SCALE_MIDI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+
     let correct = 0, wrong = 0;
-    let sequence = [];
+    let window = [];
     let currentIdx = 0;
     let busy = false;
 
     function naturalToMidi(note, oct) {
-        return (oct + 1) * 12 + NATURAL_MIDI[note];
+        return (oct + 1) * 12 + SCALE_MIDI[note];
     }
 
     function getRange() {
@@ -108,65 +92,106 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         return all;
     }
 
+    function noteName(pos) {
+        return pos.note.toLowerCase() + pos.oct;
+    }
+
+    function posToMidi(pos) {
+        return naturalToMidi(pos.note, pos.oct);
+    }
+
     function pickRandomNote() {
         const pool = getRange();
         return pool[Math.floor(Math.random() * pool.length)];
     }
 
-    function noteName(pos) {
-        return pos.note.toLowerCase() + pos.oct;
-    }
+    // Musical pattern generator: diatonic stepwise melody
+    function generateNext() {
+        const pool = getRange();
+        if (window.length === 0) return pickRandomNote();
 
-    function generateSequence() {
-        const seq = [];
-        for (let i = 0; i < SEQ_LEN; i++) {
-            seq.push(pickRandomNote());
+        const prev = window[window.length - 1];
+        const prevIdx = SCALE.indexOf(prev.note);
+        if (prevIdx === -1) return pickRandomNote();
+
+        // try up to 10 times to find a valid note in range
+        for (let attempt = 0; attempt < 15; attempt++) {
+            const r = Math.random();
+            let step;
+            if (r < 0.05) step = 0;
+            else if (r < 0.35) step = -1;
+            else if (r < 0.65) step = 1;
+            else if (r < 0.78) step = -2;
+            else if (r < 0.90) step = 2;
+            else step = Math.random() < 0.5 ? -3 : 3;
+
+            let newIdx = prevIdx + step;
+            let newOct = prev.oct;
+            while (newIdx < 0) { newIdx += 7; newOct--; }
+            while (newIdx >= 7) { newIdx -= 7; newOct++; }
+
+            const candidate = { note: SCALE[newIdx], oct: newOct };
+            const midi = posToMidi(candidate);
+            const rangeMin = posToMidi(pool[0]);
+            const rangeMax = posToMidi(pool[pool.length - 1]);
+
+            if (midi >= rangeMin && midi <= rangeMax) {
+                // slightly favour changing direction to avoid staircasing
+                return candidate;
+            }
         }
-        return seq;
+        return pickRandomNote();
     }
 
-    function renderSequence() {
+    function fillWindow() {
+        while (window.length < VISIBLE + 5) {
+            window.push(generateNext());
+        }
+    }
+
+    function renderWindow() {
         chart.clearNoteHeads();
         const ctx = chart._ctx;
         if (!ctx) return;
-        const staffW = ctx.STAFF_R - ctx.LEFT_PAD;
-        const spacing = staffW / (SEQ_LEN + 1);
+        const staffW = ctx.STAFF_R - ctx.LEFT_PAD - 60;
+        const spacing = staffW / (VISIBLE + 1);
+        const offset = 30;
 
-        sequence.forEach((pos, i) => {
-            const cx = ctx.LEFT_PAD + spacing * (i + 1);
+        for (let i = 0; i < VISIBLE && i < window.length; i++) {
+            const pos = window[i];
+            const cx = ctx.LEFT_PAD + offset + spacing * (i + 1);
             let type;
-            if (i < currentIdx) {
-                type = 'correct';
-            } else if (i === currentIdx) {
-                type = 'target';
-            } else {
-                type = 'pending';
-            }
+            if (i < currentIdx) type = 'correct';
+            else if (i === currentIdx) type = 'target';
+            else type = 'pending';
             chart.renderNoteHead(noteName(pos), type, cx);
-        });
-    }
-
-    function startSequence() {
-        busy = false;
-        sequence = generateSequence();
-        currentIdx = 0;
-        renderSequence();
-        statusEl.textContent = 'Play the highlighted note';
-        statusEl.className = '';
-    }
-
-    function advanceSequence() {
-        currentIdx++;
-        if (currentIdx >= sequence.length) {
-            statusEl.textContent = '✓ Sequence complete! New one coming...';
-            statusEl.className = 'done';
-            renderSequence();
-            setTimeout(startSequence, 1500);
-        } else {
-            renderSequence();
-            statusEl.textContent = '';
-            statusEl.className = '';
         }
+    }
+
+    function startExercise() {
+        busy = false;
+        correct = 0;
+        wrong = 0;
+        window = [];
+        currentIdx = 0;
+        fillWindow();
+        renderWindow();
+        statusEl.textContent = 'Play the highlighted note!';
+        statusEl.className = '';
+        updateScore();
+    }
+
+    function advance() {
+        currentIdx++;
+        if (currentIdx >= VISIBLE) {
+            // slide window forward
+            window.splice(0, Math.floor(VISIBLE / 2));
+            currentIdx -= Math.floor(VISIBLE / 2);
+            fillWindow();
+        }
+        renderWindow();
+        statusEl.textContent = '';
+        statusEl.className = '';
     }
 
     function updateScore() {
@@ -181,24 +206,24 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         statusEl.textContent = '✓';
         statusEl.className = 'correct';
         updateScore();
-        renderSequence();
         setTimeout(function () {
             busy = false;
-            advanceSequence();
-        }, 400);
+            advance();
+        }, 300);
     }
 
     function handleWrong() {
         if (busy) return;
         busy = true;
         wrong++;
-        chart.renderNoteHead(noteName(sequence[currentIdx]), 'ghost');
+        const pos = window[currentIdx];
+        chart.renderNoteHead(noteName(pos), 'ghost');
         statusEl.textContent = '✗ Try again';
         statusEl.className = 'wrong';
         updateScore();
         setTimeout(function () {
             busy = false;
-            renderSequence();
+            renderWindow();
             statusEl.textContent = '';
             statusEl.className = '';
         }, 800);
@@ -210,21 +235,18 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
             return;
         }
         window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
-            if (!isNoteOn || currentIdx >= sequence.length || busy) return;
-            const target = sequence[currentIdx];
-            const targetMidi = naturalToMidi(target.note, target.oct);
-            if (midiNote === targetMidi) {
+            if (!isNoteOn || currentIdx >= window.length || busy) return;
+            const target = window[currentIdx];
+            if (midiNote === posToMidi(target)) {
                 handleCorrect();
             } else {
                 handleWrong();
             }
         });
-        startSequence();
+        startExercise();
     }
 
-    rangeEl.addEventListener('change', function () {
-        startSequence();
-    });
+    rangeEl.addEventListener('change', startExercise);
 
     setTimeout(init, 0);
 })();
