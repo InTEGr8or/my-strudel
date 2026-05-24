@@ -115,15 +115,30 @@
         }
         .piano-key { 
             border: 1px solid #444; background: white; height: calc(110px * var(--ui-scale)); width: calc(35px * var(--ui-scale)); 
-            margin: 1px; border-radius: 0 0 8px 8px; box-sizing: border-box;
-            align-self: flex-end;
+            margin: 0; border-radius: 0 0 8px 8px; box-sizing: border-box;
+            align-self: flex-end; position: relative;
         }
         .piano-key.black { 
             background: #111; height: calc(65px * var(--ui-scale)); width: calc(22px * var(--ui-scale)); 
-            margin-left: calc(-12px * var(--ui-scale)); margin-right: calc(-12px * var(--ui-scale)); z-index: 2; 
+            margin-left: calc(-11px * var(--ui-scale)); margin-right: calc(-11px * var(--ui-scale)); z-index: 2; 
             border-color: #000; align-self: flex-start;
         }
+        .piano-key::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            border-radius: 0 0 8px 8px; opacity: 0.1;
+        }
+        .piano-key[data-band="0"]::after { background: rgb(173, 216, 230); }
+        .piano-key[data-band="1"]::after { background: rgb(255, 160, 122); }
+        .piano-key[data-band="2"]::after { background: rgb(144, 238, 144); }
+        .piano-key[data-band="3"]::after { background: rgb(255, 182, 193); }
+        .piano-key[data-band="4"]::after { background: rgb(255, 255, 153); }
+        .piano-key[data-band="5"]::after { background: rgb(200, 180, 255); }
+        .piano-key[data-band="6"]::after { background: rgb(255, 200, 150); }
+        .piano-key[data-band="7"]::after { background: rgb(180, 230, 255); }
+        .piano-key[data-band="8"]::after { background: rgb(200, 255, 200); }
+        .piano-key.black::after { opacity: 0.06; }
         .piano-key.active { background: #58a6ff !important; box-shadow: 0 0 20px #58a6ff; z-index: 3; }
+        .piano-key.active::after { display: none; }
         .piano-key.dimmed { opacity: 0.35; }
         .piano-key.dimmed.active { opacity: 1; }
         
@@ -273,6 +288,7 @@
             key.className = `piano-key ${isBlack ? 'black' : 'white'}`;
             key.id = `key-${fullName}`;
             key.dataset.midi = midi;
+            key.dataset.band = (noteName[0] === 'A' || noteName[0] === 'B') ? oct : oct - 1;
             if (midi < deviceCfg.range.low || midi > deviceCfg.range.high) {
                 key.classList.add('dimmed');
             }
