@@ -149,6 +149,9 @@
         }
         #sounds code:hover, #synth code:hover { border-color: var(--highlight); }
         #synth code.active { border-color: var(--accent); background: var(--accent); color: white; }
+        note-chart[data-show-colors="false"] #staff-bands { display: none; }
+        .color-toggle { cursor: pointer; font-size: 0.9rem; margin: 0.5rem 0; user-select: none; }
+        .color-toggle input { margin-right: 0.4rem; }
 
         @media (max-width: 768px) {
             body { height: auto; overflow: auto; }
@@ -219,6 +222,9 @@
                 <code class="synth-voice" data-voice="sine" onclick="selectVoice('sine')">Sine</code>
                 <code class="synth-voice" data-voice="sawtooth" onclick="selectVoice('sawtooth')">Sawtooth</code>
                 <code class="synth-voice" data-voice="square" onclick="selectVoice('square')">Square</code>
+                <hr style="border: none; border-top: 1px solid var(--border); margin: 1rem 0;">
+                <p style="font-size: 0.9rem; color: #888; margin: 0 0 0.3rem 0;">Staff guide:</p>
+                <label class="color-toggle"><input type="checkbox" id="color-guide-toggle" checked onchange="toggleColorGuide(this.checked)"> Show color guide</label>
             </div>
             <div id="ref" class="tab-content">
                 <code>s()</code>, <code>n()</code>, <code>gain()</code>
@@ -584,6 +590,14 @@
             localStorage.setItem('selected-tab', id);
         }
         window.showTab = (id) => activateTab(id);
+        window.toggleColorGuide = (show) => {
+            const chart = document.querySelector('note-chart');
+            if (chart && chart.setShowColors) chart.setShowColors(show);
+        };
+        const guideCheckbox = document.getElementById('color-guide-toggle');
+        if (localStorage.getItem('show-color-guide') === 'false') {
+            guideCheckbox.checked = false;
+        }
         const savedTab = localStorage.getItem('selected-tab');
         if (savedTab && document.querySelector(`.tab[data-tab="${savedTab}"]`)) {
             activateTab(savedTab);

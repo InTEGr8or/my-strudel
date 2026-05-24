@@ -1,6 +1,15 @@
 class NoteChart extends HTMLElement {
     connectedCallback() {
+        const saved = localStorage.getItem('show-color-guide');
+        if (saved === 'false') {
+            this.dataset.showColors = 'false';
+        }
         this.render();
+    }
+
+    setShowColors(show) {
+        this.dataset.showColors = show ? 'true' : 'false';
+        localStorage.setItem('show-color-guide', show ? 'true' : 'false');
     }
 
     _cssVar(name) {
@@ -17,7 +26,9 @@ class NoteChart extends HTMLElement {
         const SPACING = 18 * scale;
         const BAND_H = SPACING;
         const SVG_W = 1200 * scale;
-        const LEFT_PAD = 80 * scale;
+        const COLOR_X = 55 * scale;
+        const COLOR_W = 50 * scale;
+        const LEFT_PAD = COLOR_X + COLOR_W + 10 * scale;
         const STAFF_R = SVG_W - 20 * scale;
         const PAD = 30 * scale;
 
@@ -71,15 +82,43 @@ class NoteChart extends HTMLElement {
         const SVG_H = (rMax - rMin) + 2 * PAD;
         const getY = (note, oct) => getRawY(note, oct) + shift;
 
-        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}" viewBox="0 0 ${SVG_W} ${SVG_H}">`;
+        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}" viewBox="0 0 ${SVG_W} ${SVG_H}" style="overflow:visible">`;
         svg += `<rect width="100%" height="100%" fill="${activeBg}"/>`;
         svg += `<g id="staff-bands">`;
 
-        for (const p of this._positions) {
+        const leftW = COLOR_W / 2 - 2 * scale;
+        const rightW = COLOR_W / 2 - 2 * scale;
+        const gap = 4 * scale;
+
+        for (let i = 0; i < this._positions.length; i++) {
+            const p = this._positions[i];
             const y = getY(p.note, p.oct);
             const band = this._octaveBand(p.note, p.oct);
             const alpha = p.note === 'D' ? noteDAlpha : noteAlpha;
-            svg += `<rect x="${LEFT_PAD}" y="${y - BAND_H/2}" width="${STAFF_R - LEFT_PAD}" height="${BAND_H}" fill="rgba(${octaveColors[band]}, ${alpha})" data-note="${p.note}" data-oct="${p.oct}"/>`;
+            const isLine = i % 2 === 0;
+
+            let bandX, bandW;
+            if (isLine) {
+                bandX = COLOR_X;
+                bandW = leftW;
+            } else {
+                bandX = COLOR_X + leftW + gap;
+                bandW = rightW;
+            }
+
+            let bandY = y - BAND_H / 2;
+            let bandH = BAND_H;
+            if (p.note === 'G') {
+                bandY += 0.125 * BAND_H;
+                bandH = BAND_H * 0.75;
+            } else if (p.note === 'A') {
+                bandH = BAND_H * 0.75;
+            }
+
+            svg += `<rect x="${bandX}" y="${bandY}" width="${bandW}" height="${bandH}" fill="rgba(${octaveColors[band]}, ${alpha})" data-note="${p.note}" data-oct="${p.oct}"/>`;
+
+            const textX = bandX + bandW / 2;
+            svg += `<text x="${textX}" y="${y}" font-size="${10 * scale}" text-anchor="middle" dominant-baseline="central" font-weight="300" fill="${staffColor}" opacity="0.7">${p.note}</text>`;
         }
 
         svg += `</g>`;
@@ -117,13 +156,9 @@ class NoteChart extends HTMLElement {
         const bassClefY = getY('F', 3);
         const braceMid = (bTop + tBot) / 2;
 
-        svg += `<text x="10" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
-        svg += `<text x="10" y="${bassClefY}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
-        const fDotX = 48 * scale;
-        const fDotR = 3 * scale;
-        svg += `<circle cx="${fDotX}" cy="${getY('G', 3)}" r="${fDotR}" fill="${staffColor}"/>`;
-        svg += `<circle cx="${fDotX}" cy="${getY('E', 3)}" r="${fDotR}" fill="${staffColor}"/>`;
-        svg += `<text x="${fDotX + 6 * scale}" y="${braceMid}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">{</text>`;
+        svg += `<text x="-73" y="${braceMid - 25 * scale}" font-size="${210 * scale}" dy="0.35em" font-family="serif" font-weight="300" fill="${staffColor}">{</text>`;
+        svg += `<text x="15" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
+        svg += `<text x="15" y="${bassClefY}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
 
         svg += `</svg>`;
         this.innerHTML = svg;
