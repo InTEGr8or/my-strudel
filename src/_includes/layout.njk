@@ -125,7 +125,7 @@
         }
         .piano-key::after {
             content: ''; position: absolute; inset: 0; pointer-events: none;
-            border-radius: 0 0 8px 8px; opacity: 0.2;
+            border-radius: 0 0 8px 8px; opacity: var(--piano-tint-opacity, 0.2);
         }
         .piano-key[data-band="0"]::after { background: rgb(173, 216, 230); }
         .piano-key[data-band="1"]::after { background: rgb(255, 160, 122); }
@@ -136,7 +136,7 @@
         .piano-key[data-band="6"]::after { background: rgb(255, 200, 150); }
         .piano-key[data-band="7"]::after { background: rgb(180, 230, 255); }
         .piano-key[data-band="8"]::after { background: rgb(200, 255, 200); }
-        .piano-key.black::after { opacity: 0.12; }
+        .piano-key.black::after { opacity: var(--piano-tint-black, 0.12); }
         .piano-key.active { background: #58a6ff !important; box-shadow: 0 0 20px #58a6ff; z-index: 3; }
         .piano-key.active::after { display: none; }
         body[data-show-colors="false"] .piano-key::after { display: none; }
@@ -169,6 +169,8 @@
         note-chart[data-show-colors="false"] #staff-content { transform: translateX(calc(-60px * var(--ui-scale, 1.25))); }
         .color-toggle { cursor: pointer; font-size: 0.9rem; margin: 0.5rem 0; user-select: none; }
         .color-toggle input { margin-right: 0.4rem; }
+        .tint-slider { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #888; margin: 0.3rem 0 0.3rem 0; }
+        .tint-slider input[type="range"] { flex: 1; max-width: 100px; }
 
         @media (max-width: 768px) {
             body { height: auto; overflow: auto; }
@@ -242,6 +244,7 @@
                 <hr style="border: none; border-top: 1px solid var(--border); margin: 1rem 0;">
                 <p style="font-size: 0.9rem; color: #888; margin: 0 0 0.3rem 0;">Staff guide:</p>
                 <label class="color-toggle"><input type="checkbox" id="color-guide-toggle" checked onchange="toggleColorGuide(this.checked)"> Show color guide</label>
+                <label class="tint-slider">Key tint: <input type="range" id="piano-tint-slider" min="0" max="100" value="20"> <span id="piano-tint-value">20%</span></label>
             </div>
             <div id="ref" class="tab-content">
                 <code>s()</code>, <code>n()</code>, <code>gain()</code>
@@ -613,6 +616,25 @@
             const chart = document.querySelector('note-chart');
             if (chart && chart.setShowColors) chart.setShowColors(show);
         };
+        function setPianoTint(val) {
+            const root = document.documentElement;
+            const pct = val / 100;
+            root.style.setProperty('--piano-tint-opacity', pct);
+            root.style.setProperty('--piano-tint-black', pct * 0.6);
+            localStorage.setItem('piano-tint-opacity', val);
+        }
+        const tintSlider = document.getElementById('piano-tint-slider');
+        const tintValue = document.getElementById('piano-tint-value');
+        tintSlider.addEventListener('input', () => {
+            setPianoTint(parseInt(tintSlider.value));
+            tintValue.textContent = tintSlider.value + '%';
+        });
+        const savedTint = localStorage.getItem('piano-tint-opacity');
+        if (savedTint !== null) {
+            tintSlider.value = savedTint;
+            tintValue.textContent = savedTint + '%';
+            setPianoTint(parseInt(savedTint));
+        }
         const guideCheckbox = document.getElementById('color-guide-toggle');
         if (localStorage.getItem('show-color-guide') === 'false') {
             guideCheckbox.checked = false;
