@@ -63,6 +63,21 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         <option value="treble">Treble Clef (E4–F5)</option>
         <option value="bass">Bass Clef (G2–A3)</option>
     </select>
+    <div class="score-item" style="font-size:0.9rem;flex-direction:row;gap:0.3rem">
+        <span style="opacity:0.7">Pattern:</span>
+        <button class="pat-btn" data-pattern="1" onclick="setPatternSize(1)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;font-weight:bold">1</button>
+        <button class="pat-btn" data-pattern="2" onclick="setPatternSize(2)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer">2</button>
+        <button class="pat-btn" data-pattern="3" onclick="setPatternSize(3)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer">3</button>
+    </div>
+    <div class="score-item">
+        <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;">
+            <input type="checkbox" id="metronome-toggle" onchange="toggleMetronome(this.checked)">
+            <label for="metronome-toggle">♫</label>
+            <span id="metro-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity 0.05s"></span>
+            <input type="range" id="metro-bpm" min="40" max="200" value="80" style="width:70px;height:4px" oninput="updateBpm(this.value)">
+            <span id="bpm-label" style="font-size:0.8rem;opacity:0.7">80</span>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -84,6 +99,60 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     let busy = false;
     let ghostEl = null;
     let noteCount = 0;
+    let patternSize = 1;
+    let patternPos = 0;
+
+    // metronome
+    let metroInterval = null;
+    let metroBpm = 80;
+    let metroBeat = 0;
+    let metroAudioCtx = null;
+
+    function metroClick(accent) {
+        const dot = document.getElementById('metro-dot');
+        if (dot) { dot.style.opacity = '1'; setTimeout(() => { dot.style.opacity = '0'; }, 100); }
+        try {
+            const ctx = metroAudioCtx || (metroAudioCtx = new (window.AudioContext || window.webkitAudioContext)());
+            if (ctx.state === 'suspended') ctx.resume();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.frequency.value = accent ? 1200 : 800;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.04);
+        } catch (_) {}
+    }
+
+    window.toggleMetronome = function (on) {
+        if (on) {
+            metroBeat = 0;
+            if (metroInterval) clearInterval(metroInterval);
+            metroInterval = setInterval(function () {
+                metroClick(metroBeat % 4 === 0);
+                metroBeat++;
+            }, 60000 / metroBpm);
+        } else {
+            if (metroInterval) { clearInterval(metroInterval); metroInterval = null; }
+        }
+    };
+
+    window.updateBpm = function (val) {
+        metroBpm = parseInt(val);
+        var label = document.getElementById('bpm-label');
+        if (label) label.textContent = metroBpm;
+        if (metroInterval) {
+            clearInterval(metroInterval);
+            metroBeat = 0;
+            metroInterval = setInterval(function () {
+                metroClick(metroBeat % 4 === 0);
+                metroBeat++;
+            }, 60000 / metroBpm);
+        }
+    };
 
     function midiToNatural(midi) {
         const oct = Math.floor(midi / 12) - 1;
@@ -167,7 +236,14 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         for (let i = 0; i < WINDOW_SIZE && i < windowNotes.length; i++) {
             const pos = windowNotes[i];
             const cx = ctx.LEFT_PAD + offset + spacing * (i + 1);
-            const type = i === 0 ? 'target' : 'pending';
+            let type;
+            if (i < patternSize && i === patternPos) {
+                type = 'target';
+            } else if (i < patternPos) {
+                type = 'correct';
+            } else {
+                type = 'pending';
+            }
             chart.renderNoteHead(noteName(pos), type, cx);
         }
 
@@ -185,6 +261,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         wrong = 0;
         windowNotes = [];
         noteCount = 0;
+        patternPos = 0;
         removeGhost();
         fillWindow();
         renderWindow();
@@ -195,6 +272,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     function shiftWindow() {
         windowNotes.shift();
         noteCount++;
+        patternPos = 0;
         fillWindow();
 
         const heads = chart.querySelector('#note-heads');
@@ -226,18 +304,24 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         busy = true;
         correct++;
         updateScore();
+        patternPos++;
 
         const ctx = chart._ctx;
         const staffW = ctx.STAFF_R - ctx.LEFT_PAD - 60;
         const spacing = staffW / (WINDOW_SIZE + 1);
-        const cx = ctx.LEFT_PAD + 30 + spacing;
-        chart.renderNoteHead(noteName(windowNotes[0]), 'correct', cx);
+        const cx = ctx.LEFT_PAD + 30 + spacing * patternPos;
+        chart.renderNoteHead(noteName(windowNotes[patternPos - 1]), 'correct', cx, true);
+        statusEl.textContent = patternSize > 1 && patternPos < patternSize ? '✓' : '✓✓';
 
-        statusEl.textContent = '✓';
         setTimeout(function () {
-            busy = false;
-            shiftWindow();
-        }, 200);
+            if (patternPos >= patternSize) {
+                busy = false;
+                shiftWindow();
+            } else {
+                renderWindow();
+                busy = false;
+            }
+        }, 250);
     }
 
     function handleWrong(midiPlayed) {
@@ -251,11 +335,11 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         const ctx = chart._ctx;
         const staffW = ctx.STAFF_R - ctx.LEFT_PAD - 60;
         const spacing = staffW / (WINDOW_SIZE + 1);
-        const cx = ctx.LEFT_PAD + 30 + spacing;
+        const cx = ctx.LEFT_PAD + 30 + spacing * (patternPos + 1);
 
         chart.clearNoteHeads();
         renderWindow();
-        ghostEl = chart.renderNoteHead(naturalName, 'ghost', cx);
+        ghostEl = chart.renderNoteHead(naturalName, 'ghost', cx, true);
 
         statusEl.textContent = '✗';
     }
@@ -268,9 +352,9 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         }
         window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
             if (isNoteOn) {
-                if (windowNotes.length === 0 || busy) return;
-                const target = windowNotes[0];
-                if (midiNote === posToMidi(target)) {
+                if (windowNotes.length === 0 || busy || patternPos >= windowNotes.length) return;
+                const target = windowNotes[patternPos];
+                if (target && midiNote === posToMidi(target)) {
                     handleCorrect();
                 } else {
                     handleWrong(midiNote);
@@ -285,6 +369,14 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         });
         startExercise();
     }
+
+    window.setPatternSize = function (size) {
+        patternSize = size;
+        document.querySelectorAll('.pat-btn').forEach(function (btn) {
+            btn.style.fontWeight = btn.dataset.pattern == size ? 'bold' : 'normal';
+        });
+        startExercise();
+    };
 
     rangeEl.addEventListener('change', startExercise);
 

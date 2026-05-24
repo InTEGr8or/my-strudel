@@ -138,6 +138,8 @@ class NoteChart extends HTMLElement {
             { note: 'F', oct: 5 },
         ];
 
+        svg += `<g id="staff-content">`;
+
         for (const l of bassLines) {
             const y = getY(l.note, l.oct);
             svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="${1.5 * scale}"/>`;
@@ -146,6 +148,8 @@ class NoteChart extends HTMLElement {
             const y = getY(l.note, l.oct);
             svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="${1.5 * scale}"/>`;
         }
+
+        svg += `</g>`;
 
         const bBot = getY('G', 2);
         const bTop = getY('A', 3);
@@ -180,7 +184,7 @@ class NoteChart extends HTMLElement {
         if (g) g.innerHTML = '';
     }
 
-    renderNoteHead(noteName, type, cx) {
+    renderNoteHead(noteName, type, cx, showLabel) {
         const match = noteName.match(/^([a-g])(s?)(\d+)$/);
         if (!match) return;
         const note = match[1].toUpperCase();
@@ -199,7 +203,8 @@ class NoteChart extends HTMLElement {
         if (!g) {
             g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             g.setAttribute('id', 'note-heads');
-            this.querySelector('svg').appendChild(g);
+            const sc = this.querySelector('#staff-content') || this.querySelector('svg');
+            sc.appendChild(g);
         }
         const svgNs = 'http://www.w3.org/2000/svg';
         const el = document.createElementNS(svgNs, 'g');
@@ -275,6 +280,26 @@ class NoteChart extends HTMLElement {
         }
         el.appendChild(stem);
 
+        if (showLabel) {
+            const label = document.createElementNS(svgNs, 'text');
+            label.textContent = `${match[1].toUpperCase()}${match[2] ? '#' : ''}${match[3]}`;
+            label.setAttribute('x', centerX - headW / 2 - 12 * scale);
+            label.setAttribute('y', y);
+            label.setAttribute('text-anchor', 'end');
+            label.setAttribute('dominant-baseline', 'central');
+            if (type === 'correct') {
+                label.setAttribute('font-size', `${14 * scale}`);
+                label.setAttribute('font-weight', 'bold');
+                label.setAttribute('fill', '#28a745');
+            } else {
+                label.setAttribute('font-size', `${12 * scale}`);
+                label.setAttribute('font-weight', '300');
+                label.setAttribute('fill', staffColor);
+                label.setAttribute('opacity', '0.5');
+            }
+            el.appendChild(label);
+        }
+
         g.appendChild(el);
         return el;
     }
@@ -298,7 +323,8 @@ class NoteChart extends HTMLElement {
         if (!g) {
             g = document.createElementNS(svgNs, 'g');
             g.setAttribute('id', 'note-heads');
-            this.querySelector('svg').appendChild(g);
+            const sc = this.querySelector('#staff-content') || this.querySelector('svg');
+            sc.appendChild(g);
         }
         g.appendChild(barline);
     }
