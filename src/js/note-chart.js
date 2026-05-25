@@ -281,23 +281,32 @@ class NoteChart extends HTMLElement {
         el.appendChild(stem);
 
         if (showLabel) {
+            let labels = this.querySelector('#note-labels');
+            if (!labels) {
+                labels = document.createElementNS(svgNs, 'g');
+                labels.setAttribute('id', 'note-labels');
+                const sc = this.querySelector('#staff-content') || this.querySelector('svg');
+                sc.appendChild(labels);
+            }
             const label = document.createElementNS(svgNs, 'text');
             label.textContent = `${match[1].toUpperCase()}${match[2] ? '#' : ''}${match[3]}`;
-            label.setAttribute('x', centerX - headW / 2 - 12 * scale);
+            label.setAttribute('x', centerX);
             label.setAttribute('y', y);
-            label.setAttribute('text-anchor', 'end');
+            label.setAttribute('text-anchor', 'middle');
             label.setAttribute('dominant-baseline', 'central');
             if (type === 'correct') {
-                label.setAttribute('font-size', `${14 * scale}`);
+                label.setAttribute('font-size', `${28 * scale}`);
                 label.setAttribute('font-weight', 'bold');
                 label.setAttribute('fill', '#28a745');
             } else {
-                label.setAttribute('font-size', `${12 * scale}`);
+                label.setAttribute('font-size', `${24 * scale}`);
                 label.setAttribute('font-weight', '300');
                 label.setAttribute('fill', staffColor);
                 label.setAttribute('opacity', '0.5');
             }
-            el.appendChild(label);
+            label.style.animation = 'note-label-fade 500ms ease-out forwards';
+            label.addEventListener('animationend', function () { label.remove(); });
+            labels.appendChild(label);
         }
 
         g.appendChild(el);
