@@ -125,7 +125,7 @@
         }
         .piano-key::after {
             content: ''; position: absolute; inset: 0; pointer-events: none;
-            border-radius: 0 0 8px 8px; opacity: var(--piano-tint-opacity, 0.2);
+            border-radius: 0 0 8px 8px; opacity: var(--piano-tint-opacity, 0.3);
         }
         .piano-key[data-band="0"]::after { background: rgb(var(--octave-0)); }
         .piano-key[data-band="1"]::after { background: rgb(var(--octave-1)); }
@@ -242,7 +242,7 @@
                 <hr style="border: none; border-top: 1px solid var(--border); margin: 1rem 0;">
                 <p style="font-size: 0.9rem; color: #888; margin: 0 0 0.3rem 0;">Staff guide:</p>
                 <label class="color-toggle"><input type="checkbox" id="color-guide-toggle" checked onchange="toggleColorGuide(this.checked)"> Show color guide</label>
-                <label class="tint-slider">Key tint: <input type="range" id="piano-tint-slider" min="0" max="100" value="20"> <span id="piano-tint-value">20%</span></label>
+                <label class="tint-slider">Key tint: <input type="range" id="piano-tint-slider" min="0" max="100" value="30"> <span id="piano-tint-value">30%</span></label>
             </div>
             <div id="ref" class="tab-content">
                 <code>s()</code>, <code>n()</code>, <code>gain()</code>
@@ -484,6 +484,7 @@
         document.querySelectorAll('.synth-voice').forEach(el => el.classList.toggle('active', el.dataset.voice === selectedVoice));
 
         function playMidiNote(midiNote, velocity) {
+            if (window.__playMidiFilter && !window.__playMidiFilter(midiNote)) return;
             if (!midiAudioCtx) {
                 midiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }

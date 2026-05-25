@@ -69,6 +69,10 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         <button class="pat-btn" data-pattern="2" onclick="setPatternSize(2)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer">2</button>
         <button class="pat-btn" data-pattern="3" onclick="setPatternSize(3)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer">3</button>
     </div>
+    <label class="score-item" style="font-size:0.8rem;flex-direction:row;gap:0.3rem;cursor:pointer;user-select:none">
+        <input type="checkbox" id="play-wrong-toggle" checked onchange="togglePlayWrong(this.checked)">
+        <span style="opacity:0.7">Play wrong notes</span>
+    </label>
     <div class="score-item">
         <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;">
             <input type="checkbox" id="metronome-toggle" onchange="toggleMetronome(this.checked)">
@@ -270,8 +274,11 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     }
 
     function shiftWindow() {
-        windowNotes.shift();
-        noteCount++;
+        const shiftCount = patternSize;
+        for (let i = 0; i < shiftCount; i++) {
+            if (windowNotes.length > 0) windowNotes.shift();
+        }
+        noteCount += shiftCount;
         patternPos = 0;
         fillWindow();
 
@@ -280,7 +287,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         const spacing = (ctx.STAFF_R - ctx.LEFT_PAD - 60) / (WINDOW_SIZE + 1);
 
         for (const el of heads.children) {
-            el.style.transform = `translateX(${-spacing}px)`;
+            el.style.transform = `translateX(${-spacing * shiftCount}px)`;
         }
 
         setTimeout(renderWindow, 150);
@@ -377,6 +384,25 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         });
         startExercise();
     };
+
+    window.togglePlayWrong = function (on) {
+        localStorage.setItem('play-wrong-notes', on ? 'true' : 'false');
+        window.__playMidiFilter = on ? null : function (midiNote) {
+            if (windowNotes.length === 0) return true;
+            const target = windowNotes[patternPos];
+            return target && midiNote === posToMidi(target);
+        };
+    };
+
+    var pwSaved = localStorage.getItem('play-wrong-notes');
+    if (pwSaved === 'false') {
+        document.getElementById('play-wrong-toggle').checked = false;
+        window.__playMidiFilter = function (midiNote) {
+            if (windowNotes.length === 0) return true;
+            const target = windowNotes[patternPos];
+            return target && midiNote === posToMidi(target);
+        };
+    }
 
     rangeEl.addEventListener('change', startExercise);
 
