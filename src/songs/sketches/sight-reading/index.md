@@ -63,6 +63,15 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         <option value="treble">Treble Clef (E4–F5)</option>
         <option value="bass">Bass Clef (G2–A3)</option>
     </select>
+    <select id="trainer-song" style="max-width:180px">
+        <option value="">Random</option>
+        <option value="mary">Mary Had a Little Lamb</option>
+        <option value="hotcross">Hot Cross Buns</option>
+        <option value="twinkle">Twinkle Twinkle</option>
+        <option value="ode">Ode to Joy</option>
+        <option value="jingle">Jingle Bells</option>
+        <option value="minuet">Minuet in G (Bach)</option>
+    </select>
     <div class="score-item" style="font-size:0.9rem;flex-direction:row;gap:0.3rem">
         <span style="opacity:0.7">Pattern:</span>
         <button class="pat-btn" data-pattern="1" onclick="setPatternSize(1)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;font-weight:bold">1</button>
@@ -91,12 +100,60 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     const scoreEl = document.getElementById('score-correct');
     const wrongEl = document.getElementById('score-wrong');
     const rangeEl = document.getElementById('trainer-range');
+    const songEl = document.getElementById('trainer-song');
 
     const WINDOW_SIZE = 8;
 
     const SCALE = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
     const SCALE_MIDI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
     const MIDI_NAMES = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
+
+    const SONGS = {
+        mary: { label: 'Mary Had a Little Lamb', notes: [
+            {note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},{note:'D',oct:4},
+            {note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},
+            {note:'D',oct:4},{note:'D',oct:4},{note:'D',oct:4},
+            {note:'E',oct:4},{note:'G',oct:4},{note:'G',oct:4},
+            {note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},{note:'D',oct:4},
+            {note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},
+            {note:'D',oct:4},{note:'D',oct:4},{note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},
+        ]},
+        hotcross: { label: 'Hot Cross Buns', notes: [
+            {note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},
+            {note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},
+            {note:'C',oct:4},{note:'C',oct:4},{note:'D',oct:4},{note:'D',oct:4},
+            {note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},
+        ]},
+        twinkle: { label: 'Twinkle Twinkle', notes: [
+            {note:'C',oct:4},{note:'C',oct:4},{note:'G',oct:4},{note:'G',oct:4},
+            {note:'A',oct:4},{note:'A',oct:4},{note:'G',oct:4},
+            {note:'F',oct:4},{note:'F',oct:4},{note:'E',oct:4},{note:'E',oct:4},
+            {note:'D',oct:4},{note:'D',oct:4},{note:'C',oct:4},
+        ]},
+        ode: { label: 'Ode to Joy', notes: [
+            {note:'E',oct:4},{note:'E',oct:4},{note:'F',oct:4},{note:'G',oct:4},
+            {note:'G',oct:4},{note:'F',oct:4},{note:'E',oct:4},{note:'D',oct:4},
+            {note:'C',oct:4},{note:'C',oct:4},{note:'D',oct:4},{note:'E',oct:4},
+            {note:'E',oct:4},{note:'D',oct:4},{note:'D',oct:4},
+        ]},
+        jingle: { label: 'Jingle Bells', notes: [
+            {note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},
+            {note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},
+            {note:'E',oct:4},{note:'G',oct:4},{note:'C',oct:4},{note:'D',oct:4},{note:'E',oct:4},
+            {note:'F',oct:4},{note:'F',oct:4},{note:'F',oct:4},{note:'F',oct:4},
+            {note:'F',oct:4},{note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},
+            {note:'E',oct:4},{note:'D',oct:4},{note:'D',oct:4},{note:'E',oct:4},{note:'D',oct:4},{note:'G',oct:4},
+        ]},
+        minuet: { label: 'Minuet in G (Bach)', notes: [
+            {note:'G',oct:4},{note:'A',oct:4},{note:'B',oct:4},{note:'C',oct:5},
+            {note:'D',oct:5},{note:'C',oct:5},{note:'B',oct:4},{note:'A',oct:4},
+            {note:'G',oct:4},{note:'F',oct:4},{note:'E',oct:4},{note:'D',oct:4},
+            {note:'E',oct:4},{note:'F',oct:4},{note:'G',oct:4},{note:'G',oct:4},
+            {note:'A',oct:4},{note:'G',oct:4},{note:'F',oct:4},{note:'E',oct:4},
+            {note:'D',oct:4},{note:'C',oct:4},{note:'D',oct:4},{note:'E',oct:4},
+            {note:'D',oct:4},{note:'C',oct:4},
+        ]},
+    };
 
     let correct = 0, wrong = 0;
     let windowNotes = [];
@@ -105,6 +162,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     let noteCount = 0;
     let patternSize = 1;
     let patternPos = 0;
+    let songPos = 0;
 
     // metronome
     let metroInterval = null;
@@ -224,8 +282,19 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     }
 
     function fillWindow() {
+        const songId = songEl.value;
         while (windowNotes.length < WINDOW_SIZE) {
-            windowNotes.push(generateNext());
+            if (songId) {
+                const song = SONGS[songId];
+                if (song && song.notes.length > 0) {
+                    windowNotes.push(song.notes[songPos % song.notes.length]);
+                    songPos++;
+                } else {
+                    windowNotes.push(generateNext());
+                }
+            } else {
+                windowNotes.push(generateNext());
+            }
         }
     }
 
@@ -266,6 +335,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         windowNotes = [];
         noteCount = 0;
         patternPos = 0;
+        songPos = 0;
         removeGhost();
         fillWindow();
         renderWindow();
@@ -405,6 +475,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     }
 
     rangeEl.addEventListener('change', startExercise);
+    songEl.addEventListener('change', startExercise);
 
     setTimeout(init, 0);
 })();

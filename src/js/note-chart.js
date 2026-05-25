@@ -304,7 +304,7 @@ class NoteChart extends HTMLElement {
                 label.setAttribute('fill', staffColor);
                 label.setAttribute('opacity', '0.5');
             }
-            label.style.animation = 'note-label-fade 500ms ease-out forwards';
+            label.style.animation = 'note-label-fade 500ms ease-out 250ms forwards';
             label.addEventListener('animationend', function () { label.remove(); });
             labels.appendChild(label);
         }
