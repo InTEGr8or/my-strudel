@@ -19,6 +19,7 @@
     "@strudel/web": "^1.2.6"
   },
   "devDependencies": {
-    "@playwright/test": "^1.60.0"
+    "@playwright/test": "^1.60.0",
+    "fast-xml-parser": "^5.8.0"
   }
 }

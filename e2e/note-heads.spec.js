@@ -28,3 +28,26 @@ test('normal song page renders note-chart SVG', async ({ page }) => {
   const bandCount = await bands.count();
   expect(bandCount).toBeGreaterThan(0);
 });
+
+test('song selection via combobox changes notes and shows song title', async ({ page }) => {
+  await page.goto('/songs/sketches/sight-reading/');
+  await page.waitForSelector('note-chart svg');
+
+  const noteHeads = page.locator('note-chart svg #note-heads ellipse');
+  await expect(noteHeads.first()).toBeAttached({ timeout: 5000 });
+
+  const input = page.locator('#trainer-song');
+  await input.click();
+
+  const list = page.locator('#song-list.open');
+  await expect(list).toBeVisible();
+
+  await list.locator('li').filter({ hasText: 'Mary Had a Little Lamb' }).click();
+
+  await expect(input).toHaveValue('Mary Had a Little Lamb');
+
+  await expect(noteHeads.first()).toBeAttached();
+
+  const count = await noteHeads.count();
+  expect(count).toBeGreaterThanOrEqual(1);
+});

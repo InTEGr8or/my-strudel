@@ -12,6 +12,8 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'src/css': 'css' });
   eleventyConfig.addPassthroughCopy({ 'src/soundfonts': 'soundfonts' });
 
+  eleventyConfig.addWatchTarget('./src/songs/sight-reading/songs/');
+
   // Add the base plugin to handle GitHub Pages subpaths
   const { EleventyHtmlBasePlugin } = require("@11ty/eleventy");
   eleventyConfig.addPlugin(EleventyHtmlBasePlugin);

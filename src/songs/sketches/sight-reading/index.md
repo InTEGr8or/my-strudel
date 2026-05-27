@@ -46,6 +46,92 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     font-weight: bold;
     color: var(--accent);
 }
+.combobox {
+    position: relative;
+    max-width: 180px;
+}
+.combobox input {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--header-bg);
+    color: var(--text);
+    border: 2px solid var(--border);
+    padding: 0.4rem 2rem 0.4rem 0.8rem;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.combobox input:not(:read-only) {
+    cursor: text;
+}
+.combobox-toggle {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0;
+    opacity: 0.6;
+}
+.combobox-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 240px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    z-index: 200;
+    padding: 4px 0;
+    margin: 4px 0 0 0;
+    list-style: none;
+}
+.combobox-list.open {
+    display: block;
+}
+.combobox-list li {
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 0.9rem;
+}
+.combobox-list li:hover,
+.combobox-list li.highlighted {
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.combobox-list li.selected {
+    font-weight: bold;
+}
+.combobox-list li.selected::after {
+    content: ' ✓';
+    color: var(--accent);
+}
+.combobox-clear {
+    display: none;
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+    opacity: 0.4;
+    line-height: 1;
+}
+.combobox-clear.visible {
+    display: block;
+}
 </style>
 
 <div id="trainer-status">Play the highlighted note to begin!</div>
@@ -63,15 +149,12 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         <option value="treble">Treble Clef (E4–F5)</option>
         <option value="bass">Bass Clef (G2–A3)</option>
     </select>
-    <select id="trainer-song" style="max-width:180px">
-        <option value="">Random</option>
-        <option value="mary">Mary Had a Little Lamb</option>
-        <option value="hotcross">Hot Cross Buns</option>
-        <option value="twinkle">Twinkle Twinkle</option>
-        <option value="ode">Ode to Joy</option>
-        <option value="jingle">Jingle Bells</option>
-        <option value="minuet">Minuet in G (Bach)</option>
-    </select>
+    <div class="combobox" id="song-combobox">
+        <input type="text" id="trainer-song" placeholder="Random" readonly>
+        <button class="combobox-clear" id="song-clear">&times;</button>
+        <button class="combobox-toggle" id="song-toggle">&#9660;</button>
+        <ul class="combobox-list" id="song-list"></ul>
+    </div>
     <div class="score-item" style="font-size:0.9rem;flex-direction:row;gap:0.3rem">
         <span style="opacity:0.7">Pattern:</span>
         <button class="pat-btn" data-pattern="1" onclick="setPatternSize(1)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;font-weight:bold">1</button>
@@ -108,53 +191,6 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     const SCALE_MIDI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
     const MIDI_NAMES = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
 
-    const SONGS = {
-        mary: { label: 'Mary Had a Little Lamb', notes: [
-            {note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},{note:'D',oct:4},
-            {note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},
-            {note:'D',oct:4},{note:'D',oct:4},{note:'D',oct:4},
-            {note:'E',oct:4},{note:'G',oct:4},{note:'G',oct:4},
-            {note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},{note:'D',oct:4},
-            {note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},
-            {note:'D',oct:4},{note:'D',oct:4},{note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},
-        ]},
-        hotcross: { label: 'Hot Cross Buns', notes: [
-            {note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},
-            {note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},
-            {note:'C',oct:4},{note:'C',oct:4},{note:'D',oct:4},{note:'D',oct:4},
-            {note:'E',oct:4},{note:'D',oct:4},{note:'C',oct:4},
-        ]},
-        twinkle: { label: 'Twinkle Twinkle', notes: [
-            {note:'C',oct:4},{note:'C',oct:4},{note:'G',oct:4},{note:'G',oct:4},
-            {note:'A',oct:4},{note:'A',oct:4},{note:'G',oct:4},
-            {note:'F',oct:4},{note:'F',oct:4},{note:'E',oct:4},{note:'E',oct:4},
-            {note:'D',oct:4},{note:'D',oct:4},{note:'C',oct:4},
-        ]},
-        ode: { label: 'Ode to Joy', notes: [
-            {note:'E',oct:4},{note:'E',oct:4},{note:'F',oct:4},{note:'G',oct:4},
-            {note:'G',oct:4},{note:'F',oct:4},{note:'E',oct:4},{note:'D',oct:4},
-            {note:'C',oct:4},{note:'C',oct:4},{note:'D',oct:4},{note:'E',oct:4},
-            {note:'E',oct:4},{note:'D',oct:4},{note:'D',oct:4},
-        ]},
-        jingle: { label: 'Jingle Bells', notes: [
-            {note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},
-            {note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},
-            {note:'E',oct:4},{note:'G',oct:4},{note:'C',oct:4},{note:'D',oct:4},{note:'E',oct:4},
-            {note:'F',oct:4},{note:'F',oct:4},{note:'F',oct:4},{note:'F',oct:4},
-            {note:'F',oct:4},{note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},{note:'E',oct:4},
-            {note:'E',oct:4},{note:'D',oct:4},{note:'D',oct:4},{note:'E',oct:4},{note:'D',oct:4},{note:'G',oct:4},
-        ]},
-        minuet: { label: 'Minuet in G (Bach)', notes: [
-            {note:'G',oct:4},{note:'A',oct:4},{note:'B',oct:4},{note:'C',oct:5},
-            {note:'D',oct:5},{note:'C',oct:5},{note:'B',oct:4},{note:'A',oct:4},
-            {note:'G',oct:4},{note:'F',oct:4},{note:'E',oct:4},{note:'D',oct:4},
-            {note:'E',oct:4},{note:'F',oct:4},{note:'G',oct:4},{note:'G',oct:4},
-            {note:'A',oct:4},{note:'G',oct:4},{note:'F',oct:4},{note:'E',oct:4},
-            {note:'D',oct:4},{note:'C',oct:4},{note:'D',oct:4},{note:'E',oct:4},
-            {note:'D',oct:4},{note:'C',oct:4},
-        ]},
-    };
-
     let correct = 0, wrong = 0;
     let windowNotes = [];
     let busy = false;
@@ -163,6 +199,8 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     let patternSize = 1;
     let patternPos = 0;
     let songPos = 0;
+    let SONGS_LIST = [];
+    let songsLoaded = false;
 
     // metronome
     let metroInterval = null;
@@ -282,10 +320,10 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     }
 
     function fillWindow() {
-        const songId = songEl.value;
+        const songTitle = songEl.value.trim();
         while (windowNotes.length < WINDOW_SIZE) {
-            if (songId) {
-                const song = SONGS[songId];
+            if (songTitle) {
+                const song = SONGS_LIST.find(s => s.title === songTitle);
                 if (song && song.notes.length > 0) {
                     windowNotes.push(song.notes[songPos % song.notes.length]);
                     songPos++;
@@ -328,14 +366,141 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         }
     }
 
+    function loadSongs() {
+        return fetch('/songs/sight-reading/songs.json')
+            .then(function (r) { return r.json(); })
+            .then(function (songs) {
+                SONGS_LIST = songs;
+                songsLoaded = true;
+                var list = document.getElementById('song-list');
+                var random = document.createElement('li');
+                random.textContent = 'Random';
+                random.dataset.value = '';
+                list.appendChild(random);
+                songs.forEach(function (s) {
+                    var li = document.createElement('li');
+                    li.textContent = s.title;
+                    li.dataset.value = s.title;
+                    list.appendChild(li);
+                });
+                setupCombobox();
+            })
+            .catch(function () { songsLoaded = true; });
+    }
+
+    function setupCombobox() {
+        var input = songEl;
+        var list = document.getElementById('song-list');
+        var toggle = document.getElementById('song-toggle');
+        var clear = document.getElementById('song-clear');
+        var container = document.getElementById('song-combobox');
+        var open = false;
+        var selectedValue = '';
+
+        function openList() {
+            open = true;
+            list.classList.add('open');
+            input.removeAttribute('readonly');
+            input.value = '';
+            input.focus();
+            Array.from(list.children).forEach(function (li) { li.style.display = ''; });
+            highlightItem(null);
+        }
+
+        function closeList() {
+            open = false;
+            list.classList.remove('open');
+            input.setAttribute('readonly', '');
+            input.value = selectedValue || '';
+            input.placeholder = selectedValue ? '' : 'Random';
+        }
+
+        function highlightItem(li) {
+            Array.from(list.children).forEach(function (el) { el.classList.remove('highlighted'); });
+            if (li) li.classList.add('highlighted');
+        }
+
+        function selectItem(value) {
+            selectedValue = value;
+            Array.from(list.children).forEach(function (li) {
+                li.classList.toggle('selected', li.dataset.value === value);
+            });
+            if (value) {
+                input.value = value;
+                clear.classList.add('visible');
+            } else {
+                input.value = '';
+                clear.classList.remove('visible');
+            }
+            closeList();
+            startExercise();
+        }
+
+        function visibleItems() {
+            return Array.from(list.children).filter(function (li) {
+                return li.style.display !== 'none';
+            });
+        }
+
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (open) closeList(); else openList();
+        });
+
+        input.addEventListener('focus', function () {
+            if (!open) openList();
+        });
+
+        input.addEventListener('input', function () {
+            if (!open) return;
+            var q = input.value.toLowerCase();
+            Array.from(list.children).forEach(function (li) {
+                if (li.dataset.value === '') {
+                    li.style.display = '';
+                } else {
+                    li.style.display = li.textContent.toLowerCase().indexOf(q) >= 0 ? '' : 'none';
+                }
+            });
+            highlightItem(visibleItems()[0] || null);
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (!open) return;
+            var items = visibleItems();
+            if (e.key === 'Escape') {
+                closeList();
+            } else if (e.key === 'Enter') {
+                var hl = list.querySelector('.highlighted');
+                if (hl) selectItem(hl.dataset.value || '');
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                var idx = items.indexOf(list.querySelector('.highlighted'));
+                if (e.key === 'ArrowDown') idx = Math.min(idx + 1, items.length - 1);
+                else idx = Math.max(idx - 1, 0);
+                highlightItem(items[idx]);
+                items[idx].scrollIntoView({ block: 'nearest' });
+            }
+        });
+
+        list.addEventListener('click', function (e) {
+            var li = e.target.closest('li');
+            if (li) selectItem(li.dataset.value || '');
+        });
+
+        clear.addEventListener('click', function (e) {
+            e.stopPropagation();
+            selectItem('');
+        });
+
+        document.addEventListener('click', function (e) {
+            if (open && !container.contains(e.target)) closeList();
+        });
+    }
+
     function startExercise() {
-        busy = false;
-        correct = 0;
-        wrong = 0;
-        windowNotes = [];
-        noteCount = 0;
         patternPos = 0;
         songPos = 0;
+        windowNotes = [];
         removeGhost();
         fillWindow();
         renderWindow();
@@ -427,6 +592,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
             setTimeout(init, 20);
             return;
         }
+        rangeEl.addEventListener('change', startExercise);
         window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
             if (isNoteOn) {
                 if (windowNotes.length === 0 || busy || patternPos >= windowNotes.length) return;
@@ -444,7 +610,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
                 }
             }
         });
-        startExercise();
+        loadSongs().then(startExercise, startExercise);
     }
 
     window.setPatternSize = function (size) {
@@ -473,9 +639,6 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
             return target && midiNote === posToMidi(target);
         };
     }
-
-    rangeEl.addEventListener('change', startExercise);
-    songEl.addEventListener('change', startExercise);
 
     setTimeout(init, 0);
 })();
