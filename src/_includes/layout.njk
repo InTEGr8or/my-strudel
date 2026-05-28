@@ -186,7 +186,7 @@
     <header>
         <div class="controls">
             <a href="{{ '/' | htmlBaseUrl }}">← Home</a>
-            {% if type !== 'trainer' %}<button id="play-btn" class="primary">▶ PLAY</button>
+            {% if type !== 'trainer' and type !== 'lesson' %}<button id="play-btn" class="primary">▶ PLAY</button>
             <button id="stop-btn" style="background: #dc3545; color: white; border-color: #bd2130;">■ STOP</button>{% endif %}
         </div>
         <h1 style="font-size: 1.3rem; margin: 0; color: var(--highlight); text-transform: uppercase;">{{ title }}</h1>
@@ -199,14 +199,14 @@
     <div class="app-container">
         <main>
             {% if content %}
-            {% if type !== 'trainer' %}
+            {% if type !== 'trainer' and type !== 'lesson' %}
             <div class="doc-container">{{ content | safe }}</div>
             {% else %}
             <div id="trainer-content">{{ content | safe }}</div>
             {% endif %}
             {% endif %}
 
-            {% if type !== 'trainer' %}
+            {% if type !== 'trainer' and type !== 'lesson' %}
             <template id="song-source">{{ strudelCode | safe }}</template>
             <div class="editor-container">
                 <strudel-editor id="strudel-repl"></strudel-editor>
@@ -351,6 +351,7 @@
         }
 
         let midiAudioCtx = null;
+        window.__midiAudioCtx = () => midiAudioCtx;
         const fontCache = {};
 
         async function loadFontData(name) {
@@ -484,13 +485,17 @@
         };
         document.querySelectorAll('.synth-voice').forEach(el => el.classList.toggle('active', el.dataset.voice === selectedVoice));
 
-        function playMidiNote(midiNote, velocity) {
+        async function playMidiNote(midiNote, velocity) {
             if (window.__playMidiFilter && !window.__playMidiFilter(midiNote)) return;
-            if (!midiAudioCtx) {
-                midiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (midiAudioCtx.state === 'suspended') {
-                midiAudioCtx.resume();
+            try {
+                if (!midiAudioCtx) {
+                    midiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (midiAudioCtx.state === 'suspended') {
+                    await midiAudioCtx.resume();
+                }
+            } catch (_) {
+                return;
             }
             const vol = (velocity / 127) * 0.3;
             const voice = VOICES[selectedVoice];
@@ -498,7 +503,8 @@
             if (voice.type === 'osc') {
                 playOscillator(midiNote, vol, selectedVoice);
             } else if (voice.type === 'sf') {
-                playFromLocalSoundfont(midiNote, vol, selectedVoice).catch(() => {
+                playFromLocalSoundfont(midiNote, vol, selectedVoice).catch(e => {
+                    console.warn('soundfont playback failed:', e);
                     if (voice.fallback) voice.fallback(midiNote, vol);
                 });
             } else {
@@ -530,7 +536,7 @@
                     activeMidi.set(midiNote, noteName);
                     keyOn(noteName);
                     staffNote(noteName, true);
-                    playMidiNote(midiNote, velocity);
+                    try { playMidiNote(midiNote, velocity); } catch (_) {}
                     updateMidiNotes();
                 }
             } else if (isNoteOff) {
@@ -545,7 +551,7 @@
             __midiObservers.forEach(fn => fn(midiNote, isNoteOn, isNoteOff));
         }
 
-        {% if type !== 'trainer' %}
+        {% if type !== 'trainer' and type !== 'lesson' %}
         const repl = document.getElementById('strudel-repl');
         const source = document.getElementById('song-source');
         
@@ -583,6 +589,23 @@
                 pre.parentNode.replaceChild(target, pre);
                 ABCJS.renderAbc(target, el.textContent.trim(), { responsive: 'resize' });
             });
+        });
+
+        function initAudioCtx() {
+            try {
+                if (!midiAudioCtx) {
+                    midiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (midiAudioCtx.state === 'suspended') {
+                    midiAudioCtx.resume();
+                }
+            } catch (e) {
+                console.error('AudioContext init failed:', e);
+            }
+        }
+        // capture phase fires before stopPropagation can block it
+        ['click', 'pointerdown', 'keydown'].forEach(ev => {
+            document.addEventListener(ev, initAudioCtx, { capture: true, once: true });
         });
 
         if (navigator.requestMIDIAccess) {
@@ -646,5 +669,6 @@
         }
     </script>
     <script type="module" src="/js/note-chart.js"></script>
+    <script src="/js/trainer.js"></script>
 </body>
 </html>

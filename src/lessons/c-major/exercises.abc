@@ -1,0 +1,28 @@
+X:1
+T:C Major Scale
+M:4/4
+L:1/8
+K:C
+| CDEF GABc | cBAG FEDC |]
+
+X:2
+T:C Major Broken Thirds
+M:4/4
+L:1/8
+K:C
+| C E D F | E G F A | G B A c | B G A F | G E F D | E C2 z |]
+
+X:3
+T:C Major Arpeggio
+M:4/4
+L:1/8
+K:C
+| C E G c | c G E C |]
+
+X:4
+T:C Major Step Exercise
+M:4/4
+L:1/8
+K:C
+| C C D D | E E F F | G G A A | B B c c |
+| c c B B | A A G G | F F E E | D D C2 |]

@@ -1,0 +1,20 @@
+X:1
+T:G Major Scale
+M:4/4
+L:1/8
+K:G
+| G A B c | d e ^f g | g f e d | c B A G |]
+
+X:2
+T:G Major Broken Thirds
+M:4/4
+L:1/8
+K:G
+| G B A c | B d c e | d f e g | d c B A | G B A G | G4 |]
+
+X:3
+T:G Major Arpeggio
+M:4/4
+L:1/8
+K:G
+| G B d g | g d B G |]

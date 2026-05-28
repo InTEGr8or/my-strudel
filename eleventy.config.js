@@ -1,6 +1,7 @@
 const { getMetadata } = require('./metadata-parser.js');
 const path = require('path');
 const fs = require('fs');
+const { parseAbc } = require('./src/shared/parse-abc');
 
 module.exports = function (eleventyConfig) {
   eleventyConfig.addTemplateFormats('strudel,tidal');
@@ -13,6 +14,25 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'src/soundfonts': 'soundfonts' });
 
   eleventyConfig.addWatchTarget('./src/songs/sight-reading/songs/');
+  eleventyConfig.addWatchTarget('./src/lessons/');
+
+  eleventyConfig.addShortcode('lessonNotes', function (lessonId) {
+    const abcPath = path.join(__dirname, 'src', 'lessons', lessonId, 'exercises.abc');
+    if (!fs.existsSync(abcPath)) return '[]';
+    const text = fs.readFileSync(abcPath, 'utf-8');
+    const result = parseAbc(text);
+    return JSON.stringify(result.notes);
+  });
+
+  eleventyConfig.addFilter('lessonNav', function (allPages, currentPage) {
+    const currentUrl = currentPage && currentPage.url;
+    const lessons = allPages.filter(p => p.data && p.data.type === 'lesson')
+      .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
+    const idx = lessons.findIndex(p => p.url === currentUrl);
+    const prev = idx > 0 ? lessons[idx - 1] : null;
+    const next = idx < lessons.length - 1 ? lessons[idx + 1] : null;
+    return { prev, next, idx, total: lessons.length };
+  });
 
   // Add the base plugin to handle GitHub Pages subpaths
   const { EleventyHtmlBasePlugin } = require("@11ty/eleventy");

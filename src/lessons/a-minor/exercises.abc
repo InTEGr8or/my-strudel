@@ -1,0 +1,20 @@
+X:1
+T:A Natural Minor Scale
+M:4/4
+L:1/8
+K:Am
+| A B c d | e f g a | a g f e | d c B A |]
+
+X:2
+T:A Minor Broken Thirds
+M:4/4
+L:1/8
+K:Am
+| A c B d | c e d f | e g f a | g e f d | e c d B | c A2 z |]
+
+X:3
+T:A Minor Arpeggio
+M:4/4
+L:1/8
+K:Am
+| A c e a | a e c A |]
