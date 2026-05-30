@@ -1,0 +1,18 @@
+<script>
+function initAudioCtx() {
+    try {
+        if (!midiAudioCtx) {
+            midiAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (midiAudioCtx.state === 'suspended') {
+            midiAudioCtx.resume();
+        }
+    } catch (e) {
+        console.error('AudioContext init failed:', e);
+    }
+}
+// capture phase fires before stopPropagation can block it
+['click', 'pointerdown', 'keydown'].forEach(ev => {
+    document.addEventListener(ev, initAudioCtx, { capture: true, once: true });
+});
+</script>

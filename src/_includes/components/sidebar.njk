@@ -1,0 +1,31 @@
+<aside id="sidebar">
+    <div class="tabs">
+        <div class="tab" data-tab="sounds" onclick="showTab('sounds')">Sounds</div>
+        <div class="tab" data-tab="synth" onclick="showTab('synth')">Synth</div>
+        <div class="tab" data-tab="ref" onclick="showTab('ref')">Ref</div>
+    </div>
+    <div id="sounds" class="tab-content">
+        <p style="font-size: 1rem; color: #888; margin-top: 0;">Tap to hear!</p>
+        <code onclick="previewSound('bd')">bd</code>
+        <code onclick="previewSound('sd')">sd</code>
+        <code onclick="previewSound('hh')">hh</code>
+        <code onclick="previewSound('cp')">cp</code>
+        <code onclick="previewSound('bass')">bass</code>
+    </div>
+    <div id="synth" class="tab-content">
+        <p style="font-size: 1rem; color: #888; margin-top: 0;">MIDI voice:</p>
+        <code class="synth-voice" data-voice="grand-piano" onclick="selectVoice('grand-piano')">Grand Piano <span id="piano-status" style="font-size:0.7em;"></span></code>
+        <code class="synth-voice" data-voice="epiano" onclick="selectVoice('epiano')">Roland EP <span id="epiano-status" style="font-size:0.7em;"></span></code>
+        <code class="synth-voice" data-voice="triangle" onclick="selectVoice('triangle')">Triangle</code>
+        <code class="synth-voice" data-voice="sine" onclick="selectVoice('sine')">Sine</code>
+        <code class="synth-voice" data-voice="sawtooth" onclick="selectVoice('sawtooth')">Sawtooth</code>
+        <code class="synth-voice" data-voice="square" onclick="selectVoice('square')">Square</code>
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 1rem 0;">
+        <p style="font-size: 0.9rem; color: #888; margin: 0 0 0.3rem 0;">Staff guide:</p>
+        <label class="color-toggle"><input type="checkbox" id="color-guide-toggle" checked onchange="toggleColorGuide(this.checked)"> Show color guide</label>
+        <label class="tint-slider">Key tint: <input type="range" id="piano-tint-slider" min="0" max="100" value="30"> <span id="piano-tint-value">30%</span></label>
+    </div>
+    <div id="ref" class="tab-content">
+        <code>s()</code>, <code>n()</code>, <code>gain()</code>
+    </div>
+</aside>

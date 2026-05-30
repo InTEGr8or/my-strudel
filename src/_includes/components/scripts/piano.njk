@@ -1,0 +1,61 @@
+<script>
+const piano = document.getElementById('piano-container');
+const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const keys = {};
+const deviceCfg = JSON.parse(document.getElementById('device-config').textContent);
+
+for (let midi = 21; midi <= 108; midi++) {
+    const oct = Math.floor(midi / 12) - 1;
+    const noteName = NOTES[midi % 12];
+    const isBlack = noteName.includes('#');
+    const fullName = `${noteName.toLowerCase()}${oct}`.replace('#', 's');
+    const key = document.createElement('div');
+    key.className = `piano-key ${isBlack ? 'black' : 'white'}`;
+    key.id = `key-${fullName}`;
+    key.dataset.midi = midi;
+    key.dataset.band = (noteName[0] === 'A' || noteName[0] === 'B') ? oct : oct - 1;
+    if (midi < deviceCfg.range.low || midi > deviceCfg.range.high) {
+        key.classList.add('dimmed');
+    }
+    piano.appendChild(key);
+    keys[fullName] = key;
+}
+
+const activeKeys = new Set();
+
+function flashKey(note) {
+    const id = `key-${note.toLowerCase()}`;
+    const el = document.getElementById(id);
+    if (el) {
+        el.classList.add('active');
+        setTimeout(() => {
+            if (!activeKeys.has(note.toLowerCase())) {
+                el.classList.remove('active');
+            }
+        }, 150);
+    }
+}
+
+function keyOn(noteName) {
+    const el = document.getElementById(`key-${noteName}`);
+    if (el) el.classList.add('active');
+}
+
+function keyOff(noteName) {
+    const el = document.getElementById(`key-${noteName}`);
+    if (el) el.classList.remove('active');
+}
+
+const NOTE_LABELS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+function midiToNoteName(midi) {
+    const names = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
+    const oct = Math.floor(midi / 12) - 1;
+    return `${names[midi % 12]}${oct}`;
+}
+
+function midiNoteDisplay(midi) {
+    const oct = Math.floor(midi / 12) - 1;
+    return `${NOTE_LABELS[midi % 12]}${oct}`;
+}
+</script>

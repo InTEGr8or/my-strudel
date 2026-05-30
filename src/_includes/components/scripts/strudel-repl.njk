@@ -1,0 +1,31 @@
+{% if type !== 'trainer' and type !== 'lesson' %}
+<script>
+const repl = document.getElementById('strudel-repl');
+const source = document.getElementById('song-source');
+
+const interval = setInterval(() => {
+    if (repl.editor) {
+        repl.editor.setCode(source.content.textContent.trim());
+
+        const originalDraw = repl.editor.onDraw;
+        repl.editor.onDraw = (haps, time, painters) => {
+            const currentFrame = haps.filter((hap) => hap.isActive(time));
+            currentFrame.forEach(hap => {
+                if (hap.value && hap.value.note) {
+                    flashKey(hap.value.note);
+                }
+            });
+            if (originalDraw) originalDraw(haps, time, painters);
+        };
+
+        clearInterval(interval);
+    }
+}, 50);
+
+document.getElementById('play-btn').onclick = () => repl.editor?.evaluate();
+document.getElementById('stop-btn').onclick = () => {
+    repl.editor?.stop();
+    document.getElementById('preview-repl').editor?.stop();
+};
+</script>
+{% endif %}

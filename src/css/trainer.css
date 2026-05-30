@@ -1,0 +1,52 @@
+.abc-notation {
+    background: var(--abc-bg);
+    border: 3px solid var(--highlight);
+    border-radius: 15px;
+    margin: 1rem 0;
+    padding: 1.5rem;
+    max-width: 100%;
+    overflow-x: auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.abc-notation svg { display: block; margin: 0 auto; max-width: 100%; }
+
+@media (prefers-color-scheme: dark) {
+    .abc-notation svg path,
+    .abc-notation svg text,
+    .abc-notation svg tspan,
+    .abc-notation svg rect { fill: var(--abc-text) !important; stroke: var(--abc-text) !important; }
+    .abc-notation svg line { stroke: var(--abc-text) !important; }
+}
+
+note-chart[data-show-colors="false"] #staff-bands { display: none; }
+note-chart[data-show-colors="false"] #staff-content { transform: translateX(calc(-60px * var(--ui-scale, 1.25))); }
+
+@media (min-width: 900px) {
+    body[data-type="lesson"] main #lesson-content,
+    body[data-type="trainer"] main #lesson-content {
+        max-width: none;
+        width: 100%;
+        column-count: 2;
+        column-gap: 2.5rem;
+    }
+    body[data-type="lesson"] #lesson-content h2:first-child,
+    body[data-type="trainer"] #lesson-content h2:first-child {
+        column-span: all;
+    }
+    body[data-type="lesson"] #lesson-content h3,
+    body[data-type="trainer"] #lesson-content h3,
+    body[data-type="lesson"] #lesson-content .scale-diagram,
+    body[data-type="trainer"] #lesson-content .scale-diagram,
+    body[data-type="lesson"] #lesson-content .chord-notes,
+    body[data-type="trainer"] #lesson-content .chord-notes,
+    body[data-type="lesson"] #lesson-content .interval-diagram,
+    body[data-type="trainer"] #lesson-content .interval-diagram,
+    body[data-type="lesson"] #lesson-content .triad-grid,
+    body[data-type="trainer"] #lesson-content .triad-grid,
+    body[data-type="lesson"] #lesson-content .chord-preview,
+    body[data-type="trainer"] #lesson-content .chord-preview,
+    body[data-type="lesson"] #lesson-content table,
+    body[data-type="trainer"] #lesson-content table {
+        break-inside: avoid;
+    }
+}

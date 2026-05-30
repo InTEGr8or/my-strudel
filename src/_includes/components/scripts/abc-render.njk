@@ -1,0 +1,11 @@
+<script>
+window.addEventListener('load', () => {
+    document.querySelectorAll('code.language-abc').forEach((el) => {
+        const pre = el.parentNode;
+        const target = document.createElement('div');
+        target.className = 'abc-notation';
+        pre.parentNode.replaceChild(target, pre);
+        ABCJS.renderAbc(target, el.textContent.trim(), { responsive: 'resize' });
+    });
+});
+</script>

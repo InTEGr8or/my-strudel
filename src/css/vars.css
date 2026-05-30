@@ -1,0 +1,50 @@
+:root {
+    --bg: #fdfdfd;
+    --text: #222;
+    --header-bg: #eee;
+    --panel-bg: #fff;
+    --border: #ccc;
+    --accent: #005cc5;
+    --highlight: #ffcc00;
+    --piano-bg: #333;
+    --abc-bg: #fff;
+    --abc-text: #000;
+    --code-bg: #f0f0f0;
+    --sidebar-bg: #f8f8f8;
+
+    --ui-scale: 1.25;
+
+    --note-alpha: 0.2;
+    --note-d-alpha: 0.4;
+    --octave-0: 0, 160, 200;
+    --octave-1: 220, 100, 50;
+    --octave-2: 60, 190, 70;
+    --octave-3: 210, 80, 130;
+    --octave-4: 220, 190, 30;
+    --octave-5: 150, 100, 220;
+    --octave-6: 240, 140, 60;
+    --octave-7: 60, 170, 230;
+    --octave-8: 100, 210, 100;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #1a1a1a;
+        --text: #eee;
+        --header-bg: #222;
+        --panel-bg: #1e1e1e;
+        --border: #333;
+        --accent: #58a6ff;
+        --highlight: #ffcc00;
+        --piano-bg: #000;
+        --abc-bg: #111;
+        --abc-text: #eee;
+        --code-bg: #111;
+        --sidebar-bg: #111;
+    }
+}
+
+@keyframes note-label-fade {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}

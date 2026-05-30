@@ -1,0 +1,39 @@
+<script>
+// probe one font on load to set status
+(async () => {
+    try {
+        await loadFontData(SF_FONTS['grand-piano']);
+        sfStatus('piano', true);
+        sfStatus('epiano', true);
+    } catch (_) {
+        sfStatus('piano', false);
+        sfStatus('epiano', false);
+    }
+})();
+
+document.querySelectorAll('.synth-voice').forEach(el => el.classList.toggle('active', el.dataset.voice === selectedVoice));
+
+const tintSlider = document.getElementById('piano-tint-slider');
+const tintValue = document.getElementById('piano-tint-value');
+tintSlider.addEventListener('input', () => {
+    setPianoTint(parseInt(tintSlider.value));
+    tintValue.textContent = tintSlider.value + '%';
+});
+const savedTint = localStorage.getItem('piano-tint-opacity');
+if (savedTint !== null) {
+    tintSlider.value = savedTint;
+    tintValue.textContent = savedTint + '%';
+    setPianoTint(parseInt(savedTint));
+}
+const guideCheckbox = document.getElementById('color-guide-toggle');
+if (localStorage.getItem('show-color-guide') === 'false') {
+    guideCheckbox.checked = false;
+    document.body.dataset.showColors = 'false';
+}
+const savedTab = localStorage.getItem('selected-tab');
+if (savedTab && document.querySelector(`.tab[data-tab="${savedTab}"]`)) {
+    activateTab(savedTab);
+} else {
+    activateTab('sounds');
+}
+</script>
