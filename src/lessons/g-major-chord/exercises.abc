@@ -1,0 +1,20 @@
+X:1
+T:G Major Chord - Root Position
+M:4/4
+L:1/8
+K:G
+| G B d g | g d B G |]
+
+X:2
+T:G Major Chord - First Inversion
+M:4/4
+L:1/8
+K:G
+| B d g b | b g d B |]
+
+X:3
+T:G Major Chord - Second Inversion
+M:4/4
+L:1/8
+K:G
+| d g b d' | d' b g d |]

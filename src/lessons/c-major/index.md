@@ -19,7 +19,7 @@ tags: lessons
 #trainer-panel { display: flex; justify-content: center; align-items: center; gap: 2rem; padding: 0.5rem 0; flex-wrap: wrap; }
 .score-item { text-align: center; font-size: 0.9rem; color: var(--text); opacity: 0.8; display: flex; flex-direction: column; }
 .score-item strong { font-size: 1.2rem; color: var(--accent); }
-#trainer-status { text-align: center; font-size: 1rem; font-weight: bold; color: var(--accent); padding: 0.3rem 0; min-height: 1.5rem; }
+
 </style>
 
 <div id="lesson-content">
@@ -79,7 +79,7 @@ Play the exercises below with your MIDI keyboard. The highlighted note on the st
 {%- endif -%}
 </div>
 
-<div id="trainer-status">Loading...</div>
+
 <div id="trainer-panel">
     <div class="score-item">Correct<br><strong id="score-correct">0</strong></div>
     <div class="score-item">Wrong<br><strong id="score-wrong">0</strong></div>
@@ -168,7 +168,7 @@ Play the exercises below with your MIDI keyboard. The highlighted note on the st
         }
         trainer = window.createTrainer({
             chartEl: chart,
-            statusEl: document.getElementById('trainer-status'),
+
             scoreCorrectEl: document.getElementById('score-correct'),
             scoreWrongEl: document.getElementById('score-wrong'),
         });

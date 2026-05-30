@@ -68,12 +68,14 @@ test('handleMidiMessage continues processing when playMidiNote errors are isolat
   await page.goto('/songs/sketches/mary-had-a-little-lamb/');
   await page.waitForSelector('note-chart svg');
 
-  const el = page.locator('#midi-notes');
   await page.evaluate(() => {
     window.__midiObservers.push((note, on, off) => {
-      const el = document.getElementById('midi-notes');
-      if (on) el.textContent = 'observer ran for ' + note;
+      const existing = document.getElementById('observer-hook');
+      if (existing) existing.textContent = 'observer ran for ' + note;
     });
+    const hook = document.createElement('div');
+    hook.id = 'observer-hook';
+    document.body.appendChild(hook);
   });
 
   const status = page.locator('#midi-status');
@@ -84,7 +86,7 @@ test('handleMidiMessage continues processing when playMidiNote errors are isolat
     window.handleMidiMessage(event);
   });
 
-  await expect(el).not.toHaveText('');
+  await expect(page.locator('#observer-hook')).not.toHaveText('');
 });
 
 test('soundfont loads and zone lookup succeeds', async ({ page }) => {

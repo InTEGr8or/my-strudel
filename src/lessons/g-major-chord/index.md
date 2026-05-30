@@ -1,11 +1,11 @@
 ---
-title: "G Major Scale"
+title: "G Major Chord"
 key: "G"
 type: "lesson"
-lessonType: "major"
+lessonType: "chord"
 difficulty: "beginner"
-order: 3
-description: "Learn the G major scale — one sharp (F♯)."
+order: 6
+description: "Learn the G major chord — the dominant chord in C major."
 layout: layout.njk
 tags: lessons
 ---
@@ -16,7 +16,17 @@ tags: lessons
 #lesson-content p { color: var(--text); opacity: 0.9; }
 #lesson-content .scale-diagram { display: flex; justify-content: center; gap: 0.5rem; margin: 1.5rem 0; flex-wrap: wrap; }
 #lesson-content .scale-note { width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--panel-bg); border: 2px solid var(--border); font-size: 1.1rem; font-weight: bold; color: var(--accent); }
-#lesson-content .scale-note.accidental { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+#lesson-content .chord-role { font-size: 0.75rem; color: var(--text); opacity: 0.6; display: block; text-align: center; margin-top: 0.15rem; }
+#lesson-content .chord-notes { display: flex; justify-content: center; gap: 0.5rem; margin: 1.5rem 0; flex-wrap: wrap; }
+#lesson-content .chord-note { width: 3rem; padding: 0.25rem 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; background: var(--panel-bg); border: 2px solid var(--border); font-size: 1.1rem; font-weight: bold; color: var(--accent); }
+#lesson-content .chord-note .note-name { font-size: 1.3rem; }
+#lesson-content .chord-note.accidental { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+#lesson-content .chord-preview { margin: 1rem 0; padding: 1rem; background: var(--panel-bg); border: 1px solid var(--border); border-radius: 12px; text-align: center; }
+#lesson-content .chord-preview p { margin: 0; font-size: 0.9rem; }
+#lesson-content .chord-preview strong { color: var(--accent); }
+#lesson-content .g-scale-diagram { display: flex; justify-content: center; gap: 0.5rem; margin: 1.5rem 0; flex-wrap: wrap; }
+#lesson-content .gs-note { width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--panel-bg); border: 2px solid var(--border); font-size: 1.1rem; font-weight: bold; color: var(--accent); }
+#lesson-content .gs-note.accidental { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
 #trainer-panel { display: flex; justify-content: center; align-items: center; gap: 2rem; padding: 0.5rem 0; flex-wrap: wrap; }
 .score-item { text-align: center; font-size: 0.9rem; color: var(--text); opacity: 0.8; display: flex; flex-direction: column; }
 .score-item strong { font-size: 1.2rem; color: var(--accent); }
@@ -25,35 +35,54 @@ tags: lessons
 
 <div id="lesson-content">
 
-## The Key of G Major
+## The G Major Chord
 
-The G major scale introduces your first sharp: **F♯**. The notes are **G, A, B, C, D, E, F♯**.
+The G major chord is built from the **root** (G), **major third** (B), and **perfect fifth** (D) of the G major scale. It's called the **dominant** chord in the key of C major — it naturally pulls back to the C chord.
 
-<div class="scale-diagram">
-  <span class="scale-note">G</span>
-  <span class="scale-note">A</span>
-  <span class="scale-note">B</span>
-  <span class="scale-note">C</span>
-  <span class="scale-note">D</span>
-  <span class="scale-note">E</span>
-  <span class="scale-note accidental">F♯</span>
+<div class="chord-notes">
+  <div class="chord-note">
+    <span class="note-name" style="color:#e74c3c">G</span>
+    <span class="chord-role">root</span>
+  </div>
+  <div class="chord-note">
+    <span class="note-name" style="color:#2ecc71">B</span>
+    <span class="chord-role">major third</span>
+  </div>
+  <div class="chord-note">
+    <span class="note-name" style="color:#3498db">D</span>
+    <span class="chord-role">perfect fifth</span>
+  </div>
 </div>
 
-### The Key Signature
+### G Major Chord in the G Major Scale
 
-G major has **one sharp** in its key signature: **F♯**. Every F in the music is played as F♯ unless marked as natural.
+The G major chord uses the 1st, 3rd, and 5th notes of the G major scale:
 
-### G Major on the Piano
+<div class="g-scale-diagram">
+  <span class="gs-note" style="border-color:#e74c3c;background:rgba(231,76,60,0.15)">G</span>
+  <span class="gs-note">A</span>
+  <span class="gs-note" style="border-color:#2ecc71;background:rgba(46,204,113,0.15)">B</span>
+  <span class="gs-note">C</span>
+  <span class="gs-note" style="border-color:#3498db;background:rgba(52,152,219,0.15)">D</span>
+  <span class="gs-note">E</span>
+  <span class="gs-note accidental">F♯</span>
+</div>
 
-On the piano, the G major scale starts with your thumb on G. When you reach F, play the black key (F♯) instead of the white F. The rest of the notes are white keys.
+### The Role of the Dominant
 
-| Note | G | A | B | C | D | E | F♯ |
-|------|---|---|---|---|---|---|----|
-| White/Black | W | W | W | W | W | W | B |
+In the key of C major, the G major chord (the **V chord**, or dominant) creates tension that resolves beautifully back to C major (the **I chord**, or tonic). This **V–I** progression is the most fundamental harmonic motion in Western music.
+
+Try it on your keyboard: play G–B–D, then C–E–G. Feel how the G chord pulls toward the C chord?
+
+### Inversions
+
+- **Root position**: G–B–D (root in the bass)
+- **First inversion**: B–D–G (third in the bass)
+- **Second inversion**: D–G–B (fifth in the bass)
 
 ### Practice
 
-Start with the ascending and descending scale, paying attention to the F♯. Then try the broken thirds and arpeggio. The F♯ will appear in the exercises — watch for the accidental marker on the staff.
+Play the G major chord arpeggios in all inversions. Then try alternating between G major and C major to hear the dominant-to-tonic resolution.
 
 {%- assign nav = collections.all | lessonNav: page -%}
 {%- if nav.prev or nav.next -%}
@@ -70,6 +99,10 @@ Start with the ascending and descending scale, paying attention to the F♯. The
   </div>
 </div>
 {%- endif -%}
+</div>
+
+<div class="chord-preview">
+  <p><strong>G Major Chord</strong> — Root position shown on the staff to the left</p>
 </div>
 
 
@@ -90,7 +123,7 @@ Start with the ascending and descending scale, paying attention to the F♯. The
         <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;">
             <input type="checkbox" id="metronome-toggle" onchange="toggleMetronome(this.checked)">
             <label for="metronome-toggle">♫</label>
-            <span id="metro-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--accent); opacity:0;transition:opacity 0.05s"></span>
+            <span id="metro-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity 0.05s"></span>
             <input type="range" id="metro-bpm" min="40" max="200" value="80" style="width:70px;height:4px" oninput="updateBpm(this.value)">
             <span id="bpm-label" style="font-size:0.8rem;opacity:0.7">80</span>
         </div>
@@ -99,8 +132,9 @@ Start with the ascending and descending scale, paying attention to the F♯. The
 
 <script>
 (function () {
-    var LESSON_NOTES = {% lessonNotes 'g-major' %};
+    var LESSON_NOTES = {% lessonNotes 'g-major-chord' %};
     var trainer = null;
+    var CHORD_NOTES = [{note:'G',oct:3},{note:'B',oct:3},{note:'D',oct:4}];
 
     var metroInterval = null;
     var metroBpm = 80;
@@ -159,6 +193,7 @@ Start with the ascending and descending scale, paying attention to the F♯. The
             setTimeout(init, 20);
             return;
         }
+        chart.renderChordReference(CHORD_NOTES);
         trainer = window.createTrainer({
             chartEl: chart,
 

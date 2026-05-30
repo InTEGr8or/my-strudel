@@ -77,7 +77,7 @@
         button.primary { background: #28a745; color: white; border-color: #1e7e34; }
         
         .app-container { display: flex; flex: 1; overflow: hidden; position: relative; }
-        main { flex: 1; display: flex; flex-direction: column; padding: 0; overflow-y: auto; position: relative; }
+        main { flex: 1; display: flex; flex-direction: column; padding: 0 10px; overflow-y: auto; position: relative; }
         
         .doc-container { background: var(--panel-bg); padding: 1.5rem; border-bottom: 2px solid var(--border); line-height: 1.6; flex-shrink: 0; }
         .doc-container h1, .doc-container h2 { margin-top: 0; color: var(--highlight); }
@@ -180,9 +180,39 @@
             aside { width: 100%; border-left: none; }
             aside.collapsed { margin-right: 0; transform: none; display: none; }
         }
+
+        @media (min-width: 900px) {
+            body[data-type="lesson"] main #lesson-content,
+            body[data-type="trainer"] main #lesson-content {
+                max-width: none;
+                width: 100%;
+                column-count: 2;
+                column-gap: 2.5rem;
+            }
+            body[data-type="lesson"] #lesson-content h2:first-child,
+            body[data-type="trainer"] #lesson-content h2:first-child {
+                column-span: all;
+            }
+            body[data-type="lesson"] #lesson-content h3,
+            body[data-type="trainer"] #lesson-content h3,
+            body[data-type="lesson"] #lesson-content .scale-diagram,
+            body[data-type="trainer"] #lesson-content .scale-diagram,
+            body[data-type="lesson"] #lesson-content .chord-notes,
+            body[data-type="trainer"] #lesson-content .chord-notes,
+            body[data-type="lesson"] #lesson-content .interval-diagram,
+            body[data-type="trainer"] #lesson-content .interval-diagram,
+            body[data-type="lesson"] #lesson-content .triad-grid,
+            body[data-type="trainer"] #lesson-content .triad-grid,
+            body[data-type="lesson"] #lesson-content .chord-preview,
+            body[data-type="trainer"] #lesson-content .chord-preview,
+            body[data-type="lesson"] #lesson-content table,
+            body[data-type="trainer"] #lesson-content table {
+                break-inside: avoid;
+            }
+        }
     </style>
 </head>
-<body>
+<body{% if type %} data-type="{{ type }}"{% endif %}>
     <header>
         <div class="controls">
             <a href="{{ '/' | htmlBaseUrl }}">← Home</a>
@@ -214,7 +244,6 @@
             {% endif %}
 
             <div id="note-chart-container"><note-chart></note-chart></div>
-            <div id="midi-notes" style="padding: 0.5rem 1rem; font-size: 1.5rem; font-weight: bold; color: var(--accent); text-align: center; min-height: 1.8rem; letter-spacing: 0.3em; font-family: monospace;"></div>
             <div id="piano-container"></div>
         </main>
         
@@ -512,17 +541,6 @@
             }
         }
 
-        function updateMidiNotes() {
-            const el = document.getElementById('midi-notes');
-            if (activeMidi.size === 0) {
-                el.textContent = '';
-                return;
-            }
-            const sorted = Array.from(activeMidi.keys()).sort((a, b) => a - b);
-            const notes = sorted.map(midiNoteDisplay);
-            el.textContent = notes.join('  ');
-        }
-
         window.__midiObservers = [];
 
         function handleMidiMessage(event) {
@@ -537,7 +555,6 @@
                     keyOn(noteName);
                     staffNote(noteName, true);
                     try { playMidiNote(midiNote, velocity); } catch (_) {}
-                    updateMidiNotes();
                 }
             } else if (isNoteOff) {
                 const noteName = activeMidi.get(midiNote);
@@ -545,7 +562,6 @@
                     activeMidi.delete(midiNote);
                     keyOff(noteName);
                     staffNote(noteName, false);
-                    updateMidiNotes();
                 }
             }
             __midiObservers.forEach(fn => fn(midiNote, isNoteOn, isNoteOff));

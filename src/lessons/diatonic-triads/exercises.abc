@@ -1,0 +1,20 @@
+X:1
+T:Diatonic Triads in C Major
+M:4/4
+L:1/2
+K:C
+| CEG DFA | EGB FAC | G B D A C E | B D F C E G |]
+
+X:2
+T:Common Chord Progression
+M:4/4
+L:1/2
+K:C
+| C E G | F A c | G B d | C E G |]
+
+X:3
+T:Another Progression
+M:4/4
+L:1/2
+K:C
+| A c e | F A c | C E G | G B d |]

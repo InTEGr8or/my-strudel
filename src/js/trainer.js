@@ -24,7 +24,6 @@
 
   window.createTrainer = function (config) {
     const chart = config.chartEl;
-    const statusEl = config.statusEl;
     const scoreCorrectEl = config.scoreCorrectEl;
     const scoreWrongEl = config.scoreWrongEl;
     const rangeEl = config.rangeEl || null;
@@ -34,7 +33,7 @@
     let wrong = 0;
     let windowNotes = [];
     let busy = false;
-    let ghostEl = null;
+    let ghostEls = [];
     let noteCount = 0;
     let patternSize = 1;
     let patternPos = 0;
@@ -42,6 +41,7 @@
     let noteArrayPos = 0;
     let randomGenerator = true;
     let destroyed = false;
+    let activeMidiNotes = new Set();
 
     function getRange() {
       if (!rangeEl) return chart._positions;
@@ -130,6 +130,27 @@
       }
     }
 
+    function removeGhosts() {
+      ghostEls.forEach(function (el) { if (el.parentNode) el.remove(); });
+      ghostEls = [];
+    }
+
+    function renderHeldAtHead() {
+      if (destroyed) return;
+      if (activeMidiNotes.size === 0) return;
+      const ctx = chart._ctx;
+      if (!ctx) return;
+      const staffW = ctx.STAFF_R - ctx.LEFT_PAD - 60;
+      const spacing = staffW / (WINDOW_SIZE + 1);
+      const cx = ctx.LEFT_PAD + 30 + spacing * (patternPos + 1);
+      var targetMidi = windowNotes[patternPos] ? posToMidi(windowNotes[patternPos]) : null;
+      activeMidiNotes.forEach(function (midi) {
+        var name = midiToNatural(midi).replace('s', '');
+        var el = chart.renderNoteHead(name, 'ghost', cx, true);
+        if (el) ghostEls.push(el);
+      });
+    }
+
     function shiftWindow() {
       const shiftCount = patternSize;
       for (let i = 0; i < shiftCount; i++) {
@@ -145,19 +166,11 @@
         el.style.transform = `translateX(${-spacing * shiftCount}px)`;
       }
       setTimeout(renderWindow, 150);
-      if (statusEl) statusEl.textContent = '';
     }
 
     function updateScore() {
       if (scoreCorrectEl) scoreCorrectEl.textContent = correct;
       if (scoreWrongEl) scoreWrongEl.textContent = wrong;
-    }
-
-    function removeGhost() {
-      if (ghostEl) {
-        ghostEl.remove();
-        ghostEl = null;
-      }
     }
 
     function handleCorrect() {
@@ -171,9 +184,7 @@
       const spacing = staffW / (WINDOW_SIZE + 1);
       const cx = ctx.LEFT_PAD + 30 + spacing * patternPos;
       chart.renderNoteHead(noteName(windowNotes[patternPos - 1]), 'correct', cx, true);
-      if (statusEl) {
-        statusEl.textContent = patternSize > 1 && patternPos < patternSize ? '✓' : '✓✓';
-      }
+      removeGhosts();
       setTimeout(function () {
         if (patternPos >= patternSize) {
           busy = false;
@@ -185,37 +196,41 @@
       }, 250);
     }
 
-    function handleWrong(midiPlayed) {
+    function handleWrong() {
       if (busy) return;
       busy = true;
       wrong++;
       updateScore();
-      const name = midiToNatural(midiPlayed);
-      const naturalName = name.replace('s', '');
-      const ctx = chart._ctx;
-      const staffW = ctx.STAFF_R - ctx.LEFT_PAD - 60;
-      const spacing = staffW / (WINDOW_SIZE + 1);
-      const cx = ctx.LEFT_PAD + 30 + spacing * (patternPos + 1);
       chart.clearNoteHeads();
       renderWindow();
-      ghostEl = chart.renderNoteHead(naturalName, 'ghost', cx, true);
-      if (statusEl) statusEl.textContent = '✗';
+      renderHeldAtHead();
+      busy = false;
     }
 
     function onMidi(midiNote, isNoteOn, isNoteOff) {
       if (destroyed) return;
       if (isNoteOn) {
-        if (windowNotes.length === 0 || busy || patternPos >= windowNotes.length) return;
+        activeMidiNotes.add(midiNote);
+        if (windowNotes.length === 0 || busy || patternPos >= windowNotes.length) {
+          renderHeldAtHead();
+          return;
+        }
         const target = windowNotes[patternPos];
         if (target && midiNote === posToMidi(target)) {
+          removeGhosts();
           handleCorrect();
         } else {
-          handleWrong(midiNote);
+          handleWrong();
         }
       } else if (isNoteOff) {
-        if (ghostEl) {
-          removeGhost();
-          busy = false;
+        activeMidiNotes.delete(midiNote);
+        if (activeMidiNotes.size > 0) {
+          removeGhosts();
+          renderHeldAtHead();
+        } else {
+          removeGhosts();
+        }
+        if (ghostEls.length === 0 && !busy) {
           renderWindow();
         }
       }
@@ -225,10 +240,9 @@
       patternPos = 0;
       noteArrayPos = 0;
       windowNotes = [];
-      removeGhost();
+      removeGhosts();
       fillWindow();
       renderWindow();
-      if (statusEl) statusEl.textContent = 'Play the highlighted note!';
       updateScore();
     }
 
@@ -256,7 +270,7 @@
       posToMidi: posToMidi,
       destroy: function () {
         destroyed = true;
-        ghostEl = null;
+        removeGhosts();
       },
       getStats: function () {
         return { correct: correct, wrong: wrong };

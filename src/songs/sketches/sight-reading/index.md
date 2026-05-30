@@ -39,13 +39,8 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
     opacity: 1;
 }
 .score-item.wrong strong { color: #dc3545; }
-#trainer-status {
-    text-align: center;
-    min-height: 1.8rem;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--accent);
-}
+
+
 .combobox {
     position: relative;
     max-width: 180px;
@@ -134,7 +129,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 }
 </style>
 
-<div id="trainer-status">Play the highlighted note to begin!</div>
+
 <div id="trainer-panel">
     <div class="score-item">
         Score
@@ -385,7 +380,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         }
         trainer = window.createTrainer({
             chartEl: chart,
-            statusEl: document.getElementById('trainer-status'),
+
             scoreCorrectEl: document.getElementById('score-correct'),
             scoreWrongEl: document.getElementById('score-wrong'),
             rangeEl: document.getElementById('trainer-range'),

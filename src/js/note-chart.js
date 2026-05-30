@@ -213,7 +213,7 @@ class NoteChart extends HTMLElement {
         // ledger lines for notes outside the visible G2–F5 range
         const ni = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
         const isBelow = oct < 2 || (oct === 2 && (ni[note] || 0) < 4);
-        const isAbove = oct > 5 || (oct === 5 && (ni[note] || 0) > 3);
+        const isAbove = oct > 5 || (oct === 5 && (ni[note] || 0) > 4);
         const isMiddleC = oct === 4 && note === 'C';
         if (isBelow || isAbove || isMiddleC) {
             const line = document.createElementNS(svgNs, 'line');
@@ -349,6 +349,72 @@ class NoteChart extends HTMLElement {
                 }
             }
         });
+    }
+
+    renderChordReference(notes) {
+        const ctx = this._ctx;
+        if (!ctx || !notes || notes.length === 0) return;
+        const { getY, LEFT_PAD, scale, SPACING } = ctx;
+        const svgNs = 'http://www.w3.org/2000/svg';
+        let g = this.querySelector('#chord-reference');
+        if (g) g.innerHTML = '';
+        if (!g) {
+            g = document.createElementNS(svgNs, 'g');
+            g.setAttribute('id', 'chord-reference');
+            const sc = this.querySelector('#staff-content') || this.querySelector('svg');
+            sc.appendChild(g);
+        }
+        const headW = SPACING * 1.2;
+        const headH = SPACING * 0.75;
+        const cx = LEFT_PAD + 30;
+        const yTop = getY(notes[notes.length - 1].note, notes[notes.length - 1].oct);
+        const yBot = getY(notes[0].note, notes[0].oct);
+        const accent = this._cssVar('--accent') || '#005cc5';
+        const bracket = document.createElementNS(svgNs, 'line');
+        bracket.setAttribute('x1', cx - 15 * scale);
+        bracket.setAttribute('y1', yTop - SPACING * 0.6);
+        bracket.setAttribute('x2', cx - 15 * scale);
+        bracket.setAttribute('y2', yBot + SPACING * 0.6);
+        bracket.setAttribute('stroke', accent);
+        bracket.setAttribute('stroke-width', 2 * scale);
+        bracket.setAttribute('opacity', '0.4');
+        g.appendChild(bracket);
+        const chordColors = ['#e74c3c', '#2ecc71', '#3498db', '#f39c12'];
+        for (let i = notes.length - 1; i >= 0; i--) {
+            const n = notes[i];
+            const y = getY(n.note, n.oct);
+            const color = chordColors[i % chordColors.length];
+            const head = document.createElementNS(svgNs, 'ellipse');
+            head.setAttribute('cx', cx);
+            head.setAttribute('cy', y);
+            head.setAttribute('rx', headW / 2);
+            head.setAttribute('ry', headH / 2);
+            head.setAttribute('transform', `rotate(-15, ${cx}, ${y})`);
+            head.setAttribute('fill', color);
+            head.setAttribute('stroke', color);
+            head.setAttribute('stroke-width', 1.5 * scale);
+            head.setAttribute('opacity', '0.8');
+            g.appendChild(head);
+            const stem = document.createElementNS(svgNs, 'line');
+            stem.setAttribute('x1', cx + headW / 2);
+            stem.setAttribute('y1', y);
+            stem.setAttribute('x2', cx + headW / 2);
+            stem.setAttribute('y2', y - SPACING * 3.5);
+            stem.setAttribute('stroke', color);
+            stem.setAttribute('stroke-width', 1.5 * scale);
+            stem.setAttribute('opacity', '0.4');
+            g.appendChild(stem);
+            const lbl = document.createElementNS(svgNs, 'text');
+            lbl.textContent = n.note + n.oct;
+            lbl.setAttribute('x', cx + headW / 2 + 6 * scale);
+            lbl.setAttribute('y', y);
+            lbl.setAttribute('text-anchor', 'start');
+            lbl.setAttribute('dominant-baseline', 'central');
+            lbl.setAttribute('font-size', `${10 * scale}`);
+            lbl.setAttribute('fill', color);
+            lbl.setAttribute('opacity', '0.9');
+            g.appendChild(lbl);
+        }
     }
 
     highlightStaffNote(noteName, on) {
