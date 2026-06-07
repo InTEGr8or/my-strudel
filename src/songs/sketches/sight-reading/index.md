@@ -165,8 +165,10 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
             <input type="checkbox" id="metronome-toggle" onchange="toggleMetronome(this.checked)">
             <label for="metronome-toggle">♫</label>
             <span id="metro-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity 0.05s"></span>
-            <input type="range" id="metro-bpm" min="40" max="200" value="80" style="width:70px;height:4px" oninput="updateBpm(this.value)">
-            <span id="bpm-label" style="font-size:0.8rem;opacity:0.7">80</span>
+            <button id="bpm-minus" style="font-size:1rem;padding:0.1rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;font-weight:bold;line-height:1.4">−</button>
+            <input type="range" id="metro-bpm" min="20" max="200" value="80" style="width:210px;height:4px" oninput="updateBpm(this.value)">
+            <button id="bpm-plus" style="font-size:1rem;padding:0.1rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;font-weight:bold;line-height:1.4">+</button>
+            <span id="bpm-label" style="font-size:0.8rem;opacity:0.7;min-width:2em;text-align:center">80</span>
         </div>
     </div>
 </div>
@@ -179,7 +181,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 
     // metronome
     let metroInterval = null;
-    let metroBpm = 80;
+    let metroBpm = parseInt(localStorage.getItem('tape-bpm')) || 80;
     let metroBeat = 0;
     let metroAudioCtx = null;
 
@@ -217,8 +219,10 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 
     window.updateBpm = function (val) {
         metroBpm = parseInt(val);
+        localStorage.setItem('tape-bpm', metroBpm);
         var label = document.getElementById('bpm-label');
         if (label) label.textContent = metroBpm;
+        if (trainer && trainer.setBpm) trainer.setBpm(metroBpm);
         if (metroInterval) {
             clearInterval(metroInterval);
             metroBeat = 0;
@@ -378,13 +382,31 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
             setTimeout(init, 20);
             return;
         }
+
+        var bpmSlider = document.getElementById('metro-bpm');
+        var bpmLabel = document.getElementById('bpm-label');
+        bpmSlider.value = metroBpm;
+        if (bpmLabel) bpmLabel.textContent = metroBpm;
+
+        document.getElementById('bpm-minus').addEventListener('click', function () {
+            var v = Math.max(40, metroBpm - 5);
+            bpmSlider.value = v;
+            updateBpm(v);
+        });
+        document.getElementById('bpm-plus').addEventListener('click', function () {
+            var v = Math.min(200, metroBpm + 5);
+            bpmSlider.value = v;
+            updateBpm(v);
+        });
+
         trainer = window.createTrainer({
             chartEl: chart,
-
+            mode: 'tape-head',
             scoreCorrectEl: document.getElementById('score-correct'),
             scoreWrongEl: document.getElementById('score-wrong'),
             rangeEl: document.getElementById('trainer-range'),
         });
+        trainer.setBpm(metroBpm);
         document.getElementById('trainer-range').addEventListener('change', function () {
             trainer.start();
         });

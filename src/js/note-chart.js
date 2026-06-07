@@ -244,6 +244,11 @@ class NoteChart extends HTMLElement {
             head.setAttribute('fill', '#28a745');
             head.setAttribute('stroke', '#28a745');
             head.setAttribute('stroke-width', 1.5 * scale);
+        } else if (type === 'missed') {
+            head.setAttribute('fill', '#f1c40f');
+            head.setAttribute('stroke', '#f1c40f');
+            head.setAttribute('stroke-width', 1.5 * scale);
+
         } else if (type === 'ghost') {
             head.setAttribute('fill', 'none');
             head.setAttribute('stroke', staffColor);
@@ -253,7 +258,6 @@ class NoteChart extends HTMLElement {
             head.setAttribute('fill', staffColor);
             head.setAttribute('stroke', staffColor);
             head.setAttribute('stroke-width', 1 * scale);
-            head.setAttribute('opacity', '0.35');
         } else {
             head.setAttribute('fill', staffColor);
             head.setAttribute('stroke', staffColor);
@@ -265,6 +269,7 @@ class NoteChart extends HTMLElement {
         let stemColor = staffColor;
         if (type === 'target') stemColor = accentColor;
         else if (type === 'correct') stemColor = '#28a745';
+        else if (type === 'missed') stemColor = '#e67e22';
         const stem = document.createElementNS(svgNs, 'line');
         stem.setAttribute('x1', centerX + headW / 2);
         stem.setAttribute('y1', y);
@@ -415,6 +420,51 @@ class NoteChart extends HTMLElement {
             lbl.setAttribute('opacity', '0.9');
             g.appendChild(lbl);
         }
+    }
+
+    renderHeadLine() {
+        const ctx = this._ctx;
+        if (!ctx) return;
+        const { getY, LEFT_PAD, STAFF_R, scale, staffColor } = ctx;
+        const svgNs = 'http://www.w3.org/2000/svg';
+        let g = this.querySelector('#head-line');
+        if (g) return;
+        g = document.createElementNS(svgNs, 'g');
+        g.setAttribute('id', 'head-line');
+        this._headX = LEFT_PAD + (STAFF_R - LEFT_PAD) * 0.1;
+        const y1 = getY('G', 2);
+        const y2 = getY('F', 5);
+        const highlight = this._cssVar('--highlight') || '#ffcc00';
+        const r = parseInt(highlight.slice(1, 3), 16);
+        const gv = parseInt(highlight.slice(3, 5), 16);
+        const b = parseInt(highlight.slice(5, 7), 16);
+        const line = document.createElementNS(svgNs, 'line');
+        line.setAttribute('x1', this._headX);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', this._headX);
+        line.setAttribute('y2', y2);
+        line.setAttribute('stroke', `rgba(${r}, ${gv}, ${b}, 0.3)`);
+        line.setAttribute('stroke-width', 5 * scale);
+        line.setAttribute('stroke-linecap', 'round');
+        g.appendChild(line);
+        const label = document.createElementNS(svgNs, 'text');
+        label.textContent = 'Now';
+        label.setAttribute('x', this._headX);
+        label.setAttribute('y', y2 - 30 * scale);
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('dominant-baseline', 'baseline');
+        label.setAttribute('font-size', `${14 * scale}px`);
+        label.setAttribute('font-style', 'italic');
+        label.setAttribute('opacity', '0.4');
+        label.setAttribute('fill', staffColor);
+        g.appendChild(label);
+        const sc = this.querySelector('#staff-content') || this.querySelector('svg');
+        sc.appendChild(g);
+    }
+
+    removeHeadLine() {
+        const g = this.querySelector('#head-line');
+        if (g) g.remove();
     }
 
     highlightStaffNote(noteName, on) {

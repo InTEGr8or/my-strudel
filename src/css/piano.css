@@ -29,5 +29,5 @@
 .piano-key[data-band="8"]::after { background: rgb(var(--octave-8)); }
 .piano-key.active::after { display: none; }
 body[data-show-colors="false"] .piano-key::after { display: none; }
-.piano-key.dimmed { opacity: 0.35; }
+.piano-key.dimmed { opacity: 0.55; }
 .piano-key.dimmed.active { opacity: 1; }

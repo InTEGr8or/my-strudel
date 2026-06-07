@@ -124,7 +124,7 @@ Play the G major chord arpeggios in all inversions. Then try alternating between
             <input type="checkbox" id="metronome-toggle" onchange="toggleMetronome(this.checked)">
             <label for="metronome-toggle">♫</label>
             <span id="metro-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity 0.05s"></span>
-            <input type="range" id="metro-bpm" min="40" max="200" value="80" style="width:70px;height:4px" oninput="updateBpm(this.value)">
+            <input type="range" id="metro-bpm" min="20" max="200" value="80" style="width:70px;height:4px" oninput="updateBpm(this.value)">
             <span id="bpm-label" style="font-size:0.8rem;opacity:0.7">80</span>
         </div>
     </div>
