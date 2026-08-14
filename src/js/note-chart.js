@@ -1,3 +1,5 @@
+const STAFF_NI = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+
 class NoteChart extends HTMLElement {
     connectedCallback() {
         const saved = localStorage.getItem('show-color-guide');
@@ -26,9 +28,10 @@ class NoteChart extends HTMLElement {
         const SPACING = 18 * scale;
         const BAND_H = SPACING;
         const SVG_W = 1200 * scale;
-        const COLOR_X = 55 * scale;
+        const COLOR_X = 85 * scale;
         const COLOR_W = 50 * scale;
         const LEFT_PAD = COLOR_X + COLOR_W + 10 * scale;
+        const STAFF_L = 0;
         const STAFF_R = SVG_W - 20 * scale;
         const PAD = 30 * scale;
 
@@ -44,8 +47,7 @@ class NoteChart extends HTMLElement {
         const halfStep = SPACING / 2;
 
         const getRawY = (note, oct) => {
-            const ni = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
-            return (28 - (oct * 7 + (ni[note] || 0))) * halfStep;
+            return (28 - (oct * 7 + (STAFF_NI[note] || 0))) * halfStep;
         };
 
         this._positions = [
@@ -82,47 +84,6 @@ class NoteChart extends HTMLElement {
         const SVG_H = (rMax - rMin) + 2 * PAD;
         const getY = (note, oct) => getRawY(note, oct) + shift;
 
-        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}" viewBox="0 0 ${SVG_W} ${SVG_H}" style="overflow:visible">`;
-        svg += `<rect width="100%" height="100%" fill="${activeBg}"/>`;
-        svg += `<g id="staff-bands">`;
-
-        const leftW = COLOR_W / 2 - 2 * scale;
-        const rightW = COLOR_W / 2 - 2 * scale;
-        const gap = 4 * scale;
-
-        for (let i = 0; i < this._positions.length; i++) {
-            const p = this._positions[i];
-            const y = getY(p.note, p.oct);
-            const band = this._octaveBand(p.note, p.oct);
-            const alpha = p.note === 'D' ? noteDAlpha : noteAlpha;
-            const isLine = i % 2 === 0;
-
-            let bandX, bandW;
-            if (isLine) {
-                bandX = COLOR_X;
-                bandW = leftW;
-            } else {
-                bandX = COLOR_X + leftW + gap;
-                bandW = rightW;
-            }
-
-            let bandY = y - BAND_H / 2;
-            let bandH = BAND_H;
-            if (p.note === 'G') {
-                bandY += 0.125 * BAND_H;
-                bandH = BAND_H * 0.75;
-            } else if (p.note === 'A') {
-                bandH = BAND_H * 0.75;
-            }
-
-            svg += `<rect x="${bandX}" y="${bandY}" width="${bandW}" height="${bandH}" fill="rgba(${octaveColors[band]}, ${alpha})" data-note="${p.note}" data-oct="${p.oct}"/>`;
-
-            const textX = bandX + bandW / 2;
-            svg += `<text x="${textX}" y="${y}" font-size="${10 * scale}" text-anchor="middle" dominant-baseline="central" font-weight="300" fill="${staffColor}" opacity="0.7">${p.note}</text>`;
-        }
-
-        svg += `</g>`;
-
         const bassLines = [
             { note: 'G', oct: 2 },
             { note: 'B', oct: 2 },
@@ -138,36 +99,153 @@ class NoteChart extends HTMLElement {
             { note: 'F', oct: 5 },
         ];
 
-        svg += `<g id="staff-content">`;
-
-        for (const l of bassLines) {
-            const y = getY(l.note, l.oct);
-            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="${1.5 * scale}"/>`;
-        }
-        for (const l of trebleLines) {
-            const y = getY(l.note, l.oct);
-            svg += `<line x1="${LEFT_PAD}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="${1.5 * scale}"/>`;
-        }
-
-        svg += `</g>`;
-
         const bBot = getY('G', 2);
         const bTop = getY('A', 3);
         const tBot = getY('E', 4);
         const tTop = getY('F', 5);
-
         const tCenter = (tBot + tTop) / 2;
         const bassClefY = getY('F', 3);
         const braceMid = (bTop + tBot) / 2;
 
-        svg += `<text x="-73" y="${braceMid - 25 * scale}" font-size="${210 * scale}" dy="0.35em" font-family="serif" font-weight="300" fill="${staffColor}">{</text>`;
-        svg += `<text x="15" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
-        svg += `<text x="15" y="${bassClefY}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
+        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}" viewBox="0 0 ${SVG_W} ${SVG_H}" style="overflow:visible">`;
+        svg += `<rect width="100%" height="100%" fill="${activeBg}"/>`;
+
+        // Staff lines — behind everything, full width from left edge to right
+        svg += `<g id="staff-lines">`;
+        for (const l of bassLines) {
+            const y = getY(l.note, l.oct);
+            svg += `<line x1="${STAFF_L}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="${1.5 * scale}"/>`;
+        }
+        for (const l of trebleLines) {
+            const y = getY(l.note, l.oct);
+            svg += `<line x1="${STAFF_L}" y1="${y}" x2="${STAFF_R}" y2="${y}" stroke="${staffColor}" stroke-width="${1.5 * scale}"/>`;
+        }
+        svg += `</g>`;
+
+        // Staff annotations (brace, clefs, key signature, time signature)
+        svg += `<g id="staff-annotations">`;
+        const braceTop = tTop - SPACING * 0.5;
+        const braceBot = bBot + SPACING * 0.5;
+        const braceOffset = 10 * scale;
+        svg += `<path d="M 0,${braceTop} C ${braceOffset},${braceTop},${braceOffset},${braceMid},0,${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
+        svg += `<path d="M 0,${braceBot} C ${braceOffset},${braceBot},${braceOffset},${braceMid},0,${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
+        svg += `<line x1="0" y1="${braceMid - 3 * scale}" x2="0" y2="${braceMid + 3 * scale}" stroke="${staffColor}" stroke-width="${2.5 * scale}" stroke-linecap="round"/>`;
+        svg += `<text x="${15 * scale}" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
+        svg += `<text x="${15 * scale}" y="${bassClefY + 5 * scale}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
+
+        // Key signature
+        const ks = this._keySignature || [];
+        if (ks.length > 0) {
+            const accX = 40 * scale;
+            for (const k of ks) {
+                const ky = getY(k.note, k.oct);
+                svg += `<text x="${accX}" y="${ky}" font-size="${22 * scale}" dy="0.3em" font-family="serif" fill="${staffColor}">${k.acc === 'sharp' ? '♯' : '♭'}</text>`;
+            }
+        }
+
+        // Time signature
+        const ts = this._timeSignature || null;
+        if (ts) {
+            const tsX = 75 * scale;
+            const tMid = (tBot + tTop) / 2;
+            const bMid = (bBot + bTop) / 2;
+            svg += `<text x="${tsX}" y="${tMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
+            svg += `<text x="${tsX}" y="${tMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
+            svg += `<text x="${tsX}" y="${bMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
+            svg += `<text x="${tsX}" y="${bMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
+        }
+        svg += `</g>`;
+
+        // Color guide bands
+        svg += `<g id="staff-bands">`;
+        const leftW = COLOR_W / 2 - 2 * scale;
+        const rightW = COLOR_W / 2 - 2 * scale;
+        const gap = 4 * scale;
+        for (let i = 0; i < this._positions.length; i++) {
+            const p = this._positions[i];
+            const y = getY(p.note, p.oct);
+            const band = this._octaveBand(p.note, p.oct);
+            const alpha = p.note === 'D' ? noteDAlpha : noteAlpha;
+            const isLine = i % 2 === 0;
+            const bandX = isLine ? COLOR_X : COLOR_X + leftW + gap;
+            const bandW = isLine ? leftW : rightW;
+            let bandY = y - BAND_H / 2;
+            let bandH = BAND_H;
+            if (p.note === 'G') {
+                bandY += 0.125 * BAND_H;
+                bandH = BAND_H * 0.75;
+            } else if (p.note === 'A') {
+                bandH = BAND_H * 0.75;
+            }
+            svg += `<rect x="${bandX}" y="${bandY}" width="${bandW}" height="${bandH}" fill="rgba(${octaveColors[band]}, ${alpha})" data-note="${p.note}" data-oct="${p.oct}"/>`;
+            svg += `<text x="${bandX + bandW / 2}" y="${y}" font-size="${10 * scale}" text-anchor="middle" dominant-baseline="central" font-weight="300" fill="${staffColor}" opacity="0.7">${p.note}</text>`;
+        }
+        svg += `</g>`;
+
+        // Staff content container (player overlays: note heads, bar lines, head line)
+        svg += `<g id="staff-content">`;
+        svg += `</g>`;
 
         svg += `</svg>`;
         this.innerHTML = svg;
 
-        this._ctx = { getY, LEFT_PAD, STAFF_R, scale, staffColor, SPACING, SVG_H };
+        this._ctx = { getY, LEFT_PAD, STAFF_R, STAFF_L, scale, staffColor, SPACING, SVG_H };
+    }
+
+    get timeSignature() { return this._timeSignature; }
+    set timeSignature(ts) {
+        this._timeSignature = ts;
+        this._rerenderAnnotations();
+    }
+
+    get keySignature() { return this._keySignature; }
+    set keySignature(ks) {
+        this._keySignature = ks;
+        this._rerenderAnnotations();
+    }
+
+    _rerenderAnnotations() {
+        const ann = this.querySelector('#staff-annotations');
+        if (!ann || !this._ctx) return;
+        const { getY, scale, staffColor, SPACING } = this._ctx;
+        const bBot = getY('G', 2);
+        const bTop = getY('A', 3);
+        const tBot = getY('E', 4);
+        const tTop = getY('F', 5);
+        const tCenter = (tBot + tTop) / 2;
+        const bassClefY = getY('F', 3);
+        const braceMid = (bTop + tBot) / 2;
+
+        let html = '';
+        const braceTop = tTop - SPACING * 0.5;
+        const braceBot = bBot + SPACING * 0.5;
+        const braceOffset = 10 * scale;
+        html += `<path d="M 0,${braceTop} C ${braceOffset},${braceTop},${braceOffset},${braceMid},0,${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
+        html += `<path d="M 0,${braceBot} C ${braceOffset},${braceBot},${braceOffset},${braceMid},0,${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
+        html += `<line x1="0" y1="${braceMid - 3 * scale}" x2="0" y2="${braceMid + 3 * scale}" stroke="${staffColor}" stroke-width="${2.5 * scale}" stroke-linecap="round"/>`;
+        html += `<text x="${15 * scale}" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
+        html += `<text x="${15 * scale}" y="${bassClefY + 5 * scale}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
+
+        const ks = this._keySignature || [];
+        if (ks.length > 0) {
+            const accX = 40 * scale;
+            for (const k of ks) {
+                const ky = getY(k.note, k.oct);
+                html += `<text x="${accX}" y="${ky}" font-size="${22 * scale}" dy="0.3em" font-family="serif" fill="${staffColor}">${k.acc === 'sharp' ? '♯' : '♭'}</text>`;
+            }
+        }
+
+        const ts = this._timeSignature || null;
+        if (ts) {
+            const tsX = 75 * scale;
+            const tMid = (tBot + tTop) / 2;
+            const bMid = (bBot + bTop) / 2;
+            html += `<text x="${tsX}" y="${tMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
+            html += `<text x="${tsX}" y="${tMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
+            html += `<text x="${tsX}" y="${bMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
+            html += `<text x="${tsX}" y="${bMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
+        }
+        ann.innerHTML = html;
     }
 
     _noteY(note, oct) {
@@ -431,7 +509,7 @@ class NoteChart extends HTMLElement {
         if (g) return;
         g = document.createElementNS(svgNs, 'g');
         g.setAttribute('id', 'head-line');
-        this._headX = LEFT_PAD + (STAFF_R - LEFT_PAD) * 0.1;
+        this._headX = LEFT_PAD + (STAFF_R - LEFT_PAD) * 0.03;
         const y1 = getY('G', 2);
         const y2 = getY('F', 5);
         const highlight = this._cssVar('--highlight') || '#ffcc00';

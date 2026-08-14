@@ -19,7 +19,6 @@
 }
 
 note-chart[data-show-colors="false"] #staff-bands { display: none; }
-note-chart[data-show-colors="false"] #staff-content { transform: translateX(calc(-60px * var(--ui-scale, 1.25))); }
 
 @media (min-width: 900px) {
     body[data-type="lesson"] main #lesson-content,

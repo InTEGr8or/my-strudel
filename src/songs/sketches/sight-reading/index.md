@@ -156,6 +156,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         <button class="pat-btn" data-pattern="2" onclick="setPatternSize(2)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer">2</button>
         <button class="pat-btn" data-pattern="3" onclick="setPatternSize(3)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer">3</button>
     </div>
+    <button id="refresh-btn" style="font-size:0.9rem;padding:0.3rem 0.8rem;border-radius:8px;border:2px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;transition:transform 0.3s ease" onclick="refreshTrainer()">↻</button>
     <label class="score-item" style="font-size:0.8rem;flex-direction:row;gap:0.3rem;cursor:pointer;user-select:none">
         <input type="checkbox" id="play-wrong-toggle" checked onchange="togglePlayWrong(this.checked)">
         <span style="opacity:0.7">Play wrong notes</span>
@@ -239,6 +240,11 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
             const song = SONGS_LIST.find(function (s) { return s.title === title; });
             if (song) {
                 trainer.setNotes(song.notes);
+                const chart = document.querySelector('note-chart');
+                if (chart) {
+                    if (song.timeSignature) chart.timeSignature = song.timeSignature;
+                    if (song.keySignature) chart.keySignature = song.keySignature;
+                }
                 return;
             }
         }
@@ -261,19 +267,27 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
                     li.dataset.value = s.title;
                     list.appendChild(li);
                 });
-                setupCombobox();
+                var firstTitle = songs.length > 0 ? songs[0].title : '';
+                setupCombobox(firstTitle);
+                if (firstTitle) {
+                    songEl.value = firstTitle;
+                    var firstLi = document.querySelector('#song-list li[data-value="' + firstTitle.replace(/"/g, '\\"') + '"]');
+                    if (firstLi) firstLi.classList.add('selected');
+                    applySong();
+                    if (trainer) trainer.start();
+                }
             })
             .catch(function () {});
     }
 
-    function setupCombobox() {
+    function setupCombobox(initialValue) {
         var input = songEl;
         var list = document.getElementById('song-list');
         var toggle = document.getElementById('song-toggle');
         var clear = document.getElementById('song-clear');
         var container = document.getElementById('song-combobox');
         var open = false;
-        var selectedValue = '';
+        var selectedValue = initialValue || '';
 
         function openList() {
             open = true;
@@ -413,13 +427,17 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
             trainer.onMidi(midiNote, isNoteOn, isNoteOff);
         });
-        applySong();
-        loadSongs().then(function () {
-            trainer.start();
-        }, function () {
-            trainer.start();
-        });
+        loadSongs();
     }
+
+    window.refreshTrainer = function () {
+        if (trainer) trainer.start();
+        document.getElementById('refresh-btn').style.transform = 'rotate(360deg)';
+        setTimeout(function () {
+            var btn = document.getElementById('refresh-btn');
+            if (btn) btn.style.transform = '';
+        }, 400);
+    };
 
     window.setPatternSize = function (size) {
         if (!trainer) return;

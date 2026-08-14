@@ -3,36 +3,29 @@
   var U = window.TRAINER_UTILS;
 
   window.createTapeTrainer = function (chart, WINDOW_SIZE, shared) {
-    var paused = true;
-    var beat = 0;
-    var shift = 0;
+    var notes = [];
+    var totalDuration = 0;
     var bpm = 80;
+    var currentBeat = 0;
+    var startTimestamp = 0;
+    var paused = true;
     var rafId = null;
-    var correctGens = new Set();
-    var shiftCount = 0;
-    var TOLERANCE_PX = 16;
-    var lastTime = 0;
+    var playedSet = null;
+    var missedSet = null;
+    var TOLERANCE_BEATS = 0.35;
+    var WINDOW_BEATS = 4;
     var noteLabelsEl = null;
-    var staffContentEl = null;
 
     function getSpacing() {
       var ctx = chart._ctx;
       if (!ctx) return 50;
-      return (ctx.STAFF_R - ctx.LEFT_PAD - 60) / (WINDOW_SIZE + 1);
+      return (ctx.STAFF_R - ctx.LEFT_PAD - 60) / WINDOW_BEATS;
     }
 
     function getHeadX() {
       if (chart._headX !== undefined) return chart._headX;
       var ctx = chart._ctx;
-      return ctx ? ctx.LEFT_PAD + (ctx.STAFF_R - ctx.LEFT_PAD) * 0.1 : 0;
-    }
-
-    function getExitBeats() {
-      var ctx = chart._ctx;
-      if (!ctx) return 2;
-      var spacing = getSpacing();
-      var headX = getHeadX();
-      return (headX + spacing - ctx.LEFT_PAD) / spacing;
+      return ctx ? ctx.LEFT_PAD + (ctx.STAFF_R - ctx.LEFT_PAD) * 0.03 : 0;
     }
 
     function getHeads() {
@@ -72,18 +65,19 @@
     }
 
     function addLabel(noteName) {
-      var labels = noteLabelsEl;
-      if (!labels) {
-        labels = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        labels.setAttribute('id', 'note-labels');
-        (staffContentEl || chart.querySelector('svg')).appendChild(labels);
-        noteLabelsEl = labels;
+      if (!noteLabelsEl) {
+        var svgNs = 'http://www.w3.org/2000/svg';
+        noteLabelsEl = document.createElementNS(svgNs, 'g');
+        noteLabelsEl.setAttribute('id', 'note-labels');
+        var container = chart.querySelector('#staff-content') || chart.querySelector('svg');
+        container.appendChild(noteLabelsEl);
       }
       var match = noteName.match(/^([a-g])(s?)(\d+)$/);
       if (!match) return;
       var ctx = chart._ctx;
       if (!ctx) return;
-      var label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      var svgNs = 'http://www.w3.org/2000/svg';
+      var label = document.createElementNS(svgNs, 'text');
       label.textContent = match[1].toUpperCase() + (match[2] ? '#' : '') + match[3];
       label.setAttribute('x', getHeadX());
       label.setAttribute('y', ctx.getY(match[1].toUpperCase(), parseInt(match[3], 10)));
@@ -94,97 +88,97 @@
       label.setAttribute('fill', '#28a745');
       label.style.animation = 'note-label-fade 500ms ease-out 250ms forwards';
       label.addEventListener('animationend', function () { label.remove(); });
-      labels.appendChild(label);
+      noteLabelsEl.appendChild(label);
     }
 
-    function renderWindow() {
-      if (shared.destroyed) return;
+    function loadNotes() {
+      if (shared.notes && shared.notes.length > 0) {
+        notes = shared.notes.slice();
+      } else if (shared.windowNotes && shared.windowNotes.length > 0) {
+        notes = shared.windowNotes.map(function (n, i) {
+          return { note: n.note, oct: n.oct, startBeat: i, duration: 1 };
+        });
+      } else {
+        notes = [];
+      }
+      notes.sort(function (a, b) { return a.startBeat - b.startBeat; });
+      if (notes.length > 0) {
+        var last = notes[notes.length - 1];
+        totalDuration = last.startBeat + (last.duration || 1);
+      } else {
+        totalDuration = 0;
+      }
+    }
+
+    function renderAllNotes() {
       chart.clearNoteHeads();
       var ctx = chart._ctx;
       if (!ctx) return;
       var spacing = getSpacing();
       var headX = getHeadX();
-      for (var i = 0; i < WINDOW_SIZE && i < shared.windowNotes.length; i++) {
-        chart.renderNoteHead(U.noteName(shared.windowNotes[i]), 'pending', headX + spacing * (i + 1), false);
+      var noteHalfW = ctx.SPACING * 0.6;
+
+      var ts = chart.timeSignature;
+      var barInterval = ts && ts.top ? ts.top : 4;
+      for (var barBeat = barInterval; barBeat <= totalDuration + barInterval; barBeat += barInterval) {
+        chart.renderBarLine(headX + barBeat * spacing - noteHalfW);
       }
-      for (var i = 1; i < WINDOW_SIZE; i++) {
-        if ((shared.noteCount + i) % 4 === 0) {
-          chart.renderBarLine(headX + spacing * (i + 0.5));
-        }
+
+      for (var i = 0; i < notes.length; i++) {
+        var n = notes[i];
+        var x = headX + n.startBeat * spacing;
+        var name = n.note.toLowerCase() + n.oct;
+        chart.renderNoteHead(name, 'pending', x, false);
       }
-      setGroupTransform(-spacing * (beat + shift));
+
+      setGroupTransform(0);
     }
 
-    function tick(timestamp) {
-      if (shared.destroyed) return;
-      if (paused) {
-        lastTime = timestamp;
-        rafId = requestAnimationFrame(tick);
-        return;
-      }
-      var dt = lastTime ? timestamp - lastTime : 0;
-      lastTime = timestamp;
-      beat += (dt * bpm) / 60000;
-      var exitBeats = getExitBeats();
-      var _g = 0;
-      while (beat >= exitBeats && _g < WINDOW_SIZE) {
-        _g++;
-        beat -= exitBeats;
-        shift += exitBeats;
-        shiftCount++;
-        if (shared.windowNotes.length > 0) {
-          shared.windowNotes.shift();
-          shared.noteCount++;
-          shared.fillWindow();
-          var spacing = getSpacing();
-          var headX = getHeadX();
+    function checkMissed() {
+      for (var i = 0; i < notes.length; i++) {
+        if (playedSet.has(i) || missedSet.has(i)) continue;
+        if (currentBeat > notes[i].startBeat + TOLERANCE_BEATS) {
+          missedSet.add(i);
           var heads = getHeads();
-          if (heads) {
-            var first = heads.querySelector('g');
-            if (first) first.remove();
-          }
-          var ctx = chart._ctx;
-          if (ctx) {
-            chart.renderNoteHead(U.noteName(shared.windowNotes[WINDOW_SIZE - 1]), 'pending', headX + spacing * WINDOW_SIZE, false);
+          if (heads && heads.children[i]) {
+            setNoteType(heads.children[i], 'missed');
           }
         }
       }
-      var effective = beat + shift - shiftCount;
-      setGroupTransform(-getSpacing() * (beat + shift));
-      var spacing = getSpacing();
-      for (var i = 0; i < shared.windowNotes.length; i++) {
-        if ((effective - (i + 1)) * spacing > TOLERANCE_PX) {
-          var gen = shared.noteCount + i;
-          if (!correctGens.has(gen)) {
-            correctGens.add(gen);
-            var heads = getHeads();
-            if (heads && heads.children[i]) setNoteType(heads.children[i], 'missed');
-          }
-        }
-      }
-      rafId = requestAnimationFrame(tick);
     }
 
-    function handleCorrect(targetIdx) {
+    function findMatch(midiNote) {
+      var bestIdx = -1;
+      var bestDist = Infinity;
+      for (var i = 0; i < notes.length; i++) {
+        if (playedSet.has(i) || missedSet.has(i)) continue;
+        var n = notes[i];
+        if (midiNote !== U.posToMidi({ note: n.note, oct: n.oct })) continue;
+        var beatDist = Math.abs(currentBeat - n.startBeat);
+        if (beatDist <= TOLERANCE_BEATS && beatDist < bestDist) {
+          bestDist = beatDist;
+          bestIdx = i;
+        }
+      }
+      return bestIdx;
+    }
+
+    function handleCorrect(idx) {
       if (shared.busy) return;
       shared.busy = true;
+      playedSet.add(idx);
       shared.correct++;
-      if (targetIdx !== undefined) {
-        correctGens.add(shared.noteCount + targetIdx);
-      }
       shared.updateScore();
-      if (shared.windowNotes.length > 0) {
-        var targetNote = shared.windowNotes[targetIdx !== undefined ? targetIdx : 0];
-        if (targetNote) {
-          var heads = getHeads();
-          if (heads) setNoteType(heads.children[targetIdx], 'correct');
-          addLabel(U.noteName(targetNote));
-        }
+      var heads = getHeads();
+      if (heads && heads.children[idx]) {
+        setNoteType(heads.children[idx], 'correct');
       }
+      var n = notes[idx];
+      if (n) addLabel(n.note.toLowerCase() + n.oct);
       shared.removeGhosts();
       setTimeout(function () {
         shared.busy = false;
-      }, 250);
+      }, 125);
     }
 
     function handleWrong() {
@@ -196,36 +190,16 @@
       shared.busy = false;
     }
 
-    function findMatch(midiNote, exactPos, centerIdx) {
-      var bestIdx = -1;
-      var bestDist = Infinity;
-      var start = Math.max(0, centerIdx - 1);
-      var end = Math.min(shared.windowNotes.length - 1, centerIdx + 1);
-      var spacing = getSpacing();
-      for (var idx = start; idx <= end; idx++) {
-        var distPx = Math.abs(exactPos - idx) * spacing;
-        if (distPx <= TOLERANCE_PX && midiNote === U.posToMidi(shared.windowNotes[idx])) {
-          if (distPx < bestDist) {
-            bestDist = distPx;
-            bestIdx = idx;
-          }
-        }
-      }
-      return bestIdx;
-    }
-
     function onMidi(midiNote, isNoteOn, isNoteOff) {
       if (shared.destroyed) return;
       if (isNoteOn) {
         if (paused) paused = false;
         shared.activeMidiNotes.add(midiNote);
-        if (shared.windowNotes.length === 0 || shared.busy) {
+        if (notes.length === 0 || shared.busy) {
           shared.renderHeldAtHead(getHeadX());
           return;
         }
-        var exactPos = (beat + shift - shiftCount) - 1;
-        var centerIdx = Math.min(Math.max(Math.round(exactPos), 0), shared.windowNotes.length - 1);
-        var matchIdx = findMatch(midiNote, exactPos, centerIdx);
+        var matchIdx = findMatch(midiNote);
         if (matchIdx !== -1) {
           shared.removeGhosts();
           handleCorrect(matchIdx);
@@ -240,34 +214,65 @@
         } else {
           shared.removeGhosts();
         }
-        if (shared.ghostEls.length === 0 && !shared.busy) {
-          setGroupTransform(-getSpacing() * (beat + shift));
-        }
+      }
+    }
+
+    function tick(timestamp) {
+      if (shared.destroyed) return;
+      if (paused) {
+        rafId = requestAnimationFrame(tick);
+        return;
+      }
+      if (startTimestamp === 0) startTimestamp = timestamp;
+      var elapsed = (timestamp - startTimestamp) / 1000;
+      currentBeat = elapsed * (bpm / 60);
+
+      var spacing = getSpacing();
+      setGroupTransform(-currentBeat * spacing);
+
+      checkMissed();
+
+      if (currentBeat <= totalDuration + 1) {
+        rafId = requestAnimationFrame(tick);
       }
     }
 
     function start() {
-      beat = 0;
-      shift = 0;
-      shiftCount = 0;
+      playedSet = new Set();
+      missedSet = new Set();
+      currentBeat = 0;
+      startTimestamp = 0;
       paused = true;
-      correctGens = new Set();
-      lastTime = 0;
-      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+
+      loadNotes();
+
       noteLabelsEl = chart.querySelector('#note-labels');
-      staffContentEl = chart.querySelector('#staff-content');
       chart.renderHeadLine();
-      shared.fillWindow();
-      renderWindow();
+      renderAllNotes();
       shared.updateScore();
+
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
       rafId = requestAnimationFrame(tick);
     }
 
     function destroy() {
       if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
       noteLabelsEl = null;
-      staffContentEl = null;
       chart.removeHeadLine();
+    }
+
+    function findNextUnplayed() {
+      var best = -1;
+      var bestDist = Infinity;
+      for (var i = 0; i < notes.length; i++) {
+        if (playedSet.has(i) || missedSet.has(i)) continue;
+        var dist = Math.abs(currentBeat - notes[i].startBeat);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = i;
+        }
+      }
+      return best;
     }
 
     return {
@@ -276,6 +281,12 @@
       destroy: destroy,
       setBpm: function (val) { bpm = val; },
       getBpm: function () { return bpm; },
+      setNotes: function (newNotes) {
+        shared.notes = newNotes;
+      },
+      getNotes: function () { return notes; },
+      getPatternPos: findNextUnplayed,
+      posToMidi: U.posToMidi,
     };
   };
 })();

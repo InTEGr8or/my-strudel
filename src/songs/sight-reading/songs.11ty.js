@@ -17,8 +17,8 @@ module.exports = class {
       const files = fs.readdirSync(songsDir).filter(f => f.endsWith('.abc')).sort();
       for (const file of files) {
         const text = fs.readFileSync(path.join(songsDir, file), 'utf-8');
-        const { title, notes } = parseAbc(text);
-        songs.push({ id: file.replace('.abc', ''), title, notes });
+        const result = parseAbc(text);
+        songs.push({ id: file.replace('.abc', ''), title: result.title, notes: result.notes, timeSignature: result.timeSignature, keySignature: result.keySignature });
       }
     }
     return JSON.stringify(songs, null, 2);

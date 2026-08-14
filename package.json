@@ -6,7 +6,7 @@
   "scripts": {
     "build": "eleventy",
     "start": "eleventy --serve",
-    "test": "playwright test"
+    "test": "node test/bar-structure.test.js && playwright test"
   },
   "keywords": [],
   "author": "",
