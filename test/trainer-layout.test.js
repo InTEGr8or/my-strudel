@@ -17,8 +17,9 @@ console.log(`PASS: Trainer displays at least 2 full bars on screen (WINDOW_BEATS
 const matchOffset = tapeTrainerCode.match(/var\s+barOffset\s*=\s*([^;]+);/);
 assert.ok(matchOffset, 'barOffset defined in tape-trainer.js');
 assert.strictEqual(tapeTrainerCode.includes('barOffset'), true, 'barOffset is used to pad bar line from notehead');
-assert.strictEqual(!tapeTrainerCode.includes('chart.renderBarLine(headX + barBeat * spacing - noteHalfW);'), true, 'Bar line is no longer placed directly against noteHalfW edge');
-console.log('PASS: Bar line contains padding offset from first note in bar (notes do not touch container bar line)');
+assert.strictEqual(tapeTrainerCode.includes('quarterBeatsPerBar') || tapeTrainerCode.includes('ts.bottom'), true, 'bar interval uses the time-signature denominator, not only ts.top');
+assert.strictEqual(tapeTrainerCode.includes('noteHalfW'), true, 'bar offset is at least a notehead half-width');
+console.log('PASS: Bar line sits left of the notehead and uses quarter-note bar length');
 
 // Test 3: Verify Simultaneous Chord Note Extraction in parseAbc
 const chordAbc = 'X:1\nM:4/4\nL:1/16\nK:C\n[e4c4] [E4C4] z4 |\n';

@@ -128,11 +128,14 @@
       if (!ctx) return;
       var spacing = getSpacing();
       var headX = getHeadX();
-      var barOffset = spacing * 0.45;
-
+      // startBeat is in quarter-note beats; 2/2 and 6/8 are not `ts.top` quarters.
       var ts = chart.timeSignature;
-      var barInterval = ts && ts.top ? ts.top : 4;
-      for (var barBeat = 0; barBeat <= totalDuration + barInterval; barBeat += barInterval) {
+      var barInterval = (window.quarterBeatsPerBar && window.quarterBeatsPerBar(ts))
+        || (ts && ts.top ? ts.top * (4 / (ts.bottom || 4)) : 4);
+      // Sit the bar fully left of a notehead that starts on that beat.
+      var noteHalfW = ctx.SPACING * 0.6;
+      var barOffset = noteHalfW + ctx.SPACING * 0.35;
+      for (var barBeat = barInterval; barBeat <= totalDuration + 0.001; barBeat += barInterval) {
         chart.renderBarLine(headX + barBeat * spacing - barOffset);
       }
 

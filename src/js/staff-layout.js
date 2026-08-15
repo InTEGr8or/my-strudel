@@ -83,6 +83,17 @@
     return lines;
   }
 
+  /**
+   * Bar length in quarter-note beats (same unit as startBeat).
+   * 4/4 → 4, 3/4 → 3, 2/2 → 4, 6/8 → 3, 5/4 → 5.
+   */
+  function quarterBeatsPerBar(ts) {
+    if (!ts || !ts.top) return 4;
+    var bottom = ts.bottom || 4;
+    if (bottom <= 0) return ts.top;
+    return ts.top * (4 / bottom);
+  }
+
   function noteStaff(n) {
     if (n && n.voice !== undefined && n.voice !== null) {
       return n.voice === 0 ? 'treble' : 'bass';
@@ -95,6 +106,7 @@
   root.indexToPitch = indexToPitch;
   root.ledgerStaffIndices = ledgerStaffIndices;
   root.noteStaff = noteStaff;
+  root.quarterBeatsPerBar = quarterBeatsPerBar;
   root.BASS_BOTTOM = BASS_BOTTOM;
   root.TREBLE_TOP = TREBLE_TOP;
   root.MIDDLE_C = MIDDLE_C;
@@ -105,6 +117,7 @@
       indexToPitch: indexToPitch,
       ledgerStaffIndices: ledgerStaffIndices,
       noteStaff: noteStaff,
+      quarterBeatsPerBar: quarterBeatsPerBar,
       BASS_BOTTOM: BASS_BOTTOM,
       TREBLE_TOP: TREBLE_TOP,
       MIDDLE_C: MIDDLE_C,

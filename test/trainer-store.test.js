@@ -1,6 +1,6 @@
 const assert = require('assert');
 const { createTrainerStore } = require('../src/js/trainer-store');
-const { computeStaffLayout, ledgerStaffIndices, indexToPitch } = require('../src/js/staff-layout');
+const { computeStaffLayout, ledgerStaffIndices, indexToPitch, quarterBeatsPerBar } = require('../src/js/staff-layout');
 
 console.log('Testing trainer store and staff layout...');
 
@@ -72,6 +72,14 @@ assert.strictEqual(pitchSet(ledgerStaffIndices('A', 5)), 'A5', 'A5 is the first 
 assert.strictEqual(pitchSet(ledgerStaffIndices('C', 6)), 'A5,C6', 'C6 needs two ledgers above the treble');
 assert.strictEqual(pitchSet(ledgerStaffIndices('E', 6)), 'A5,C6,E6', 'E6 needs three ledgers');
 console.log('PASS: ledger lines cover low/high notes and skip in-staff pitches like B2');
+
+assert.strictEqual(quarterBeatsPerBar({ top: 4, bottom: 4 }), 4, '4/4 is 4 quarter beats');
+assert.strictEqual(quarterBeatsPerBar({ top: 3, bottom: 4 }), 3, '3/4 is 3 quarter beats');
+assert.strictEqual(quarterBeatsPerBar({ top: 2, bottom: 2 }), 4, '2/2 is 4 quarter beats, not 2');
+assert.strictEqual(quarterBeatsPerBar({ top: 6, bottom: 8 }), 3, '6/8 is 3 quarter beats, not 6');
+assert.strictEqual(quarterBeatsPerBar({ top: 5, bottom: 4 }), 5, '5/4 is 5 quarter beats');
+assert.strictEqual(quarterBeatsPerBar({ top: 12, bottom: 8 }), 6, '12/8 is 6 quarter beats');
+console.log('PASS: bar lines use quarter-note bar length so 2/2 and 6/8 do not cut through notes');
 
 const { parseAbc } = require('../src/shared/parse-abc');
 const twoVoice = parseAbc('X:1\nM:4/4\nL:1/16\nK:C\nC4 z4 E4 F4 & G,,8 z8 |\n');
