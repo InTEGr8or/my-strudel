@@ -4,15 +4,6 @@ const path = require('path');
 const { execSync } = require('child_process');
 const { XMLParser } = require('fast-xml-parser');
 
-const parser = new XMLParser({
-  ignoreAttributes: false,
-  attributeNamePrefix: '@_',
-  preserveOrder: false,
-  isArray: (name) => ['note', 'measure', 'part'].includes(name),
-});
-
-const SHARP = { C: '^C', D: '^D', E: '^E', F: '^F', G: '^G', A: '^A', B: '^B' };
-const FLAT = { C: '_C', D: '_D', E: '_E', F: '_F', G: '_G', A: '_A', B: '_B' };
 const KEY_MAP = {
   '-7': 'Cb', '-6': 'Gb', '-5': 'Db', '-4': 'Ab', '-3': 'Eb', '-2': 'Bb', '-1': 'F',
   '0': 'C',
@@ -21,7 +12,7 @@ const KEY_MAP = {
 
 function noteToAbc(step, alter, octave) {
   let letter = step;
-  if (alter && alter !== '0') {
+  if (alter && alter !== 0) {
     const a = parseInt(alter);
     if (a === 1) letter = '^' + letter;
     else if (a === -1) letter = '_' + letter;
@@ -38,88 +29,22 @@ function noteToAbc(step, alter, octave) {
   return letter;
 }
 
-function durationToAbc(dur, divisions) {
-  const beats = dur / divisions;
-  const sixteenths = beats * 4;
-  if (sixteenths === Math.floor(sixteenths)) {
-    const v = Math.floor(sixteenths);
+function beatsToAbc(durInBeats) {
+  const sixteenths = durInBeats * 4;
+  const rounded = Math.round(sixteenths * 32) / 32;
+  if (Math.abs(rounded - Math.round(rounded)) < 0.001) {
+    const v = Math.round(rounded);
     if (v === 1) return '';
     return String(v);
   }
   const gcd = (a, b) => b ? gcd(b, a % b) : a;
-  const num = Math.round(sixteenths * 16);
-  const den = 16;
+  const num = Math.round(rounded * 32);
+  const den = 32;
   const g = gcd(num, den);
-  return '/' + String(den / g);
-}
-
-function parseMusicXml(xmlString) {
-  const doc = parser.parse(xmlString);
-  const score = doc['score-partwise'] || doc['score-part'];
-  if (!score) throw new Error('Not a valid MusicXML file (no score-partwise)');
-
-  const parts = score.part || [];
-  if (parts.length === 0) throw new Error('No parts found in MusicXML');
-
-  const part = parts[0];
-  const measures = part.measure || [];
-  let divisions = 1;
-  let keySig = 0;
-  let keyMode = 'major';
-  let timeSig = [4, 4];
-  let notes = [];
-
-  for (const measure of measures) {
-    const attrs = measure.attributes;
-    if (attrs) {
-      const a = Array.isArray(attrs) ? attrs[0] : attrs;
-      if (a.divisions) divisions = parseInt(a.divisions);
-      if (a.key) {
-        const k = Array.isArray(a.key) ? a.key[0] : a.key;
-        if (k.fifths !== undefined) keySig = parseInt(k.fifths);
-        if (k.mode) keyMode = k.mode;
-      }
-      if (a.time) {
-        const t = Array.isArray(a.time) ? a.time[0] : a.time;
-        if (t.beats && t['beat-type']) {
-          timeSig = [parseInt(t.beats), parseInt(t['beat-type'])];
-        }
-      }
-    }
-
-    const measureNotes = measure.note || [];
-    for (const note of measureNotes) {
-      if (note.rest) {
-        let dur = parseInt(note.duration || 1);
-        if (note.dot !== undefined) {
-          const dots = Array.isArray(note.dot) ? note.dot.length : 1;
-          let extra = dur;
-          for (let d = 0; d < dots; d++) { extra = Math.floor(extra / 2); dur += extra; }
-        }
-        notes.push({ type: 'rest', duration: dur });
-      } else if (note.pitch) {
-        const p = note.pitch;
-        const step = p.step;
-        const alter = p.alter || '0';
-        const octave = p.octave;
-        let dur = parseInt(note.duration || 1);
-        if (note.dot !== undefined) {
-          const dots = Array.isArray(note.dot) ? note.dot.length : 1;
-          let extra = dur;
-          for (let d = 0; d < dots; d++) { extra = Math.floor(extra / 2); dur += extra; }
-        }
-        notes.push({
-          type: 'note',
-          step,
-          alter: parseInt(alter),
-          octave: parseInt(octave),
-          duration: dur,
-        });
-      }
-    }
-  }
-
-  return { notes, divisions, keySig, keyMode, timeSig };
+  const n = num / g;
+  const d = den / g;
+  if (n === 1) return '/' + d;
+  return n + '/' + d;
 }
 
 function generateAbc(inputPath) {
@@ -136,7 +61,7 @@ function generateAbc(inputPath) {
         for (const f of fs.readdirSync(d)) {
           const fp = path.join(d, f);
           if (fs.statSync(fp).isDirectory()) { dirs.push(fp); continue; }
-          if (fp.endsWith('.xml') || fp.endsWith('.musicxml')) {
+          if ((fp.endsWith('.xml') || fp.endsWith('.musicxml')) && !fp.includes('container.xml')) {
             xmlString = fs.readFileSync(fp, 'utf-8');
             break;
           }
@@ -151,46 +76,223 @@ function generateAbc(inputPath) {
     xmlString = buf.toString('utf-8');
   }
 
-  const { notes, divisions, keySig, keyMode, timeSig } = parseMusicXml(xmlString);
-  const title = path.basename(inputPath, path.extname(inputPath));
+  const parserOrder = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: '@_',
+    preserveOrder: true,
+  });
+
+  const doc = parserOrder.parse(xmlString);
+  const scoreNode = doc.find(n => n['score-partwise'] || n['score-part']);
+  const score = scoreNode['score-partwise'] || scoreNode['score-part'];
+  const partNode = score.find(n => n.part);
+  const part = partNode ? partNode.part : [];
+
+  let divisions = 1;
+  let keySig = 0;
+  let keyMode = 'major';
+  let timeSig = [4, 4];
+  let soundTempo = null;
+  const soundMatch = xmlString.match(/<sound[^>]*tempo="([\d\.]+)"/i);
+  if (soundMatch) {
+    soundTempo = Math.round(parseFloat(soundMatch[1]));
+  } else {
+    const pmMatch = xmlString.match(/<per-minute>([\d\.]+)<\/per-minute>/i);
+    if (pmMatch) {
+      soundTempo = Math.round(parseFloat(pmMatch[1]));
+    }
+  }
+
+  const measuresData = [];
+
+  for (const mNode of part) {
+    if (!mNode.measure) continue;
+    const mEls = mNode.measure;
+    let currentBeat = 0;
+    let lastNoteBeat = 0;
+    const measureEvs = [];
+
+    for (const el of mEls) {
+      const key = Object.keys(el).find(k => k !== ':@');
+      if (key === 'attributes') {
+        for (const sub of el.attributes) {
+          if (sub.divisions) divisions = parseInt(sub.divisions[0]['#text']);
+          if (sub.key) {
+            for (const kSub of sub.key) {
+              if (kSub.fifths) keySig = parseInt(kSub.fifths[0]['#text']);
+              if (kSub.mode) keyMode = kSub.mode[0]['#text'];
+            }
+          }
+          if (sub.time) {
+            let beats = 4, beatType = 4;
+            for (const tSub of sub.time) {
+              if (tSub.beats) beats = parseInt(tSub.beats[0]['#text']);
+              if (tSub['beat-type']) beatType = parseInt(tSub['beat-type'][0]['#text']);
+            }
+            timeSig = [beats, beatType];
+          }
+        }
+      } else if (key === 'backup') {
+        let durRaw = 0;
+        for (const sub of el.backup) {
+          if (sub.duration) durRaw = parseInt(sub.duration[0]['#text']);
+        }
+        currentBeat -= durRaw / divisions;
+      } else if (key === 'forward') {
+        let durRaw = 0;
+        for (const sub of el.forward) {
+          if (sub.duration) durRaw = parseInt(sub.duration[0]['#text']);
+        }
+        currentBeat += durRaw / divisions;
+      } else if (key === 'note') {
+        let isRest = false;
+        let isChord = false;
+        let dotCount = 0;
+        let durRaw = 1;
+        let pitch = null;
+        let typeStr = '';
+
+        for (const sub of el.note) {
+          const subKey = Object.keys(sub).find(k => k !== ':@');
+          if (subKey === 'rest') isRest = true;
+          if (subKey === 'chord') isChord = true;
+          if (subKey === 'dot') dotCount++;
+          if (subKey === 'type') typeStr = sub.type[0]['#text'];
+          if (subKey === 'duration') durRaw = parseInt(sub['duration'][0]['#text']);
+          if (subKey === 'pitch') {
+            let step = 'C', alter = 0, octave = 4;
+            for (const pSub of sub.pitch) {
+              const pKey = Object.keys(pSub).find(k => k !== ':@');
+              if (pKey === 'step') step = pSub.step[0]['#text'];
+              if (pKey === 'alter') alter = parseInt(pSub.alter[0]['#text']);
+              if (pKey === 'octave') octave = parseInt(pSub.octave[0]['#text']);
+            }
+            pitch = { step, alter, octave };
+          }
+        }
+
+        let durInBeats = durRaw / divisions;
+        if (dotCount > 0) {
+          durInBeats *= (1 + 1 - Math.pow(0.5, dotCount));
+        }
+        durInBeats = Math.round(durInBeats * 16) / 16;
+        if (durInBeats <= 0) durInBeats = 0.25;
+
+        let noteBeat;
+        if (isChord) {
+          noteBeat = lastNoteBeat;
+        } else {
+          noteBeat = Math.round(currentBeat * 16) / 16;
+          lastNoteBeat = noteBeat;
+          currentBeat += durInBeats;
+        }
+
+        if (isRest) {
+          measureEvs.push({ type: 'rest', durInBeats, noteBeat });
+        } else if (pitch) {
+          measureEvs.push({ type: 'note', pitch, durInBeats, noteBeat });
+        }
+      }
+    }
+    measuresData.push(measureEvs);
+  }
+
+  let title = '';
+  const workNode = score.find(n => n.work);
+  if (workNode && workNode.work) {
+    const wtNode = workNode.work.find(n => n['work-title']);
+    if (wtNode && wtNode['work-title'] && wtNode['work-title'][0]) {
+      title = wtNode['work-title'][0]['#text'];
+    }
+  }
+  if (!title) {
+    const mtNode = score.find(n => n['movement-title']);
+    if (mtNode && mtNode['movement-title'] && mtNode['movement-title'][0]) {
+      title = mtNode['movement-title'][0]['#text'];
+    }
+  }
+  if (!title) {
+    const creditNodes = score.filter(n => n.credit);
+    for (const cn of creditNodes) {
+      if (!cn.credit) continue;
+      const cwNode = cn.credit.find(n => n['credit-words']);
+      if (cwNode && cwNode['credit-words'] && cwNode['credit-words'][0] && cwNode['credit-words'][0]['#text']) {
+        const text = cwNode['credit-words'][0]['#text'].trim();
+        if (text && text.length > 1 && !/^\d+$/.test(text)) {
+          title = text;
+          break;
+        }
+      }
+    }
+  }
+  if (!title) {
+    title = path.basename(inputPath, path.extname(inputPath))
+      .replace(/[-_]/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
 
   let keyName = KEY_MAP[keySig] || 'C';
   if (keyMode === 'minor') keyName += 'm';
 
-  let abc = `X:1\nT:${title}\nM:${timeSig[0]}/${timeSig[1]}\nL:1/16\nK:${keyName}\n`;
-
-  let barCount = 0;
-  let beatPos = 0;
-  const beatsPerBar = timeSig[0];
-  const beatUnit = timeSig[1];
-
-  for (let i = 0; i < notes.length; i++) {
-    const n = notes[i];
-    if (n.type === 'rest') {
-      const len = durationToAbc(n.duration, divisions);
-      abc += 'z' + len + ' ';
-      beatPos += n.duration / divisions;
-    } else {
-      const abcNote = noteToAbc(n.step, n.alter, n.octave);
-      const len = durationToAbc(n.duration, divisions);
-      abc += abcNote + len + ' ';
-      beatPos += n.duration / divisions;
-    }
-
-    if (beatPos >= beatsPerBar && (i + 1 < notes.length)) {
-      abc = abc.trimRight() + ' |\n';
-      beatPos = 0;
-      barCount++;
-    }
+  let abc = `X:1\nT:${title}\nM:${timeSig[0]}/${timeSig[1]}\nL:1/16\n`;
+  if (soundTempo) {
+    abc += `Q:1/4=${soundTempo}\n`;
   }
+  abc += `K:${keyName}\n`;
 
-  if (beatPos > 0) {
-    abc = abc.trimRight() + ' |]\n';
-  } else {
-    abc = abc.trimRight() + '\n';
+  for (let mIdx = 0; mIdx < measuresData.length; mIdx++) {
+    const measureEvs = measuresData[mIdx];
+    if (measureEvs.length === 0) continue;
+
+    const groups = {};
+    measureEvs.forEach(e => {
+      const k = e.noteBeat;
+      groups[k] = groups[k] || [];
+      groups[k].push(e);
+    });
+
+    const sortedBeats = Object.keys(groups).sort((a, b) => parseFloat(a) - parseFloat(b));
+    let mAbc = '';
+
+    sortedBeats.forEach(bKey => {
+      const evs = groups[bKey];
+      const noteEvs = evs.filter(e => e.type === 'note');
+      const restEvs = evs.filter(e => e.type === 'rest');
+
+      if (noteEvs.length > 1) {
+        const len = beatsToAbc(noteEvs[0].durInBeats);
+        const chordPitches = noteEvs.map(n => noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave)).join('');
+        mAbc += '[' + chordPitches + ']' + len + ' ';
+      } else if (noteEvs.length === 1) {
+        const n = noteEvs[0];
+        const len = beatsToAbc(n.durInBeats);
+        mAbc += noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave) + len + ' ';
+      } else if (restEvs.length > 0) {
+        const r = restEvs[0];
+        const len = beatsToAbc(r.durInBeats);
+        mAbc += 'z' + len + ' ';
+      }
+    });
+
+    if (mAbc.trim().length > 0) {
+      abc += mAbc.trimRight() + (mIdx < measuresData.length - 1 ? ' |\n' : ' |]\n');
+    }
   }
 
   return abc;
+}
+
+function parseMusicXml(xmlString) {
+  // Legacy signature wrapper for compatibility
+  const tmpPath = path.join('/tmp', 'temp-' + Date.now() + '.xml');
+  fs.writeFileSync(tmpPath, xmlString);
+  try {
+    const abc = generateAbc(tmpPath);
+    const { parseAbc } = require('../src/shared/parse-abc');
+    return parseAbc(abc);
+  } finally {
+    if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+  }
 }
 
 function main() {
@@ -218,4 +320,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { parseMusicXml, generateAbc, noteToAbc, durationToAbc, KEY_MAP };
+module.exports = { parseMusicXml, generateAbc, noteToAbc, beatsToAbc, KEY_MAP };

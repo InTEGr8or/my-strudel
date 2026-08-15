@@ -2,8 +2,15 @@ const { getMetadata } = require('./metadata-parser.js');
 const path = require('path');
 const fs = require('fs');
 const { parseAbc } = require('./src/shared/parse-abc');
+const { convertMuseScoreIncremental } = require('./scripts/build-musescore');
 
 module.exports = function (eleventyConfig) {
+  eleventyConfig.on('eleventy.before', async () => {
+    const srcDir = path.join(__dirname, 'data', 'musescore');
+    const destDir = path.join(__dirname, 'src', 'songs', 'sight-reading', 'songs', 'musescore');
+    convertMuseScoreIncremental(srcDir, destDir);
+  });
+
   eleventyConfig.addTemplateFormats('strudel,tidal');
 
   eleventyConfig.addExtension('strudel', strudelExtension);
@@ -13,7 +20,7 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'src/css': 'css' });
   eleventyConfig.addPassthroughCopy({ 'src/soundfonts': 'soundfonts' });
 
-  eleventyConfig.addWatchTarget('./src/songs/sight-reading/songs/');
+  eleventyConfig.addWatchTarget('./data/musescore/');
   eleventyConfig.addWatchTarget('./src/lessons/');
 
   eleventyConfig.addShortcode('lessonNotes', function (lessonId) {

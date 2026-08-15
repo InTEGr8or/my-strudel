@@ -146,9 +146,10 @@
           this.start();
         }
       },
-      setNotes: function (notes) {
+      setNotes: function (notes, rests) {
+        state.rests = rests || [];
         if (trainer && trainer.setNotes) {
-          trainer.setNotes(notes);
+          trainer.setNotes(notes, rests);
         } else {
           state.noteArray = notes;
           state.randomGenerator = !notes || notes.length === 0;
@@ -164,7 +165,14 @@
       getPatternSize: function () {
         return trainer ? trainer.getPatternSize() : state.patternSize;
       },
-      posToMidi: U.posToMidi,
+      play: function () { if (trainer && trainer.play) trainer.play(); },
+      pause: function () { if (trainer && trainer.pause) trainer.pause(); },
+      togglePlay: function () {
+        return trainer && trainer.togglePlay ? trainer.togglePlay() : false;
+      },
+      isPaused: function () {
+        return trainer && trainer.isPaused ? trainer.isPaused() : true;
+      },
       setBpm: function (bpm) {
         if (tapeTrainer) tapeTrainer.setBpm(bpm);
       },

@@ -13,7 +13,7 @@
     var playedSet = null;
     var missedSet = null;
     var TOLERANCE_BEATS = 0.35;
-    var WINDOW_BEATS = 4;
+    var WINDOW_BEATS = 8;
     var noteLabelsEl = null;
 
     function getSpacing() {
@@ -33,11 +33,13 @@
     }
 
     function setGroupTransform(dx) {
-      var heads = getHeads();
-      if (heads) {
-        heads.style.transition = 'none';
-        heads.style.transform = 'translateX(' + dx + 'px)';
-      }
+      ['#note-heads', '#bar-lines', '#rests'].forEach(function (id) {
+        var el = chart.querySelector(id);
+        if (el) {
+          el.style.transition = 'none';
+          el.style.transform = 'translateX(' + dx + 'px)';
+        }
+      });
     }
 
     function setNoteType(el, type) {
@@ -95,8 +97,18 @@
       if (shared.notes && shared.notes.length > 0) {
         notes = shared.notes.slice();
       } else if (shared.windowNotes && shared.windowNotes.length > 0) {
-        notes = shared.windowNotes.map(function (n, i) {
-          return { note: n.note, oct: n.oct, startBeat: i, duration: 1 };
+        notes = [];
+        var rangeVal = shared.rangeEl ? shared.rangeEl.value : 'full';
+        shared.windowNotes.forEach(function (n, i) {
+          notes.push({ note: n.note, oct: n.oct, startBeat: i, duration: 1 });
+          if (rangeVal === 'full' && (i % 3 === 0)) {
+            var isTreble = n.oct >= 4;
+            var bassPool = [{ note: 'C', oct: 3 }, { note: 'E', oct: 3 }, { note: 'G', oct: 3 }, { note: 'C', oct: 2 }, { note: 'F', oct: 2 }, { note: 'G', oct: 2 }];
+            var treblePool = [{ note: 'C', oct: 4 }, { note: 'E', oct: 4 }, { note: 'G', oct: 4 }, { note: 'C', oct: 5 }, { note: 'E', oct: 5 }];
+            var pool = isTreble ? bassPool : treblePool;
+            var second = pool[i % pool.length];
+            notes.push({ note: second.note, oct: second.oct, startBeat: i, duration: 1 });
+          }
         });
       } else {
         notes = [];
@@ -116,19 +128,27 @@
       if (!ctx) return;
       var spacing = getSpacing();
       var headX = getHeadX();
-      var noteHalfW = ctx.SPACING * 0.6;
+      var barOffset = spacing * 0.45;
 
       var ts = chart.timeSignature;
       var barInterval = ts && ts.top ? ts.top : 4;
-      for (var barBeat = barInterval; barBeat <= totalDuration + barInterval; barBeat += barInterval) {
-        chart.renderBarLine(headX + barBeat * spacing - noteHalfW);
+      for (var barBeat = 0; barBeat <= totalDuration + barInterval; barBeat += barInterval) {
+        chart.renderBarLine(headX + barBeat * spacing - barOffset);
+      }
+
+      if (shared.rests && shared.rests.length > 0) {
+        for (var r = 0; r < shared.rests.length; r++) {
+          var rest = shared.rests[r];
+          var rx = headX + rest.startBeat * spacing;
+          chart.renderRest(rx, rest.duration);
+        }
       }
 
       for (var i = 0; i < notes.length; i++) {
         var n = notes[i];
         var x = headX + n.startBeat * spacing;
         var name = n.note.toLowerCase() + n.oct;
-        chart.renderNoteHead(name, 'pending', x, false);
+        chart.renderNoteHead(name, 'pending', x, false, n.duration);
       }
 
       setGroupTransform(0);
@@ -217,24 +237,58 @@
       }
     }
 
+    function autoPlayNotesPassHead() {
+      if (paused || notes.length === 0) return;
+      for (var i = 0; i < notes.length; i++) {
+        if (playedSet.has(i) || missedSet.has(i)) continue;
+        var n = notes[i];
+        if (currentBeat >= n.startBeat) {
+          playedSet.add(i);
+          var midi = U.posToMidi({ note: n.note, oct: n.oct });
+          if (typeof window.playMidiNote === 'function') {
+            window.playMidiNote(midi, 100);
+          }
+          var heads = getHeads();
+          if (heads && heads.children[i]) {
+            setNoteType(heads.children[i], 'correct');
+          }
+          addLabel(n.note.toLowerCase() + n.oct);
+        }
+      }
+    }
+
     function tick(timestamp) {
       if (shared.destroyed) return;
       if (paused) {
+        if (startTimestamp !== 0) startTimestamp = 0;
         rafId = requestAnimationFrame(tick);
         return;
       }
-      if (startTimestamp === 0) startTimestamp = timestamp;
+      if (startTimestamp === 0) startTimestamp = timestamp - (currentBeat / (bpm / 60)) * 1000;
       var elapsed = (timestamp - startTimestamp) / 1000;
       currentBeat = elapsed * (bpm / 60);
 
       var spacing = getSpacing();
       setGroupTransform(-currentBeat * spacing);
 
-      checkMissed();
+      autoPlayNotesPassHead();
 
       if (currentBeat <= totalDuration + 1) {
         rafId = requestAnimationFrame(tick);
       }
+    }
+
+    function play() {
+      paused = false;
+    }
+
+    function pause() {
+      paused = true;
+    }
+
+    function togglePlay() {
+      paused = !paused;
+      return !paused;
     }
 
     function start() {
@@ -279,14 +333,23 @@
       onMidi: onMidi,
       start: start,
       destroy: destroy,
+      play: play,
+      pause: pause,
+      togglePlay: togglePlay,
+      isPaused: function () { return paused; },
       setBpm: function (val) { bpm = val; },
       getBpm: function () { return bpm; },
-      setNotes: function (newNotes) {
-        shared.notes = newNotes;
+      setNotes: function (notesArr, restsArr) {
+        shared.notes = notesArr;
+        shared.rests = restsArr || [];
+        loadNotes();
+        renderAllNotes();
       },
       getNotes: function () { return notes; },
       getPatternPos: findNextUnplayed,
+      getPatternSize: function () { return 1; },
       posToMidi: U.posToMidi,
+      getStats: function () { return { correct: shared.correct, wrong: shared.wrong }; },
     };
   };
 })();

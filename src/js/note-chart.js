@@ -33,7 +33,8 @@ class NoteChart extends HTMLElement {
         const LEFT_PAD = COLOR_X + COLOR_W + 10 * scale;
         const STAFF_L = 0;
         const STAFF_R = SVG_W - 20 * scale;
-        const PAD = 30 * scale;
+        const TOP_PAD = 120 * scale;
+        const BOT_PAD = 80 * scale;
 
         const noteAlpha = parseFloat(this._cssVar('--note-alpha')) || 0.2;
         const noteDAlpha = parseFloat(this._cssVar('--note-d-alpha')) || 0.4;
@@ -80,8 +81,8 @@ class NoteChart extends HTMLElement {
             if (y < rMin) rMin = y;
             if (y > rMax) rMax = y;
         }
-        const shift = PAD - rMin;
-        const SVG_H = (rMax - rMin) + 2 * PAD;
+        const shift = TOP_PAD - rMin;
+        const SVG_H = (rMax - rMin) + TOP_PAD + BOT_PAD;
         const getY = (note, oct) => getRawY(note, oct) + shift;
 
         const bassLines = [
@@ -107,7 +108,7 @@ class NoteChart extends HTMLElement {
         const bassClefY = getY('F', 3);
         const braceMid = (bTop + tBot) / 2;
 
-        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SVG_W}" height="${SVG_H}" viewBox="0 0 ${SVG_W} ${SVG_H}" style="overflow:visible">`;
+        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="${SVG_H}" viewBox="0 0 ${SVG_W} ${SVG_H}" style="display:block;overflow:hidden;max-width:100%">`;
         svg += `<rect width="100%" height="100%" fill="${activeBg}"/>`;
 
         // Staff lines — behind everything, full width from left edge to right
@@ -204,6 +205,12 @@ class NoteChart extends HTMLElement {
         this._rerenderAnnotations();
     }
 
+    get tempo() { return this._tempo || 80; }
+    set tempo(val) {
+        this._tempo = val;
+        this._rerenderAnnotations();
+    }
+
     _rerenderAnnotations() {
         const ann = this.querySelector('#staff-annotations');
         if (!ann || !this._ctx) return;
@@ -225,6 +232,10 @@ class NoteChart extends HTMLElement {
         html += `<line x1="0" y1="${braceMid - 3 * scale}" x2="0" y2="${braceMid + 3 * scale}" stroke="${staffColor}" stroke-width="${2.5 * scale}" stroke-linecap="round"/>`;
         html += `<text x="${15 * scale}" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
         html += `<text x="${15 * scale}" y="${bassClefY + 5 * scale}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
+
+        const tempoVal = this._tempo || 80;
+        const tempoY = tTop - SPACING * 1.8;
+        html += `<text x="${15 * scale}" y="${tempoY}" font-size="${18 * scale}" font-family="sans-serif" font-weight="bold" fill="${staffColor}">♩ = ${tempoVal}</text>`;
 
         const ks = this._keySignature || [];
         if (ks.length > 0) {
@@ -262,7 +273,7 @@ class NoteChart extends HTMLElement {
         if (g) g.innerHTML = '';
     }
 
-    renderNoteHead(noteName, type, cx, showLabel) {
+    renderNoteHead(noteName, type, cx, showLabel, duration) {
         const match = noteName.match(/^([a-g])(s?)(\d+)$/);
         if (!match) return;
         const note = match[1].toUpperCase();
@@ -288,21 +299,45 @@ class NoteChart extends HTMLElement {
         const el = document.createElementNS(svgNs, 'g');
         el.style.transition = 'transform 150ms ease-out';
 
-        // ledger lines for notes outside the visible G2–F5 range
-        const ni = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
-        const isBelow = oct < 2 || (oct === 2 && (ni[note] || 0) < 4);
-        const isAbove = oct > 5 || (oct === 5 && (ni[note] || 0) > 4);
-        const isMiddleC = oct === 4 && note === 'C';
-        if (isBelow || isAbove || isMiddleC) {
+        // ledger lines for notes outside/between the staff ranges
+        let ledgerYs = [];
+        if (oct === 4 && note === 'C') {
+            ledgerYs.push(y);
+        } else if (oct === 2 && (note === 'E' || note === 'D')) {
+            ledgerYs.push(getY('E', 2));
+        } else if (oct === 2 && (note === 'C' || note === 'B')) {
+            ledgerYs.push(getY('E', 2));
+            ledgerYs.push(getY('C', 2));
+        } else if (oct === 5 && (note === 'A' || note === 'B')) {
+            ledgerYs.push(getY('A', 5));
+        } else if (oct >= 6 && (note === 'C' || note === 'D')) {
+            ledgerYs.push(getY('A', 5));
+            ledgerYs.push(getY('C', 6));
+        }
+
+        for (const ly of ledgerYs) {
             const line = document.createElementNS(svgNs, 'line');
             line.setAttribute('x1', centerX - SPACING * 1.2);
-            line.setAttribute('y1', y);
+            line.setAttribute('y1', ly);
             line.setAttribute('x2', centerX + SPACING * 1.2);
-            line.setAttribute('y2', y);
+            line.setAttribute('y2', ly);
             line.setAttribute('stroke', staffColor);
             line.setAttribute('stroke-width', 1 * scale);
             el.appendChild(line);
         }
+
+        // note head duration classification
+        const dur = duration !== undefined ? duration : 1;
+        const isDottedWhole = dur >= 4.25;
+        const isWhole = (dur >= 3.5 && dur < 4.25);
+        const isDottedHalf = dur >= 2.5 && dur < 3.5;
+        const isHalf = (dur >= 1.75 && dur < 2.5);
+        const isDottedQuarter = dur >= 1.25 && dur < 1.75;
+        const isDotted = isDottedWhole || isDottedHalf || isDottedQuarter;
+        const isHollow = isWhole || isDottedWhole || isHalf || isDottedHalf;
+        const hasStem = !isWhole && !isDottedWhole;
+        const isEighth = dur >= 0.35 && dur < 0.875;
+        const isSixteenth = dur < 0.35;
 
         // note head
         const head = document.createElementNS(svgNs, 'ellipse');
@@ -315,53 +350,76 @@ class NoteChart extends HTMLElement {
         const accentColor = this._cssVar('--accent') || '#005cc5';
 
         if (type === 'target') {
-            head.setAttribute('fill', accentColor);
+            head.setAttribute('fill', isHollow ? 'none' : accentColor);
             head.setAttribute('stroke', accentColor);
             head.setAttribute('stroke-width', 2 * scale);
         } else if (type === 'correct') {
-            head.setAttribute('fill', '#28a745');
+            head.setAttribute('fill', isHollow ? 'none' : '#28a745');
             head.setAttribute('stroke', '#28a745');
-            head.setAttribute('stroke-width', 1.5 * scale);
+            head.setAttribute('stroke-width', 2 * scale);
         } else if (type === 'missed') {
-            head.setAttribute('fill', '#f1c40f');
+            head.setAttribute('fill', isHollow ? 'none' : '#f1c40f');
             head.setAttribute('stroke', '#f1c40f');
-            head.setAttribute('stroke-width', 1.5 * scale);
-
+            head.setAttribute('stroke-width', 2 * scale);
         } else if (type === 'ghost') {
             head.setAttribute('fill', 'none');
             head.setAttribute('stroke', staffColor);
             head.setAttribute('stroke-width', 1.5 * scale);
             head.setAttribute('stroke-dasharray', `${3 * scale} ${2 * scale}`);
         } else if (type === 'pending') {
-            head.setAttribute('fill', staffColor);
+            head.setAttribute('fill', isHollow ? 'none' : staffColor);
             head.setAttribute('stroke', staffColor);
-            head.setAttribute('stroke-width', 1 * scale);
+            head.setAttribute('stroke-width', isHollow ? 2 * scale : 1 * scale);
         } else {
-            head.setAttribute('fill', staffColor);
+            head.setAttribute('fill', isHollow ? 'none' : staffColor);
             head.setAttribute('stroke', staffColor);
-            head.setAttribute('stroke-width', 1 * scale);
+            head.setAttribute('stroke-width', isHollow ? 2 * scale : 1 * scale);
         }
         el.appendChild(head);
 
-        // stem
-        let stemColor = staffColor;
-        if (type === 'target') stemColor = accentColor;
-        else if (type === 'correct') stemColor = '#28a745';
-        else if (type === 'missed') stemColor = '#e67e22';
-        const stem = document.createElementNS(svgNs, 'line');
-        stem.setAttribute('x1', centerX + headW / 2);
-        stem.setAttribute('y1', y);
-        stem.setAttribute('x2', centerX + headW / 2);
-        stem.setAttribute('y2', y - stemLen);
-        stem.setAttribute('stroke', stemColor);
-        stem.setAttribute('stroke-width', 1.5 * scale);
-        if (type === 'ghost') {
-            stem.setAttribute('stroke-dasharray', `${3 * scale} ${2 * scale}`);
+        if (isDotted) {
+            const dotCircle = document.createElementNS(svgNs, 'circle');
+            dotCircle.setAttribute('cx', centerX + headW * 0.85);
+            dotCircle.setAttribute('cy', y - 2 * scale);
+            dotCircle.setAttribute('r', 2.5 * scale);
+            dotCircle.setAttribute('fill', type === 'target' ? accentColor : (type === 'correct' ? '#28a745' : staffColor));
+            el.appendChild(dotCircle);
         }
-        if (type === 'pending') {
-            stem.setAttribute('opacity', '0.35');
+
+        if (hasStem) {
+            // stem & flags
+            let stemColor = staffColor;
+            if (type === 'target') stemColor = accentColor;
+            else if (type === 'correct') stemColor = '#28a745';
+            else if (type === 'missed') stemColor = '#e67e22';
+            const stemX = centerX + headW / 2;
+            const stemY1 = y;
+            const stemY2 = y - stemLen;
+
+            const stem = document.createElementNS(svgNs, 'line');
+            stem.setAttribute('x1', stemX);
+            stem.setAttribute('y1', stemY1);
+            stem.setAttribute('x2', stemX);
+            stem.setAttribute('y2', stemY2);
+            stem.setAttribute('stroke', stemColor);
+            stem.setAttribute('stroke-width', 1.5 * scale);
+            if (type === 'ghost') {
+                stem.setAttribute('stroke-dasharray', `${3 * scale} ${2 * scale}`);
+            }
+            el.appendChild(stem);
+
+            // flags for 8th & 16th notes
+            const flagCount = isSixteenth ? 2 : (isEighth ? 1 : 0);
+            for (let f = 0; f < flagCount; f++) {
+                const fy = stemY2 + f * 6 * scale;
+                const flag = document.createElementNS(svgNs, 'path');
+                flag.setAttribute('d', `M ${stemX},${fy} C ${stemX + 8 * scale},${fy + 6 * scale} ${stemX + 8 * scale},${fy + 14 * scale} ${stemX + 2 * scale},${fy + 18 * scale}`);
+                flag.setAttribute('fill', 'none');
+                flag.setAttribute('stroke', stemColor);
+                flag.setAttribute('stroke-width', 2 * scale);
+                el.appendChild(flag);
+            }
         }
-        el.appendChild(stem);
 
         if (showLabel) {
             let labels = this.querySelector('#note-labels');
@@ -396,6 +454,85 @@ class NoteChart extends HTMLElement {
         return el;
     }
 
+    clearNoteHeads() {
+        const g = this.querySelector('#note-heads');
+        if (g) g.innerHTML = '';
+        const b = this.querySelector('#bar-lines');
+        if (b) b.innerHTML = '';
+        const r = this.querySelector('#rests');
+        if (r) r.innerHTML = '';
+    }
+
+    renderRest(cx, duration, clef) {
+        const ctx = this._ctx;
+        if (!ctx) return;
+        const { getY, staffColor, scale, SPACING } = ctx;
+        const svgNs = 'http://www.w3.org/2000/svg';
+        let g = this.querySelector('#rests');
+        if (!g) {
+            g = document.createElementNS(svgNs, 'g');
+            g.setAttribute('id', 'rests');
+            const sc = this.querySelector('#staff-content') || this.querySelector('svg');
+            sc.appendChild(g);
+        }
+
+        const isBass = clef === 'bass';
+        const yCenter = isBass ? getY('D', 3) : getY('B', 4);
+        const dur = duration !== undefined ? duration : 1;
+
+        if (dur >= 3.5) {
+            // Whole rest: rectangle hanging below 4th line
+            const rect = document.createElementNS(svgNs, 'rect');
+            rect.setAttribute('x', cx - SPACING * 0.4);
+            rect.setAttribute('y', yCenter - SPACING * 0.5);
+            rect.setAttribute('width', SPACING * 0.8);
+            rect.setAttribute('height', SPACING * 0.45);
+            rect.setAttribute('fill', staffColor);
+            rect.setAttribute('opacity', '0.75');
+            g.appendChild(rect);
+        } else if (dur >= 1.75) {
+            // Half rest: rectangle sitting on 3rd line
+            const rect = document.createElementNS(svgNs, 'rect');
+            rect.setAttribute('x', cx - SPACING * 0.4);
+            rect.setAttribute('y', yCenter - SPACING * 0.45);
+            rect.setAttribute('width', SPACING * 0.8);
+            rect.setAttribute('height', SPACING * 0.45);
+            rect.setAttribute('fill', staffColor);
+            rect.setAttribute('opacity', '0.75');
+            g.appendChild(rect);
+        } else if (dur >= 0.875) {
+            // Quarter rest vector path
+            const path = document.createElementNS(svgNs, 'path');
+            const d = `M ${cx - 3*scale} ${yCenter - 12*scale} L ${cx + 4*scale} ${yCenter - 4*scale} L ${cx - 4*scale} ${yCenter + 4*scale} Q ${cx + 6*scale} ${yCenter + 6*scale} ${cx + 2*scale} ${yCenter + 12*scale}`;
+            path.setAttribute('d', d);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', staffColor);
+            path.setAttribute('stroke-width', 2.5 * scale);
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('opacity', '0.75');
+            g.appendChild(path);
+        } else {
+            // 8th / 16th rest vector path (bulb + stem)
+            const grp = document.createElementNS(svgNs, 'g');
+            grp.setAttribute('opacity', '0.75');
+            const circle = document.createElementNS(svgNs, 'circle');
+            circle.setAttribute('cx', cx - 2 * scale);
+            circle.setAttribute('cy', yCenter - 3 * scale);
+            circle.setAttribute('r', 2.5 * scale);
+            circle.setAttribute('fill', staffColor);
+            const line = document.createElementNS(svgNs, 'line');
+            line.setAttribute('x1', cx + 1 * scale);
+            line.setAttribute('y1', yCenter - 5 * scale);
+            line.setAttribute('x2', cx - 4 * scale);
+            line.setAttribute('y2', yCenter + 9 * scale);
+            line.setAttribute('stroke', staffColor);
+            line.setAttribute('stroke-width', 2 * scale);
+            grp.appendChild(circle);
+            grp.appendChild(line);
+            g.appendChild(grp);
+        }
+    }
+
     renderBarLine(x) {
         const ctx = this._ctx;
         if (!ctx) return;
@@ -409,12 +546,12 @@ class NoteChart extends HTMLElement {
         barline.setAttribute('x2', x);
         barline.setAttribute('y2', y2);
         barline.setAttribute('stroke', staffColor);
-        barline.setAttribute('stroke-width', 1.5 * scale);
+        barline.setAttribute('stroke-width', 2 * scale);
         barline.style.transition = 'transform 150ms ease-out';
-        let g = this.querySelector('#note-heads');
+        let g = this.querySelector('#bar-lines');
         if (!g) {
             g = document.createElementNS(svgNs, 'g');
-            g.setAttribute('id', 'note-heads');
+            g.setAttribute('id', 'bar-lines');
             const sc = this.querySelector('#staff-content') || this.querySelector('svg');
             sc.appendChild(g);
         }

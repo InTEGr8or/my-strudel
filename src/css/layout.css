@@ -33,14 +33,12 @@ strudel-editor { display: block; height: 0; }
 a { color: var(--accent); text-decoration: none; }
 
 #note-chart-container {
-    background: var(--abc-bg, #fff);
-    border: 3px solid var(--highlight, #ffcc00);
-    border-radius: 15px;
-    margin: calc(1rem * var(--ui-scale, 1)) 0;
-    padding: calc(1rem * var(--ui-scale, 1));
-    overflow-x: auto;
-    overflow-y: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin: calc(0.5rem * var(--ui-scale, 1)) 0;
+    padding: 0;
+    overflow: hidden;
     max-width: 100%;
     flex-shrink: 0;
 }

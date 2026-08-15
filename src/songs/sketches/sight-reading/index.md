@@ -5,6 +5,13 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 ---
 
 <style>
+note-chart {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    max-width: 100%;
+}
+
 #trainer-panel {
     display: flex;
     justify-content: center;
@@ -145,10 +152,10 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         <option value="bass">Bass Clef (G2–A3)</option>
     </select>
     <div class="combobox" id="song-combobox">
-        <input type="text" id="trainer-song" placeholder="Random" readonly>
-        <button class="combobox-clear" id="song-clear">&times;</button>
+        <input type="text" id="trainer-song" value="{{ sightReadingSongs[0].title | default: '' }}" title="{{ sightReadingSongs[0].id | default: 'random' }}" placeholder="Random" readonly>
+        <button class="combobox-clear{% if sightReadingSongs.size > 0 %} visible{% endif %}" id="song-clear">&times;</button>
         <button class="combobox-toggle" id="song-toggle">&#9660;</button>
-        <ul class="combobox-list" id="song-list"></ul>
+        <ul class="combobox-list" id="song-list"><li data-value="">Random</li>{% for song in sightReadingSongs %}<li data-value="{{ song.title }}"{% if forloop.first %} class="selected"{% endif %}>{{ song.title }}</li>{% endfor %}</ul>
     </div>
     <div class="score-item" style="font-size:0.9rem;flex-direction:row;gap:0.3rem">
         <span style="opacity:0.7">Pattern:</span>
@@ -156,6 +163,14 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         <button class="pat-btn" data-pattern="2" onclick="setPatternSize(2)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer">2</button>
         <button class="pat-btn" data-pattern="3" onclick="setPatternSize(3)" style="font-size:0.8rem;padding:0.15rem 0.5rem;border-radius:6px;border:1px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer">3</button>
     </div>
+</div>
+
+<h2 id="song-title-heading" style="text-align:center;margin:0.4rem 0;font-size:1.3rem;color:var(--text);font-weight:600;cursor:help" title="{{ sightReadingSongs[0].id | default: 'random' }}">{{ sightReadingSongs[0].title | default: 'Random Sight Reading' }}</h2>
+
+<div id="trainer-panel" style="padding-top:0">
+    <button id="play-btn" style="font-size:0.9rem;padding:0.3rem 0.9rem;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-weight:bold;display:inline-flex;align-items:center;gap:0.3rem" onclick="togglePlayTrainer()">
+        <span id="play-btn-icon">▶</span> <span id="play-btn-label">Play</span>
+    </button>
     <button id="refresh-btn" style="font-size:0.9rem;padding:0.3rem 0.8rem;border-radius:8px;border:2px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;transition:transform 0.3s ease" onclick="refreshTrainer()">↻</button>
     <label class="score-item" style="font-size:0.8rem;flex-direction:row;gap:0.3rem;cursor:pointer;user-select:none">
         <input type="checkbox" id="play-wrong-toggle" checked onchange="togglePlayWrong(this.checked)">
@@ -236,48 +251,84 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 
     function applySong() {
         const title = songEl.value.trim();
+        const rangeEl = document.getElementById('trainer-range');
+        const range = rangeEl ? rangeEl.value : 'full';
+        const heading = document.getElementById('song-title-heading');
         if (title) {
             const song = SONGS_LIST.find(function (s) { return s.title === title; });
             if (song) {
-                trainer.setNotes(song.notes);
+                if (heading) {
+                    heading.textContent = song.title;
+                    heading.title = song.id || song.title;
+                }
+                if (songEl) songEl.title = song.id || song.title;
+                let notes = (song.notes || []).slice();
+                if (range === 'treble') {
+                    notes = notes.filter(function (n) { return n.oct >= 4; });
+                } else if (range === 'bass') {
+                    notes = notes.filter(function (n) { return n.oct <= 3; });
+                }
+                trainer.setNotes(notes, song.rests);
                 const chart = document.querySelector('note-chart');
                 if (chart) {
                     if (song.timeSignature) chart.timeSignature = song.timeSignature;
                     if (song.keySignature) chart.keySignature = song.keySignature;
+                    chart.tempo = song.tempo || 80;
                 }
                 return;
             }
         }
+        if (heading) {
+            heading.textContent = 'Random Sight Reading';
+            heading.title = 'random';
+        }
+        if (songEl) songEl.title = 'random';
         trainer.setNotes(null);
     }
 
     function loadSongs() {
-        return fetch('/songs/sight-reading/songs.json')
-            .then(function (r) { return r.json(); })
+        const url = "{{ '/songs/sight-reading/songs.json' | htmlBaseUrl }}";
+        return fetch(url)
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status + ' loading ' + url);
+                return r.json();
+            })
             .then(function (songs) {
                 SONGS_LIST = songs;
                 var list = document.getElementById('song-list');
+                if (!list) return;
+                list.innerHTML = '';
                 var random = document.createElement('li');
                 random.textContent = 'Random';
                 random.dataset.value = '';
                 list.appendChild(random);
                 songs.forEach(function (s) {
                     var li = document.createElement('li');
-                    li.textContent = s.title;
-                    li.dataset.value = s.title;
+                    var displayTitle = s.title || s.id;
+                    li.textContent = displayTitle;
+                    li.dataset.value = displayTitle;
                     list.appendChild(li);
                 });
-                var firstTitle = songs.length > 0 ? songs[0].title : '';
-                setupCombobox(firstTitle);
-                if (firstTitle) {
-                    songEl.value = firstTitle;
-                    var firstLi = document.querySelector('#song-list li[data-value="' + firstTitle.replace(/"/g, '\\"') + '"]');
-                    if (firstLi) firstLi.classList.add('selected');
-                    applySong();
-                    if (trainer) trainer.start();
+                var savedSong = localStorage.getItem('tape-song');
+                var initialTitle = '';
+                if (savedSong !== null) {
+                    if (savedSong === '') {
+                        initialTitle = '';
+                    } else if (songs.some(function (s) { return (s.title || s.id) === savedSong; })) {
+                        initialTitle = savedSong;
+                    } else {
+                        initialTitle = songs.length > 0 ? (songs[0].title || songs[0].id) : '';
+                    }
+                } else {
+                    initialTitle = songs.length > 0 ? (songs[0].title || songs[0].id) : '';
                 }
+                setupCombobox(initialTitle);
+                applySong();
+                if (trainer) trainer.start();
             })
-            .catch(function () {});
+            .catch(function (err) {
+                console.error('Error loading songs:', err);
+            });
     }
 
     function setupCombobox(initialValue) {
@@ -288,6 +339,19 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         var container = document.getElementById('song-combobox');
         var open = false;
         var selectedValue = initialValue || '';
+
+        if (selectedValue) {
+            input.value = selectedValue;
+            input.placeholder = '';
+            if (clear) clear.classList.add('visible');
+        } else {
+            input.value = '';
+            input.placeholder = 'Random';
+            if (clear) clear.classList.remove('visible');
+        }
+        Array.from(list.children).forEach(function (li) {
+            li.classList.toggle('selected', li.dataset.value === selectedValue);
+        });
 
         function openList() {
             open = true;
@@ -314,15 +378,22 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
 
         function selectItem(value) {
             selectedValue = value;
+            if (value) {
+                localStorage.setItem('tape-song', value);
+            } else {
+                localStorage.setItem('tape-song', '');
+            }
             Array.from(list.children).forEach(function (li) {
                 li.classList.toggle('selected', li.dataset.value === value);
             });
             if (value) {
                 input.value = value;
-                clear.classList.add('visible');
+                input.placeholder = '';
+                if (clear) clear.classList.add('visible');
             } else {
                 input.value = '';
-                clear.classList.remove('visible');
+                input.placeholder = 'Random';
+                if (clear) clear.classList.remove('visible');
             }
             closeList();
             applySong();
@@ -422,6 +493,7 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         });
         trainer.setBpm(metroBpm);
         document.getElementById('trainer-range').addEventListener('change', function () {
+            applySong();
             trainer.start();
         });
         window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
@@ -430,12 +502,37 @@ description: Practice reading notes on the grand staff with your MIDI keyboard. 
         loadSongs();
     }
 
+    window.togglePlayTrainer = function () {
+        if (!trainer) return;
+        if (trainer.togglePlay) {
+            const playing = trainer.togglePlay();
+            const icon = document.getElementById('play-btn-icon');
+            const label = document.getElementById('play-btn-label');
+            const btn = document.getElementById('play-btn');
+            if (icon && label && btn) {
+                icon.textContent = playing ? '⏸' : '▶';
+                label.textContent = playing ? 'Pause' : 'Play';
+                btn.style.background = playing ? 'var(--panel-bg)' : 'var(--accent)';
+                btn.style.color = playing ? 'var(--text)' : '#fff';
+            }
+        }
+    };
+
     window.refreshTrainer = function () {
         if (trainer) trainer.start();
+        const icon = document.getElementById('play-btn-icon');
+        const label = document.getElementById('play-btn-label');
+        const btn = document.getElementById('play-btn');
+        if (icon && label && btn) {
+            icon.textContent = '▶';
+            label.textContent = 'Play';
+            btn.style.background = 'var(--accent)';
+            btn.style.color = '#fff';
+        }
         document.getElementById('refresh-btn').style.transform = 'rotate(360deg)';
         setTimeout(function () {
-            var btn = document.getElementById('refresh-btn');
-            if (btn) btn.style.transform = '';
+            var rbtn = document.getElementById('refresh-btn');
+            if (rbtn) rbtn.style.transform = '';
         }, 400);
     };
 

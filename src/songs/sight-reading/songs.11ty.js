@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { parseAbc } = require('../../shared/parse-abc');
+const { getFilesRecursively } = require('../../../scripts/build-musescore');
 
 module.exports = class {
   data() {
@@ -11,16 +12,6 @@ module.exports = class {
     };
   }
   render(data) {
-    const songsDir = path.join(__dirname, 'songs');
-    let songs = [];
-    if (fs.existsSync(songsDir)) {
-      const files = fs.readdirSync(songsDir).filter(f => f.endsWith('.abc')).sort();
-      for (const file of files) {
-        const text = fs.readFileSync(path.join(songsDir, file), 'utf-8');
-        const result = parseAbc(text);
-        songs.push({ id: file.replace('.abc', ''), title: result.title, notes: result.notes, timeSignature: result.timeSignature, keySignature: result.keySignature });
-      }
-    }
-    return JSON.stringify(songs, null, 2);
+    return JSON.stringify(data.sightReadingSongs || [], null, 2);
   }
 };
