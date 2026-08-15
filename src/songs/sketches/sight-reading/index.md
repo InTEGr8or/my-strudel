@@ -193,6 +193,7 @@ note-chart {
 (function () {
     let trainer = null;
     let SONGS_LIST = [];
+    let lastSongTitle = null;
     const songEl = document.getElementById('trainer-song');
 
     // metronome
@@ -275,6 +276,12 @@ note-chart {
                     if (song.keySignature) chart.keySignature = song.keySignature;
                     chart.tempo = song.tempo || 80;
                 }
+                if (song.tempo && title !== lastSongTitle) {
+                    const slider = document.getElementById('metro-bpm');
+                    if (slider) slider.value = song.tempo;
+                    if (typeof window.updateBpm === 'function') window.updateBpm(song.tempo);
+                }
+                lastSongTitle = title;
                 return;
             }
         }
@@ -283,6 +290,7 @@ note-chart {
             heading.title = 'random';
         }
         if (songEl) songEl.title = 'random';
+        lastSongTitle = '';
         trainer.setNotes(null);
     }
 

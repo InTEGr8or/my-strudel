@@ -47,6 +47,10 @@ assert.strictEqual(classifyDuration(6).name, 'dotted-whole');
 assert.strictEqual(noteChartCode.includes('classified.dotted'), true, 'note-chart.js uses classifyDuration for augmentation dots');
 console.log('PASS: note-chart.js uses shared duration classifier (dotted whole = 6 beats)');
 
+const trainerPage = fs.readFileSync(path.join(__dirname, '../src/songs/sketches/sight-reading/index.md'), 'utf-8');
+assert.strictEqual(trainerPage.includes('window.updateBpm(song.tempo)'), true, 'selecting a song sets metro-bpm to the score tempo');
+console.log('PASS: song selection updates #metro-bpm to the selected song tempo');
+
 // Test 7: Verify parseAbc Q: tempo header parsing
 const jingleAbcPath = path.join(__dirname, '../src/songs/sight-reading/songs/musescore/jingle-bells.abc');
 if (fs.existsSync(jingleAbcPath)) {

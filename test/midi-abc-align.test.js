@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { parseAbc } = require('../src/shared/parse-abc');
 const { classifyDuration } = require('../src/js/duration');
-const { generateAbc, beatsToAbc } = require('../scripts/musicxml-to-abc');
+const { generateAbc, beatsToAbc, expandRepeats } = require('../scripts/musicxml-to-abc');
 const {
   parseMidiFile,
   verifyMidiAndAbc,
@@ -31,7 +31,10 @@ assertEq(classifyDuration(1.5).name, 'dotted-quarter');
 assertEq(classifyDuration(1).name, 'quarter');
 assertEq(classifyDuration(0.75).name, 'dotted-eighth');
 assertEq(classifyDuration(0.5).name, 'eighth');
-console.log('PASS: classifyDuration maps 6→dotted-whole, 4→whole, 3→dotted-half');
+assertEq(classifyDuration(1 / 3).name, 'triplet-eighth', 'Moonlight triplet eighths are not dotted sixteenths');
+assertEq(classifyDuration(1 / 3).dotted, false, 'triplet eighths have no augmentation dot');
+assertEq(classifyDuration(2 / 3).dotted, false, 'triplet quarters have no augmentation dot');
+console.log('PASS: classifyDuration maps 6→dotted-whole, 4→whole, 3→dotted-half, 1/3→triplet-eighth');
 
 // --- parseAbc durations for dotted whole notes and rests ---
 console.log('\n--- parseAbc dotted whole / rest durations ---');
@@ -89,6 +92,39 @@ assertEq(beatsToAbc(2), '8', 'half is 8');
 assertEq(beatsToAbc(3), '12', 'dotted half is 12, not 18');
 assertEq(beatsToAbc(4), '16', 'whole is 16');
 assertEq(beatsToAbc(6), '24', 'dotted whole is 24');
+assertEq(beatsToAbc(1 / 3), '4/3', 'triplet eighth is 4/3 sixteenths, not a rounded dotted value');
+
+console.log('\n--- expandRepeats ---');
+const simpleRepeat = expandRepeats([
+  { evs: [{ id: 'A' }], forward: true },
+  { evs: [{ id: 'B' }], backward: true, backwardTimes: 2 },
+  { evs: [{ id: 'C' }] },
+]);
+assert.deepStrictEqual(simpleRepeat.map((m) => m.evs[0].id), ['A', 'B', 'A', 'B', 'C'], 'A|:B:|C expands to A B A B C');
+
+const volta = expandRepeats([
+  { evs: [{ id: 'A' }], forward: true },
+  { evs: [{ id: 'B1' }], endings: [{ numbers: [1], type: 'start' }], backward: true, backwardTimes: 2 },
+  { evs: [{ id: 'B2' }], endings: [{ numbers: [2], type: 'start' }] },
+  { evs: [{ id: 'C' }] },
+]);
+assert.deepStrictEqual(volta.map((m) => m.evs[0].id), ['A', 'B1', 'A', 'B2', 'C'], '1st/2nd ending expands to A B1 A B2 C');
+
+const dsAlCoda = expandRepeats([
+  { evs: [{ id: 'intro' }] },
+  { evs: [{ id: 'segno' }], segno: 'segno' },
+  { evs: [{ id: 'mid' }] },
+  { evs: [{ id: 'tocoda' }], tocoda: 'coda' },
+  { evs: [{ id: 'skipped' }] },
+  { evs: [{ id: 'ds' }], dalsegno: 'segno' },
+  { evs: [{ id: 'coda' }], coda: 'coda' },
+]);
+assert.deepStrictEqual(
+  dsAlCoda.map((m) => m.evs[0].id),
+  ['intro', 'segno', 'mid', 'tocoda', 'skipped', 'ds', 'segno', 'mid', 'coda'],
+  'D.S. al Coda plays through, jumps to segno, then to coda'
+);
+console.log('PASS: expandRepeats handles simple repeats, endings, and D.S. al Coda');
 
 const syntheticXml = `<?xml version="1.0"?>
 <score-partwise version="3.1">
@@ -199,6 +235,49 @@ assert.ok(
 );
 assert.ok(jingleRes.restCount >= 1, 'Jingle Bells ABC includes rests');
 console.log(`PASS: Jingle Bells pitch+start ${(jingleRes.timeAccuracy * 100).toFixed(1)}%`);
+
+function requirePair(stem) {
+  const p = pairs.find((x) => x.stem === stem);
+  assert.ok(p, stem + ' MIDI+MXL exist');
+  return p;
+}
+
+const maple = requirePair('maple-leaf-rag-scott-joplin');
+const mapleRes = verifyMidiAndAbc(maple.midiPath, maple.mxlPath);
+assert.ok(
+  mapleRes.total > 2000,
+  `Maple Leaf expanded ABC should be near the unfolded MIDI count (got ${mapleRes.total} ABC notes vs ${mapleRes.unmatchedMidi.length + mapleRes.matched} MIDI)`
+);
+assert.ok(
+  Math.abs(mapleRes.lastStartAbc - mapleRes.lastStartMidi) <= 8,
+  `Maple Leaf last start ABC ${mapleRes.lastStartAbc} vs MIDI ${mapleRes.lastStartMidi}`
+);
+assert.ok(
+  mapleRes.timeAccuracy >= 0.85,
+  `Maple Leaf pitch+start must be >= 85% after repeat expansion (got ${(mapleRes.timeAccuracy * 100).toFixed(1)}%)`
+);
+console.log(`PASS: Maple Leaf pitch+start ${(mapleRes.timeAccuracy * 100).toFixed(1)}% last ${mapleRes.lastStartAbc}`);
+
+const moon = requirePair('opus-27-no-2-moonlight-sonata-1st-movement');
+const moonRes = verifyMidiAndAbc(moon.midiPath, moon.mxlPath);
+const moonDots = moonRes.parsed.notes.filter((n) => classifyDuration(n.duration).dotted).length;
+assert.ok(
+  moonDots / Math.max(1, moonRes.parsed.notes.length) < 0.15,
+  `Moonlight must not put dots on almost every note (${moonDots}/${moonRes.parsed.notes.length} dotted)`
+);
+assert.ok(
+  moonRes.timeAccuracy >= 0.9,
+  `Moonlight pitch+start must be >= 90% (got ${(moonRes.timeAccuracy * 100).toFixed(1)}%)`
+);
+console.log(`PASS: Moonlight pitch+start ${(moonRes.timeAccuracy * 100).toFixed(1)}% dotted ${moonDots}/${moonRes.parsed.notes.length}`);
+
+const xmas = requirePair('christmas-time-is-here-a-charlie-brown-christmas');
+const xmasRes = verifyMidiAndAbc(xmas.midiPath, xmas.mxlPath);
+assert.ok(
+  Math.abs(xmasRes.lastStartAbc - xmasRes.lastStartMidi) <= 12,
+  `Christmas Time last start ABC ${xmasRes.lastStartAbc} vs MIDI ${xmasRes.lastStartMidi}`
+);
+console.log(`PASS: Christmas Time last start ABC ${xmasRes.lastStartAbc} MIDI ${xmasRes.lastStartMidi} time ${(xmasRes.timeAccuracy * 100).toFixed(1)}%`);
 
 pairs.forEach((p) => {
   if (p.stem === 'jingle-bells') return;

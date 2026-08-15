@@ -30,19 +30,29 @@ function noteToAbc(step, alter, octave) {
 }
 
 function beatsToAbc(durInBeats) {
-  const sixteenths = durInBeats * 4;
-  const rounded = Math.round(sixteenths * 32) / 32;
-  if (Math.abs(rounded - Math.round(rounded)) < 0.001) {
-    const v = Math.round(rounded);
-    if (v === 1) return '';
-    return String(v);
+  // L:1/16 units. Prefer exact simple ratios so triplets stay 4/3, not 43/32.
+  const units = durInBeats * 4;
+  if (!Number.isFinite(units) || units <= 0) return '';
+  let bestN = 1;
+  let bestD = 1;
+  let bestErr = Infinity;
+  for (let d = 1; d <= 16; d++) {
+    const n = Math.round(units * d);
+    if (n <= 0) continue;
+    const err = Math.abs(units - n / d);
+    if (err < bestErr - 1e-9 || (Math.abs(err - bestErr) < 1e-9 && d < bestD)) {
+      bestErr = err;
+      bestN = n;
+      bestD = d;
+    }
   }
-  const gcd = (a, b) => b ? gcd(b, a % b) : a;
-  const num = Math.round(rounded * 32);
-  const den = 32;
-  const g = gcd(num, den);
-  const n = num / g;
-  const d = den / g;
+  const g = (function gcd(a, b) { return b ? gcd(b, a % b) : a; })(bestN, bestD);
+  const n = bestN / g;
+  const d = bestD / g;
+  if (d === 1) {
+    if (n === 1) return '';
+    return String(n);
+  }
   if (n === 1) return '/' + d;
   return n + '/' + d;
 }
@@ -111,6 +121,29 @@ function generateAbc(inputPath) {
     let currentBeat = 0;
     let lastNoteBeat = 0;
     const measureEvs = [];
+    const measureMeta = {
+      evs: measureEvs,
+      forward: false,
+      backward: false,
+      backwardTimes: 2,
+      endings: [],
+      segno: null,
+      coda: null,
+      tocoda: null,
+      dalsegno: null,
+      dacapo: false,
+      fine: false,
+    };
+
+    function applySoundAttrs(attrs) {
+      if (!attrs) return;
+      if (attrs['@_segno']) measureMeta.segno = attrs['@_segno'];
+      if (attrs['@_coda']) measureMeta.coda = attrs['@_coda'];
+      if (attrs['@_tocoda']) measureMeta.tocoda = attrs['@_tocoda'];
+      if (attrs['@_dalsegno']) measureMeta.dalsegno = attrs['@_dalsegno'];
+      if (attrs['@_dacapo'] === 'yes' || attrs['@_dacapo'] === 'true') measureMeta.dacapo = true;
+      if (attrs['@_fine'] === 'yes' || attrs['@_fine'] === 'true') measureMeta.fine = true;
+    }
 
     for (const el of mEls) {
       const key = Object.keys(el).find(k => k !== ':@');
@@ -132,6 +165,34 @@ function generateAbc(inputPath) {
             timeSig = [beats, beatType];
           }
         }
+      } else if (key === 'barline') {
+        for (const sub of el.barline || []) {
+          const sk = Object.keys(sub).find(k => k !== ':@');
+          const attrs = sub[':@'] || {};
+          if (sk === 'repeat') {
+            const dir = attrs['@_direction'];
+            if (dir === 'forward') measureMeta.forward = true;
+            if (dir === 'backward') {
+              measureMeta.backward = true;
+              const times = parseInt(attrs['@_times'] || '2', 10);
+              measureMeta.backwardTimes = Number.isFinite(times) && times > 1 ? times : 2;
+            }
+          }
+          if (sk === 'ending') {
+            const nums = String(attrs['@_number'] || '1')
+              .split(/[,\s]+/)
+              .map((n) => parseInt(n, 10))
+              .filter((n) => Number.isFinite(n) && n > 0);
+            measureMeta.endings.push({ numbers: nums.length ? nums : [1], type: attrs['@_type'] || 'start' });
+          }
+        }
+      } else if (key === 'direction') {
+        for (const sub of el.direction || []) {
+          if (sub.sound) applySoundAttrs(sub[':@']);
+        }
+        applySoundAttrs(el[':@']);
+      } else if (key === 'sound') {
+        applySoundAttrs(el[':@']);
       } else if (key === 'backup') {
         let durRaw = 0;
         for (const sub of el.backup) {
@@ -197,15 +258,16 @@ function generateAbc(inputPath) {
         if (isGrace) continue;
 
         // MusicXML <duration> is already the performed length, including dots.
+        // Snap to 48ths so triplet 1/3 stays exact (16ths turned 1/3 into 0.3125).
         let durInBeats = durRaw / divisions;
-        durInBeats = Math.round(durInBeats * 16) / 16;
+        durInBeats = Math.round(durInBeats * 48) / 48;
         if (durInBeats <= 0) durInBeats = 0.25;
 
         let noteBeat;
         if (isChord) {
           noteBeat = lastNoteBeat;
         } else {
-          noteBeat = Math.round(currentBeat * 16) / 16;
+          noteBeat = Math.round(currentBeat * 48) / 48;
           lastNoteBeat = noteBeat;
           currentBeat += durInBeats;
         }
@@ -229,8 +291,10 @@ function generateAbc(inputPath) {
         }
       }
     }
-    measuresData.push(measureEvs);
+    measuresData.push(measureMeta);
   }
+
+  const playback = expandRepeats(measuresData);
 
   let title = '';
   const workNode = score.find(n => n.work);
@@ -275,8 +339,8 @@ function generateAbc(inputPath) {
   }
   abc += `K:${keyName}\n`;
 
-  for (let mIdx = 0; mIdx < measuresData.length; mIdx++) {
-    const measureEvs = measuresData[mIdx];
+  for (let mIdx = 0; mIdx < playback.length; mIdx++) {
+    const measureEvs = playback[mIdx].evs || [];
     if (measureEvs.length === 0) continue;
 
     const byVoice = {};
@@ -292,11 +356,103 @@ function generateAbc(inputPath) {
     const mAbc = voiceKeys.map((k) => emitVoiceAbc(byVoice[k])).filter(Boolean).join(' & ');
 
     if (mAbc.trim().length > 0) {
-      abc += mAbc.trimRight() + (mIdx < measuresData.length - 1 ? ' |\n' : ' |]\n');
+      abc += mAbc.trimRight() + (mIdx < playback.length - 1 ? ' |\n' : ' |]\n');
     }
   }
 
   return abc;
+}
+
+function endingNumbers(measure) {
+  const nums = [];
+  (measure.endings || []).forEach((e) => {
+    (e.numbers || []).forEach((n) => {
+      if (!nums.includes(n)) nums.push(n);
+    });
+  });
+  return nums;
+}
+
+function cloneMeasure(measure) {
+  return Object.assign({}, measure, {
+    evs: (measure.evs || []).map((e) => Object.assign({}, e, {
+      pitch: e.pitch ? Object.assign({}, e.pitch) : e.pitch,
+    })),
+  });
+}
+
+function expandRepeats(measures) {
+  if (!measures || measures.length === 0) return [];
+  const out = [];
+  const taken = new Map();
+  const sectionPass = new Map();
+  let i = 0;
+  let lastForward = 0;
+  let afterJump = false;
+  let usedDS = false;
+  let usedDC = false;
+  const maxSteps = measures.length * 8 + 50;
+  let steps = 0;
+
+  function indexWith(pred) {
+    return measures.findIndex(pred);
+  }
+
+  while (i < measures.length && steps++ < maxSteps) {
+    const m = measures[i];
+    if (m.forward) lastForward = i;
+
+    const volta = endingNumbers(m);
+    if (volta.length) {
+      const pass = sectionPass.get(lastForward) || 1;
+      if (!volta.includes(pass)) {
+        i += 1;
+        continue;
+      }
+    }
+
+    if (afterJump && m.tocoda) {
+      const codaIdx = indexWith((x) => x.coda && x.coda === m.tocoda);
+      if (codaIdx >= 0) {
+        i = codaIdx;
+        continue;
+      }
+    }
+
+    out.push(cloneMeasure(m));
+
+    if (m.fine && (usedDS || usedDC)) break;
+
+    if (m.dalsegno && !usedDS) {
+      const segnoIdx = indexWith((x) => x.segno && x.segno === m.dalsegno);
+      if (segnoIdx >= 0) {
+        usedDS = true;
+        afterJump = true;
+        i = segnoIdx;
+        continue;
+      }
+    }
+
+    if (m.dacapo && !usedDC) {
+      usedDC = true;
+      afterJump = true;
+      i = 0;
+      continue;
+    }
+
+    if (m.backward) {
+      const times = m.backwardTimes || 2;
+      const n = (taken.get(i) || 0) + 1;
+      taken.set(i, n);
+      if (n < times) {
+        sectionPass.set(lastForward, n + 1);
+        i = lastForward;
+        continue;
+      }
+    }
+    i += 1;
+  }
+  return out;
 }
 
 function emitVoiceAbc(evs) {
@@ -389,4 +545,12 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { parseMusicXml, generateAbc, noteToAbc, beatsToAbc, emitVoiceAbc, KEY_MAP };
+module.exports = {
+  parseMusicXml,
+  generateAbc,
+  noteToAbc,
+  beatsToAbc,
+  emitVoiceAbc,
+  expandRepeats,
+  KEY_MAP,
+};

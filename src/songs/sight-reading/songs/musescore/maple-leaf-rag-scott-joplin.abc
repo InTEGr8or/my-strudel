@@ -21,6 +21,21 @@ z _A _c _a z _a _c' _a' & _A,2 z2 _A2 z2 |
 [_A_a] _e [_Af] c _e [_Af]2 [_F_A]- & [_E,_A,C]2 [_E,_A,C]2 [_E,_A,C]2 [_E,_A,C]2 |
 [_F_A] _B [_F_c] _A _B [_Ec]2 _A & [_F,_A,_C]2 [_F,_A,_C]2 [_E,_A,C]2 [_E,_A,C]2 |
 [_Ec] _A [_E_B]2 [_E_A]2 z2 & [_E,G,C]2 [_E,G,_D]2 [_A,C]2 [_E,,_E,]2 |
+z _A [_E_e] _A c [_E_e]2 G & [_A,,_A,]2 [_E,_A,C]2 [_E,_A,C]2 [A,,A,]2 |
+[_E_e] G _B [_E_e]- [_E_e]4 & [_B,,_B,]2 [_E,G,_D]2 [_E,G,_D]2 [_E,,_E,]2 |
+z _A [_E_e] _A c [_E_e]2 G & [_A,,_A,]2 [_E,_A,C]2 [_E,_A,C]2 [A,,A,]2 |
+[_E_e] G _B [_E_e]- [_E_e]2 z [_E_e] & [_B,,_B,]2 [_E,G,_D]2 [_E,G,_D]2 [_E,,_E,]2 |
+z _A _c [_F_f] z [_E_e] z [_E_e] & [_F,,_F,]4 [_E,,_E,]2 [_E,,_E,]2 |
+z _A _c [_F_f] z [_E_e] z2 & [_F,,_F,]4 [_E,,_E,]2 z2 |
+z8 & z _A,, _C, _A, z _A, _C _A & _A,,,2 z2 _A,,2 z2 |
+z _A _c _a z _a _c' _a' & _A,2 z2 _A2 z2 |
+[_a_a']2 [_a_a']2 [_a_a']2 [_a_a'] [_a_a']- & [DF_AB]2 [DF_AB]2 [DF_AB]2 [DF_AB]2 |
+[_a_a'] _e' f' c' _e' [_af']2 [_f_a]- & [_E_Ac]2 [_E_Ac]2 [_E_Ac]2 [_E_Ac]2 |
+[_f_a] _b [_f_c'] _a _b [_ec']2 _a & [_F_A_c]2 [_F_A_c]2 [_E_Ac]2 [_E_Ac]2 |
+[_ec'] _a [_e_b]2 [_e_a]2 z [_A_a]- & [_E_Ac]2 [_EG_d]2 [_Ac]2 z2 |
+[_A_a]2 [_A_a]2 [_A_a]2 [_A_a] [_A_a]- & [D,F,_A,B,]2 [D,F,_A,B,]2 [D,F,_A,B,]2 [D,F,_A,B,]2 |
+[_A_a] _e [_Af] c _e [_Af]2 [_F_A]- & [_E,_A,C]2 [_E,_A,C]2 [_E,_A,C]2 [_E,_A,C]2 |
+[_F_A] _B [_F_c] _A _B [_Ec]2 _A & [_F,_A,_C]2 [_F,_A,_C]2 [_E,_A,C]2 [_E,_A,C]2 |
 [_Ec] _A [_E_B]2 [_E_A]2 z2 & [_E,_A,C]2 [_E,G,_D]2 [_A,C]2 [A,,A,]2 |
 z g [_e_e'] g _b [dd']2 g & [_B,,_B,] z [_E,G,_D]2 [_E,,_E,]2 [_E,G,_D]2 |
 [_d_d'] g _b [cc']- [cc'] _e [_B_b] _e & [_B,,_B,]2 [_E,G,_D]2 [_E,,_E,]2 [G,,G,]2 |
@@ -38,6 +53,21 @@ z F A c f c A F & [F,,F,]2 [F,,F,]2 [A,,A,]2 [A,,A,]2 |
 z F _B _d [Ff]2 [F_B_d]2 & [_B,,_B,]2 [F,_B,_D]2 [F,_B,_D]2 [F,_B,_D]2 |
 [DF_Ac]2 z [DF_Ac] z [_D_B]2 _E & [_B,,F,_B,]2 [_B,,F,_B,]2 [_E,,_E,]2 [G,,G,]2 |
 [C_A]2 [_E_e]2 [_E_e]2 [_E_e]2 & [_A,,_A,]2 [_E,_A,C]2 [_E,_A,C]2 [A,,A,]2 |
+z g [_e_e'] g _b [dd']2 g & [_B,,_B,] z [_E,G,_D]2 [_E,,_E,]2 [_E,G,_D]2 |
+[_d_d'] g _b [cc']- [cc'] _e [_B_b] _e & [_B,,_B,]2 [_E,G,_D]2 [_E,,_E,]2 [G,,G,]2 |
+z c [_A_a] c _e [Ff]2 c & [_A,,_A,]2 [_E,_A,C]2 [_E,,_E,]2 [_E,_A,C]2 |
+[_A_a] c _e [Ff]- [Ff] c [Ff]2 & [_A,,_A,]2 [_E,_A,C]2 [_A,,_A,]2 [A,,A,]2 |
+z _e [Gg] _B _d [Ff]2 _e & [_B,,_B,]2 [_E,G,_D]2 [_E,,_E,]2 [_E,G,_D]2 |
+[Gg] _B _d [Ff]- [Ff] _d [Ff]2 & [_B,,_B,]2 [_E,G,_D]2 [_B,,_B,]2 [B,,B,]2 |
+z c [_A_a] c _e [Ff]2 c & [C,C]2 [_E,_A,C]2 [_E,,_E,]2 [_E,_A,C]2 |
+[_A_a] c _e [Ff]- [Ff] c [Ff]2 & [_A,,_A,]2 [_E,_A,C]2 [_A,,_A,]2 [A,,A,]2 |
+z g [_e_e'] g _b [dd']2 g & [_B,,_B,]2 [_E,G,_D]2 [_E,,_E,]2 [_E,G,_D]2 |
+[_d_d'] g _b [cc']- [cc'] _e [_B_b] _e & [_B,,_B,]2 [_E,G,_D]2 [_E,,_E,]2 [G,,G,]2 |
+z c [_A_a] c _e [Ff]2 c & [_A,,_A,]2 [_E,_A,C]2 [_E,,_E,]2 [_E,_A,C]2 |
+[_A_a]2 [_A_a]2 [Gg]2 [_G_g]2 & [_A,,_A,]2 [_A,,_A,]2 [G,,G,]2 [_G,,_G,]2 |
+z F A c f c A F & [F,,F,]2 [F,,F,]2 [A,,A,]2 [A,,A,]2 |
+z F _B _d [Ff]2 [F_B_d]2 & [_B,,_B,]2 [F,_B,_D]2 [F,_B,_D]2 [F,_B,_D]2 |
+[DF_Ac]2 z [DF_Ac] z [_D_B]2 _E & [_B,,F,_B,]2 [_B,,F,_B,]2 [_E,,_E,]2 [G,,G,]2 |
 z _A c _e [_A_a]2 z2 & [_A,,_A,]2 [_A,C_E]2 [_A,C_E]2 [_E,,_E,]2 |
 z _A [_E_e] _A c [_E_e]2 G & [_A,,_A,]2 [_E,_A,C]2 [_E,_A,C]2 [A,,A,]2 |
 [_E_e] G _B [_E_e]- [_E_e]4 & [_B,,_B,]2 [_E,G,_D]2 [_E,G,_D]2 [_E,,_E,]2 |
@@ -71,6 +101,21 @@ z _e [_B_b] _e _g [cc']2 _e & [_E,,_E,]2 [_B,_E_G]2 [_B,,_B,]2 [_B,_E_G]2 |
 [_Af] _d _e [_B_g]- [_B_g] _B [_Af]2 & [_A,,_A,]2 [_A,_DF]2 _B,,2 [_A,_B,D]2 |
 [Gf] _d _e [_Gf]- [_Gf] c [_G_e] [F_d]- & [_E,_B,_D]2 [_E,_B,_D]2 [_A,C]2 [_A,C]2 |
 [F_d] [_A_a]2 f [_A_a] f [_A_a] f & [_D,_D]2 [_A,_DF]2 [_A,_DF]2 [D,,D,]2 |
+[_Ac_e_a]3 [_Bc_e_a]- [_Bc_e_a] [c_e] _B2 & [_E,,_E,]2 [_A,C_G]2 [_G,,_G,]2 [_A,C_G]2 |
+[_Ac_e_a]3 [_Bc_e_a]- [_Bc_e_a] [c_e] _B [c_e] & [F,,F,]2 [_A,C_G]2 [_E,,_E,]2 [C,,C,]2 |
+_A _d _B _d f _A _d f & [_D,,_D,]2 [_A,_DF]2 [_A,,_A,]2 [_A,_DF]2 |
+_B _d f _A- _A f _B f & [F,,F,]2 [_A,_DF]2 [_D,,_D,]2 [D,,D,]2 |
+[_Ac_e_a]3 [_Bc_e_a]- [_Bc_e_a] [c_e] _B2 & [_E,,_E,]2 [_A,C_G]2 [_G,,_G,]2 [_A,C_G]2 |
+[_Ac_e_a]3 [_Bc_e_a]- [_Bc_e_a] [c_e] _B [c_e] & [F,,F,]2 [_A,C_G]2 [_E,,_E,]2 [C,,C,]2 |
+_A _d _B _d f _A _d f & [_D,,_D,]2 [_A,_DF]2 [_A,,_A,]2 [_A,_DF]2 |
+_B _d f _A- _A f A [_ef] & [F,,F,]2 [_A,_DF]2 [_D,,_D,]2 [C,,C,]2 |
+[_Bdf_b]3 [cdf_b]- [cdf_b] [df] c2 & [_B,,,_B,,]2 [_B,D_A]2 [D,,D,]2 [_B,D_A]2 |
+[_Bdf_b]3 [cdf_b]- [cdf_b] [df] c [df] & [F,,F,]2 [_B,D_A]2 [_B,,,_B,,]2 [_B,D_A]2 |
+z _e [_B_b] _e _g [cc']2 _e & [_E,,_E,]2 [_B,_E_G]2 [_B,,_B,]2 [_B,_E_G]2 |
+[_B_b] _e _g [cc']- [cc'] _e [_B_b]2 & [_E,,_E,]2 [_B,_E_G]2 [_G,,_G,]2 [_B,_E_G]2 |
+[_d_f_d']2 [_d_f_d']2 [c_fc']2 [c_f_b]2 & G, _B,2 _D _F _D _B, G, |
+[_Af] _d _e [_B_g]- [_B_g] _B [_Af]2 & [_A,,_A,]2 [_A,_DF]2 _B,,2 [_A,_B,D]2 |
+[Gf] _d _e [_Gf]- [_Gf] c [_G_e] [F_d]- & [_E,_B,_D]2 [_E,_B,_D]2 [_A,C]2 [_A,C]2 |
 [F_d] _d f _a [_d_d']2 z2 & [_D,_D]2 [_A,,_A,]2 [_D,,_D,]2 [C,C]2 |
 [_A_a]2 [_Af]2 [_A_a]2 [_Af]2 & [_D,_D]2 [_A,_DF]2 [_A,_DF]2 [C,C]2 |
 [f_a]2 [f_b] [fc']- [fc'] _b _a f & [_D,_D]2 [_A,_DF]2 [_B,,_B,]2 [B,,B,]2 |
@@ -88,4 +133,19 @@ _a2 f2 _e _a2 [_Ac]- & [C,C]2 [_A,C_E]2 [_A,C_E]2 [_E,,_E,]2 |
 [_E_A] _B [_Ec] _A _B [_Ec]2 [D_A]- & [_E,,_E,]2 [_E,_A,C]2 [_E,,_E,]2 [E,,E,]2 |
 [D_A] _B [Dc] _A z [_D_B]2 _E & [F,,F,]2 [F,,F,]2 [G,,G,]2 [G,,G,]2 |
 [C_A]2 [_E_e]2 [_E_e]2 [_E_e]2 & [_A,,_A,]2 [_E,_A,C]2 [_B,,_B,]2 [C,C]2 |
+[_A_a]2 [_Af]2 [_A_a]2 [_Af]2 & [_D,_D]2 [_A,_DF]2 [_A,_DF]2 [C,C]2 |
+[f_a]2 [f_b] [fc']- [fc'] _b _a f & [_D,_D]2 [_A,_DF]2 [_B,,_B,]2 [B,,B,]2 |
+_e f2 [_Ac]- [_Ac]4 & [C,C]2 [_A,C_E]2 [_A,C_E]2 [_E,,_E,]2 |
+z _e [_Af] c _e [_Af]2 c & [_A,,_A,]2 [_E,_A,C]2 [_E,,_E,]2 [A,,A,]2 |
+[G_e]2 f [G_B]- [G_B]4 & [_B,,_B,]2 [_E,G,_D]2 [_E,,_E,]2 [A,,A,]2 |
+z _d [Gf] _B _d [Gf]2 [_Ac]- & [_B,,_B,]2 [_E,G,_D]2 [_E,,_E,]2 [G,,G,]2 |
+[_Ac] _e [_Af] c _e [_Af]2 [_Ac]- & [_A,,_A,]2 [_E,_A,C]2 [_E,,_E,]2 [_E,_A,C]2 |
+[_Ac] _e [_Af] c _e [_Af]2 _e & [_A,,_A,]2 [_E,_A,C]2 [_B,,_B,]2 [C,C]2 |
+[_A_a]2 [_Af]2 [_A_a]2 [_Af]2 & [_D,_D]2 [_A,_DF]2 [_A,_DF]2 [C,C]2 |
+[f_a]2 [f_b] [fc']- [fc'] _b _a f & [_D,_D]2 [_A,_DF]2 [_B,,_B,]2 [B,,B,]2 |
+_a2 f2 _e _a2 [_Ac]- & [C,C]2 [_A,C_E]2 [_A,C_E]2 [_E,,_E,]2 |
+[_Ac] _e [_Af] c _e [_Af]2 [F_A]- & [_A,,_A,]2 [_E,_A,C]2 [_E,,_E,]2 [_E,_A,C]2 |
+[F_A] _B [F_A]2 [_F_A]2 [_F_B] [_E_A]- & [_D,,_D,]2 [_D,,_D,]2 [_B,,,_B,,]2 [D,,D,]2 |
+[_E_A] _B [_Ec] _A _B [_Ec]2 [D_A]- & [_E,,_E,]2 [_E,_A,C]2 [_E,,_E,]2 [E,,E,]2 |
+[D_A] _B [Dc] _A z [_D_B]2 _E & [F,,F,]2 [F,,F,]2 [G,,G,]2 [G,,G,]2 |
 [C_A]2 [G_d_e]2 [_Ac_e_a]2 z2 & [_A,,_A,]2 [_E,,_E,]2 [_A,,,_A,,]2 z2 |]
