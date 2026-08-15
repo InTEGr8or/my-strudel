@@ -144,8 +144,10 @@
 
       function noteNameOf(n) {
         var acc = '';
-        if (n.alter > 0) acc = 's';
-        else if (n.alter < 0) acc = 'f';
+        if (n.accidental === 'sharp') acc = 's';
+        else if (n.accidental === 'double-sharp') acc = 'x';
+        else if (n.accidental === 'flat' || n.accidental === 'double-flat') acc = 'f';
+        else if (n.accidental === 'natural') acc = 'n';
         return n.note.toLowerCase() + acc + n.oct;
       }
 
@@ -215,9 +217,64 @@
       for (var i = 0; i < notes.length; i++) {
         var n = notes[i];
         var x = headX + n.startBeat * spacing;
-        chart.renderNoteHead(noteNameOf(n), 'pending', x, false, n.duration, { hideFlags: !!beamedIds[i] });
+        chart.renderNoteHead(noteNameOf(n), 'pending', x, false, n.duration, {
+          hideFlags: !!beamedIds[i],
+          staccato: !!n.staccato,
+        });
       }
       if (beamSegs.length && chart.renderBeams) chart.renderBeams(beamSegs);
+
+      var tupletSegs = [];
+      var tGroup = [];
+      function tupletOnsets(group) {
+        var seen = [];
+        group.forEach(function (tn) {
+          if (seen.indexOf(tn.startBeat) === -1) seen.push(tn.startBeat);
+        });
+        return seen;
+      }
+      function flushTuplet() {
+        if (tupletOnsets(tGroup).length < 2) { tGroup = []; return; }
+        var first = tGroup[0];
+        var last = tGroup[tGroup.length - 1];
+        var x1 = headX + first.startBeat * spacing;
+        var x2 = headX + last.startBeat * spacing;
+        var topY = Infinity;
+        tGroup.forEach(function (tn) {
+          var ty = ctx.getY(tn.note, tn.oct) - ctx.SPACING * 3.8;
+          if (ty < topY) topY = ty;
+        });
+        tupletSegs.push({
+          x1: x1,
+          x2: x2,
+          y: topY,
+          label: String((first.tuplet && first.tuplet.actual) || 3),
+        });
+        tGroup = [];
+      }
+      notes.slice().sort(function (a, b) { return a.startBeat - b.startBeat || staffOf(a).localeCompare(staffOf(b)); })
+        .forEach(function (tn) {
+          if (!tn.tuplet || tn.tuplet.actual !== 3) {
+            flushTuplet();
+            return;
+          }
+          if (tGroup.length === 0) {
+            tGroup = [tn];
+            return;
+          }
+          var prevT = tGroup[tGroup.length - 1];
+          var contig = Math.abs(tn.startBeat - (prevT.startBeat + (prevT.duration || 0))) < 0.1
+            || Math.abs(tn.startBeat - prevT.startBeat) < 0.001;
+          if (contig && staffOf(tn) === staffOf(prevT)) {
+            tGroup.push(tn);
+            if (tupletOnsets(tGroup).length >= ((tn.tuplet && tn.tuplet.actual) || 3)) flushTuplet();
+          } else {
+            flushTuplet();
+            tGroup = [tn];
+          }
+        });
+      flushTuplet();
+      if (tupletSegs.length && chart.renderTuplets) chart.renderTuplets(tupletSegs);
 
       setGroupTransform(0);
     }

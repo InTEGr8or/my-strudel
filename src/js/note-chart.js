@@ -287,7 +287,7 @@ class NoteChart extends HTMLElement {
     }
 
     renderNoteHead(noteName, type, cx, showLabel, duration, opts) {
-        const match = noteName.match(/^([a-g])([sfb]?)(\d+)$/);
+        const match = noteName.match(/^([a-g])([sfnx]?)(\d+)$/);
         if (!match) return;
         const note = match[1].toUpperCase();
         const accMark = match[2] || '';
@@ -387,9 +387,9 @@ class NoteChart extends HTMLElement {
         }
         el.appendChild(head);
 
-        if (accMark === 's' || accMark === 'f' || accMark === 'b') {
+        if (accMark === 's' || accMark === 'f' || accMark === 'b' || accMark === 'n' || accMark === 'x') {
             const acc = document.createElementNS(svgNs, 'text');
-            acc.textContent = accMark === 's' ? '♯' : '♭';
+            acc.textContent = accMark === 's' ? '♯' : (accMark === 'n' ? '♮' : (accMark === 'x' ? '𝄪' : '♭'));
             acc.setAttribute('x', centerX - headW * 0.95);
             acc.setAttribute('y', y);
             acc.setAttribute('font-size', 18 * scale);
@@ -399,6 +399,16 @@ class NoteChart extends HTMLElement {
             acc.setAttribute('fill', type === 'target' ? accentColor : (type === 'correct' ? '#28a745' : staffColor));
             acc.setAttribute('class', 'note-accidental');
             el.appendChild(acc);
+        }
+
+        if (opts && opts.staccato) {
+            const stac = document.createElementNS(svgNs, 'circle');
+            stac.setAttribute('cx', centerX);
+            stac.setAttribute('cy', y + headH * 1.15);
+            stac.setAttribute('r', 2.2 * scale);
+            stac.setAttribute('fill', type === 'target' ? accentColor : (type === 'correct' ? '#28a745' : staffColor));
+            stac.setAttribute('class', 'note-staccato');
+            el.appendChild(stac);
         }
 
         if (isDotted) {
@@ -598,6 +608,42 @@ class NoteChart extends HTMLElement {
                 beam.setAttribute('class', 'note-beam');
                 g.appendChild(beam);
             }
+        }
+    }
+
+    renderTuplets(segments) {
+        const ctx = this._ctx;
+        if (!ctx || !segments || segments.length === 0) return;
+        const { scale, staffColor } = ctx;
+        const svgNs = 'http://www.w3.org/2000/svg';
+        let g = this.querySelector('#note-heads');
+        if (!g) return;
+        for (let i = 0; i < segments.length; i++) {
+            const seg = segments[i];
+            if (!seg || seg.x2 <= seg.x1) continue;
+            const y = seg.y;
+            const tick = 6 * scale;
+            const mid = (seg.x1 + seg.x2) / 2;
+            const gap = 8 * scale;
+            const path = document.createElementNS(svgNs, 'path');
+            path.setAttribute('d', `M ${seg.x1},${y + tick} L ${seg.x1},${y} L ${mid - gap},${y} M ${mid + gap},${y} L ${seg.x2},${y} L ${seg.x2},${y + tick}`);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', staffColor);
+            path.setAttribute('stroke-width', 1.25 * scale);
+            path.setAttribute('class', 'tuplet-bracket');
+            g.appendChild(path);
+            const label = document.createElementNS(svgNs, 'text');
+            label.textContent = seg.label || '3';
+            label.setAttribute('x', mid);
+            label.setAttribute('y', y);
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('dominant-baseline', 'central');
+            label.setAttribute('font-size', 13 * scale);
+            label.setAttribute('font-family', 'serif');
+            label.setAttribute('font-style', 'italic');
+            label.setAttribute('fill', staffColor);
+            label.setAttribute('class', 'tuplet-label');
+            g.appendChild(label);
         }
     }
 

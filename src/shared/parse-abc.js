@@ -147,9 +147,9 @@ function parseAbc(text) {
   const beatsPerBar = timeSig ? timeSig.top : 4;
   const rawMeasures = bodyLines.join('\n').split(/\|+/);
   let currentMeasureStart = 0;
-  const tokenRe = /\[(.*?)\](\d*)(\/*)(\d*)(-)?|(\^{1,2}|_{1,2}|=)?([A-Ga-gzZxX])([',]*)(\d*)(\/*)(\d*)(-)?/g;
+  const tokenRe = /\((\d+)(?::(\d+))?(?::(\d+))?|(\.)?\[(.*?)\](\d*)(\/*)(\d*)(-)?|(\.)?(\^{1,2}|_{1,2}|=)?([A-Ga-gzZxX])([',]*)(\d*)(\/*)(\d*)(-)?/g;
 
-  function makeNote(letter, markers, duration, beat, acc, tie, voice) {
+  function makeNote(letter, markers, duration, beat, acc, tie, voice, extra) {
     let oct = letter === letter.toUpperCase() ? 4 : 5;
     for (const ch of markers) {
       if (ch === "'") oct++;
@@ -159,16 +159,25 @@ function parseAbc(text) {
     const name = letter.toUpperCase();
     const explicit = accidentalToAlter(acc);
     const alter = explicit === null ? keyLetterAlter(name, keyStr) : explicit;
+    let accidental = null;
+    if (acc) {
+      if (acc[0] === '^') accidental = acc.length > 1 ? 'double-sharp' : 'sharp';
+      else if (acc[0] === '_') accidental = acc.length > 1 ? 'double-flat' : 'flat';
+      else if (acc === '=') accidental = 'natural';
+    }
     return {
       type: 'note',
       note: name,
       oct,
       alter,
+      accidental,
       midi: noteToMidi(name, oct, alter),
       startBeat: beat,
       duration,
       tie: !!tie,
       voice: voice,
+      staccato: !!(extra && extra.staccato),
+      tuplet: extra && extra.tuplet ? extra.tuplet : null,
     };
   }
 
@@ -184,16 +193,40 @@ function parseAbc(text) {
       let beat = currentMeasureStart;
       tokenRe.lastIndex = 0;
       let m;
+      let tupletLeft = 0;
+      let tupletInfo = null;
+
+      function takeTuplet() {
+        if (tupletLeft <= 0) return null;
+        tupletLeft -= 1;
+        return tupletInfo;
+      }
+
+      function applyTupletDur(duration, tup) {
+        if (!tup || !tup.actual) return duration;
+        return duration * (tup.normal || 2) / tup.actual;
+      }
 
       while ((m = tokenRe.exec(vStr)) !== null) {
-        if (m[1] !== undefined) {
-          const chordContent = m[1];
-          const mult = parseInt(m[2] || '1', 10);
-          const slashCount = m[3].length;
-          const explicitDiv = m[4] ? parseInt(m[4], 10) : 0;
+        if (m[1] !== undefined && m[5] === undefined && m[12] === undefined) {
+          const actual = parseInt(m[1], 10);
+          const normal = m[2] ? parseInt(m[2], 10) : (actual === 3 ? 2 : actual);
+          const count = m[3] ? parseInt(m[3], 10) : actual;
+          tupletInfo = { actual, normal };
+          tupletLeft = count;
+          continue;
+        }
+
+        if (m[5] !== undefined) {
+          const chordStaccato = !!m[4];
+          const chordContent = m[5];
+          const mult = parseInt(m[6] || '1', 10);
+          const slashCount = m[7].length;
+          const explicitDiv = m[8] ? parseInt(m[8], 10) : 0;
           const divisor = explicitDiv > 0 ? explicitDiv : (slashCount > 0 ? Math.pow(2, slashCount) : 1);
-          const baseChordDur = defaultLength * mult / divisor;
-          const chordTie = m[5];
+          const extra = { staccato: chordStaccato, tuplet: takeTuplet() };
+          const baseChordDur = applyTupletDur(defaultLength * mult / divisor, extra.tuplet);
+          const chordTie = m[9];
 
           const noteRe = /(\^{1,2}|_{1,2}|=)?([A-Ga-gzZxX])([',]*)(\d*)(\/*)(\d*)(-)?/g;
           let nm;
@@ -206,9 +239,11 @@ function parseAbc(text) {
             const nSlash = nm[5].length;
             const nDiv = nm[6] ? parseInt(nm[6], 10) : 0;
             const nDivisor = nDiv > 0 ? nDiv : (nSlash > 0 ? Math.pow(2, nSlash) : 1);
-            const nDur = (nm[4] || nm[5] || nm[6]) ? (defaultLength * nMult / nDivisor) : baseChordDur;
+            const nDur = (nm[4] || nm[5] || nm[6])
+              ? applyTupletDur(defaultLength * nMult / nDivisor, extra.tuplet)
+              : baseChordDur;
 
-            const noteObj = makeNote(letter, markers, nDur, beat, nm[1], nm[7] || chordTie, vIdx);
+            const noteObj = makeNote(letter, markers, nDur, beat, nm[1], nm[7] || chordTie, vIdx, extra);
             if (!noteObj) continue;
             notes.push(noteObj);
             events.push(noteObj);
@@ -219,24 +254,25 @@ function parseAbc(text) {
             beat += maxChordDur;
           }
         } else {
-          const letter = m[7];
+          const letter = m[12];
           if (!letter) continue;
 
-          const multiplier = parseInt(m[9] || '1', 10);
-          const slashCount = m[10].length;
-          const explicitDiv = m[11] ? parseInt(m[11], 10) : 0;
+          const multiplier = parseInt(m[14] || '1', 10);
+          const slashCount = m[15].length;
+          const explicitDiv = m[16] ? parseInt(m[16], 10) : 0;
           const divisor = explicitDiv > 0 ? explicitDiv : (slashCount > 0 ? Math.pow(2, slashCount) : 1);
-          const duration = defaultLength * multiplier / divisor;
+          const extra = { staccato: !!m[10], tuplet: takeTuplet() };
+          const duration = applyTupletDur(defaultLength * multiplier / divisor, extra.tuplet);
 
           if (/^[zZxX]$/.test(letter)) {
-            const restObj = { type: 'rest', startBeat: beat, duration, voice: vIdx };
+            const restObj = { type: 'rest', startBeat: beat, duration, voice: vIdx, tuplet: extra.tuplet };
             rests.push(restObj);
             events.push(restObj);
             beat += duration;
             continue;
           }
 
-          const noteObj = makeNote(letter, m[8], duration, beat, m[6], m[12], vIdx);
+          const noteObj = makeNote(letter, m[13], duration, beat, m[11], m[17], vIdx, extra);
           if (!noteObj) continue;
           notes.push(noteObj);
           events.push(noteObj);

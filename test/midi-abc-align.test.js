@@ -47,6 +47,29 @@ assertEq(dw.rests[0].duration, 6, `dotted whole rest duration is 6, got ${dw.res
 assertEq(dw.rests[0].startBeat, 6, 'rest follows the 6-beat note');
 assertEq(classifyDuration(dw.notes[0].duration).name, 'dotted-whole');
 assertEq(classifyDuration(dw.rests[0].duration).name, 'dotted-whole');
+const trip = parseAbc('X:1\nM:4/4\nL:1/16\nK:C\n(3C2D2E2 F4 |\n');
+assertEq(trip.notes.length, 4);
+assert.ok(Math.abs(trip.notes[0].duration - 1 / 3) < 0.001, `triplet eighth duration ${trip.notes[0].duration}`);
+assert.ok(Math.abs(trip.notes[2].startBeat - (2 / 3)) < 0.001, `third triplet starts at 2/3, got ${trip.notes[2].startBeat}`);
+assertEq(trip.notes[3].startBeat, 1, 'note after triplet starts on the next beat');
+assertEq(trip.notes[0].tuplet.actual, 3);
+assertEq(trip.notes[3].tuplet, null);
+console.log('PASS: parseAbc (3C2D2E2 is three notes in the time of two');
+
+const stac = parseAbc('X:1\nM:4/4\nL:1/16\nK:C\n.C4 D4 |\n');
+assertEq(stac.notes[0].staccato, true, 'dot prefix marks staccato');
+assertEq(stac.notes[1].staccato, false);
+console.log('PASS: parseAbc .C4 is staccato');
+
+const accAbc = parseAbc('X:1\nM:4/4\nL:1/16\nK:G\nF4 ^F4 =F4 _B4 |\n');
+assertEq(accAbc.notes[0].accidental, null, 'key-signature F# has no printed accidental');
+assertEq(accAbc.notes[0].alter, 1, 'key-signature F is still sharp for MIDI');
+assertEq(accAbc.notes[1].accidental, 'sharp');
+assertEq(accAbc.notes[2].accidental, 'natural');
+assertEq(accAbc.notes[2].alter, 0);
+assertEq(accAbc.notes[3].accidental, 'flat');
+console.log('PASS: printed accidentals are distinct from key-signature alter');
+
 console.log('PASS: parseAbc C24 / z24 at L:1/16 are 6-beat dotted wholes');
 
 const restGapAbc = 'X:1\nM:4/4\nL:1/16\nK:C\nC4 z12 G4 |';

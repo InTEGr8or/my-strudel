@@ -10,15 +10,13 @@ const KEY_MAP = {
   '1': 'G', '2': 'D', '3': 'A', '4': 'E', '5': 'B', '6': 'F#', '7': 'C#'
 };
 
-function noteToAbc(step, alter, octave) {
+function noteToAbc(step, alter, octave, printed) {
   let letter = step;
-  if (alter && alter !== 0) {
-    const a = parseInt(alter);
-    if (a === 1) letter = '^' + letter;
-    else if (a === -1) letter = '_' + letter;
-    else if (a === 2) letter = '^^' + letter;
-    else if (a === -2) letter = '__' + letter;
-  }
+  if (printed === 'sharp') letter = '^' + letter;
+  else if (printed === 'flat') letter = '_' + letter;
+  else if (printed === 'natural') letter = '=' + letter;
+  else if (printed === 'double-sharp') letter = '^^' + letter;
+  else if (printed === 'double-flat') letter = '__' + letter;
   const o = parseInt(octave);
   if (o >= 5) {
     letter = letter.toLowerCase();
@@ -216,6 +214,10 @@ function generateAbc(inputPath) {
         let voice = 1;
         let tieStart = false;
         let tieStop = false;
+        let printedAcc = null;
+        let staccato = false;
+        let actualNotes = 0;
+        let normalNotes = 2;
 
         function readTieType(node) {
           if (!node) return;
@@ -237,10 +239,30 @@ function generateAbc(inputPath) {
           if (subKey === 'staff' && sub.staff && sub.staff[0]) staff = parseInt(sub.staff[0]['#text']);
           if (subKey === 'voice' && sub.voice && sub.voice[0]) voice = parseInt(sub.voice[0]['#text']);
           if (subKey === 'tie') readTieType(sub);
+          if (subKey === 'accidental' && sub.accidental && sub.accidental[0]) {
+            printedAcc = String(sub.accidental[0]['#text'] || '').toLowerCase();
+          }
+          if (subKey === 'time-modification' && sub['time-modification']) {
+            for (const tSub of sub['time-modification']) {
+              const tKey = Object.keys(tSub).find(k => k !== ':@');
+              if (tKey === 'actual-notes' && tSub['actual-notes'] && tSub['actual-notes'][0]) {
+                actualNotes = parseInt(tSub['actual-notes'][0]['#text'], 10);
+              }
+              if (tKey === 'normal-notes' && tSub['normal-notes'] && tSub['normal-notes'][0]) {
+                normalNotes = parseInt(tSub['normal-notes'][0]['#text'], 10) || 2;
+              }
+            }
+          }
           if (subKey === 'notations' && sub.notations) {
             for (const nSub of sub.notations) {
               const nKey = Object.keys(nSub).find(k => k !== ':@');
               if (nKey === 'tied') readTieType(nSub);
+              if (nKey === 'articulations' && nSub.articulations) {
+                for (const aSub of nSub.articulations) {
+                  const aKey = Object.keys(aSub).find(k => k !== ':@');
+                  if (aKey === 'staccato') staccato = true;
+                }
+              }
             }
           }
           if (subKey === 'pitch') {
@@ -282,6 +304,9 @@ function generateAbc(inputPath) {
           tieStart,
           tieStop,
           typeStr,
+          printedAcc,
+          staccato,
+          tuplet: actualNotes > 0 ? { actual: actualNotes, normal: normalNotes || 2 } : null,
         };
 
         if (isRest) {
@@ -455,6 +480,18 @@ function expandRepeats(measures) {
   return out;
 }
 
+function writtenBeats(ev) {
+  let d = ev.durInBeats;
+  if (ev.tuplet && ev.tuplet.actual) {
+    d = d * ev.tuplet.actual / (ev.tuplet.normal || 2);
+  }
+  return d;
+}
+
+function pitchAbc(n) {
+  return noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave, n.printedAcc);
+}
+
 function emitVoiceAbc(evs) {
   if (!evs || evs.length === 0) return '';
   const groups = {};
@@ -465,6 +502,19 @@ function emitVoiceAbc(evs) {
   const sortedBeats = Object.keys(groups).sort((a, b) => parseFloat(a) - parseFloat(b));
   let cursor = 0;
   let out = '';
+  let tupletLeft = 0;
+
+  function beginTuplet(ev) {
+    if (tupletLeft > 0) return;
+    if (ev && ev.tuplet && ev.tuplet.actual === 3) {
+      out += '(3';
+      tupletLeft = 3;
+    }
+  }
+
+  function consumeTuplet() {
+    if (tupletLeft > 0) tupletLeft -= 1;
+  }
 
   sortedBeats.forEach((bKey) => {
     const beat = parseFloat(bKey);
@@ -475,31 +525,35 @@ function emitVoiceAbc(evs) {
     const atBeat = groups[bKey];
     const noteEvs = atBeat.filter((e) => e.type === 'note' && e.pitch);
     const restEvs = atBeat.filter((e) => e.type === 'rest');
+    const stacc = noteEvs.some((n) => n.staccato) ? '.' : '';
 
     if (noteEvs.length > 1) {
+      beginTuplet(noteEvs[0]);
       const maxDur = Math.max(...noteEvs.map((n) => n.durInBeats));
       const sameDur = noteEvs.every((n) => Math.abs(n.durInBeats - noteEvs[0].durInBeats) < 0.001);
       const tie = noteEvs.some((n) => n.tieStart) ? '-' : '';
       if (sameDur) {
-        const len = beatsToAbc(noteEvs[0].durInBeats);
-        const chordPitches = noteEvs.map((n) => noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave)).join('');
-        out += '[' + chordPitches + ']' + len + tie + ' ';
+        const len = beatsToAbc(writtenBeats(noteEvs[0]));
+        out += stacc + '[' + noteEvs.map(pitchAbc).join('') + ']' + len + tie + ' ';
       } else {
-        const chordPitches = noteEvs.map((n) => (
-          noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave) + beatsToAbc(n.durInBeats)
-        )).join('');
-        out += '[' + chordPitches + ']' + tie + ' ';
+        const chordPitches = noteEvs.map((n) => pitchAbc(n) + beatsToAbc(writtenBeats(n))).join('');
+        out += stacc + '[' + chordPitches + ']' + tie + ' ';
       }
+      consumeTuplet();
       cursor = beat + maxDur;
     } else if (noteEvs.length === 1) {
       const n = noteEvs[0];
-      const len = beatsToAbc(n.durInBeats);
+      beginTuplet(n);
+      const len = beatsToAbc(writtenBeats(n));
       const tie = n.tieStart ? '-' : '';
-      out += noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave) + len + tie + ' ';
+      out += stacc + pitchAbc(n) + len + tie + ' ';
+      consumeTuplet();
       cursor = beat + n.durInBeats;
     } else if (restEvs.length > 0) {
       const r = restEvs[0];
-      out += 'z' + beatsToAbc(r.durInBeats) + ' ';
+      beginTuplet(r);
+      out += 'z' + beatsToAbc(writtenBeats(r)) + ' ';
+      consumeTuplet();
       cursor = beat + r.durInBeats;
     }
   });
