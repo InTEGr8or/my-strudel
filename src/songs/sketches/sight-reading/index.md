@@ -194,11 +194,29 @@ note-chart {
     let trainer = null;
     let SONGS_LIST = [];
     let lastSongTitle = null;
+    let store = null;
     const songEl = document.getElementById('trainer-song');
-    const store = window.createTrainerStore({
-        playing: false,
-        bpm: parseInt(localStorage.getItem('tape-bpm'), 10) || 80,
-    });
+
+    function ensureStore() {
+        if (store) return store;
+        if (typeof window.createTrainerStore !== 'function') {
+            console.error('trainer-store.js did not load; Play/song state will be local only');
+            return null;
+        }
+        store = window.createTrainerStore({
+            playing: false,
+            bpm: parseInt(localStorage.getItem('tape-bpm'), 10) || 80,
+        });
+        store.subscribe(function (state, prev) {
+            if (state.playing !== prev.playing) {
+                if (!state.playing && trainer && trainer.isPaused && !trainer.isPaused()) {
+                    trainer.pause();
+                }
+                syncPlayButton(state.playing);
+            }
+        });
+        return store;
+    }
 
     // metronome
     let metroInterval = null;
@@ -249,22 +267,14 @@ note-chart {
         btn.style.color = playing ? 'var(--text)' : '#fff';
     }
 
-    store.subscribe(function (state, prev) {
-        if (state.playing !== prev.playing) {
-            if (!state.playing && trainer && trainer.isPaused && !trainer.isPaused()) {
-                trainer.pause();
-            }
-            syncPlayButton(state.playing);
-        }
-    });
-
     window.updateBpm = function (val) {
         metroBpm = parseInt(val, 10);
         localStorage.setItem('tape-bpm', metroBpm);
         var label = document.getElementById('bpm-label');
         if (label) label.textContent = metroBpm;
         if (trainer && trainer.setBpm) trainer.setBpm(metroBpm);
-        if (store.get().bpm !== metroBpm) store.set({ bpm: metroBpm });
+        var s = store || ensureStore();
+        if (s && s.get().bpm !== metroBpm) s.set({ bpm: metroBpm });
         if (metroInterval) {
             clearInterval(metroInterval);
             metroBeat = 0;
@@ -302,16 +312,21 @@ note-chart {
                     chart.tempo = song.tempo || 80;
                 }
                 const songChanged = title !== lastSongTitle;
-                store.set({
-                    songId: song.id || song.title,
-                    songTitle: song.title,
-                    notes: notes,
-                    rests: song.rests || [],
-                    tempo: song.tempo || 80,
-                    timeSignature: song.timeSignature || null,
-                    keySignature: song.keySignature || [],
-                    playing: songChanged ? false : store.get().playing,
-                });
+                const s = ensureStore();
+                if (s) {
+                    s.set({
+                        songId: song.id || song.title,
+                        songTitle: song.title,
+                        notes: notes,
+                        rests: song.rests || [],
+                        tempo: song.tempo || 80,
+                        timeSignature: song.timeSignature || null,
+                        keySignature: song.keySignature || [],
+                        playing: songChanged ? false : s.get().playing,
+                    });
+                } else if (songChanged) {
+                    syncPlayButton(false);
+                }
                 if (song.tempo && songChanged) {
                     const slider = document.getElementById('metro-bpm');
                     if (slider) slider.value = song.tempo;
@@ -327,7 +342,9 @@ note-chart {
         }
         if (songEl) songEl.title = 'random';
         lastSongTitle = '';
-        store.set({ songId: null, songTitle: '', notes: null, rests: [], playing: false });
+        const randomStore = ensureStore();
+        if (randomStore) randomStore.set({ songId: null, songTitle: '', notes: null, rests: [], playing: false });
+        else syncPlayButton(false);
         trainer.setNotes(null);
     }
 
@@ -512,6 +529,7 @@ note-chart {
             setTimeout(init, 20);
             return;
         }
+        ensureStore();
 
         var bpmSlider = document.getElementById('metro-bpm');
         var bpmLabel = document.getElementById('bpm-label');
@@ -540,7 +558,9 @@ note-chart {
         document.getElementById('trainer-range').addEventListener('change', function () {
             applySong();
             trainer.start();
-            store.set({ playing: false, range: this.value });
+            var rangeStore = ensureStore();
+            if (rangeStore) rangeStore.set({ playing: false, range: this.value });
+            else syncPlayButton(false);
         });
         window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
             trainer.onMidi(midiNote, isNoteOn, isNoteOff);
@@ -552,13 +572,17 @@ note-chart {
         if (!trainer) return;
         if (trainer.togglePlay) {
             const playing = trainer.togglePlay();
-            store.set({ playing: playing });
+            var playStore = ensureStore();
+            if (playStore) playStore.set({ playing: playing });
+            else syncPlayButton(playing);
         }
     };
 
     window.refreshTrainer = function () {
         if (trainer) trainer.start();
-        store.set({ playing: false });
+        var refreshStore = ensureStore();
+        if (refreshStore) refreshStore.set({ playing: false });
+        else syncPlayButton(false);
         document.getElementById('refresh-btn').style.transform = 'rotate(360deg)';
         setTimeout(function () {
             var rbtn = document.getElementById('refresh-btn');

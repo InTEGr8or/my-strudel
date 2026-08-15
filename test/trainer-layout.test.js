@@ -50,8 +50,9 @@ console.log('PASS: note-chart.js uses shared duration classifier (dotted whole =
 const trainerPage = fs.readFileSync(path.join(__dirname, '../src/songs/sketches/sight-reading/index.md'), 'utf-8');
 assert.strictEqual(trainerPage.includes('window.updateBpm(song.tempo)'), true, 'selecting a song sets metro-bpm to the score tempo');
 assert.strictEqual(trainerPage.includes('createTrainerStore'), true, 'sight-reading page creates the trainer store');
-assert.strictEqual(trainerPage.includes('playing: songChanged ? false : store.get().playing'), true, 'song change sets store.playing to false');
+assert.strictEqual(trainerPage.includes('playing: songChanged ? false : s.get().playing'), true, 'song change sets store.playing to false');
 assert.strictEqual(trainerPage.includes('syncPlayButton'), true, 'play button is driven from store.playing');
+assert.strictEqual(trainerPage.includes('function ensureStore'), true, 'store is created lazily so the page script can load before trainer-store.js');
 console.log('PASS: song selection updates #metro-bpm and resets Play via the trainer store');
 
 // Test 7: Verify parseAbc Q: tempo header parsing

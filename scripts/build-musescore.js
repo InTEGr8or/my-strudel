@@ -37,6 +37,22 @@ function convertMuseScoreIncremental(srcDir, destDir) {
     }
   }
 
+  function normalizeStem(name) {
+    return name.toLowerCase().replace(/begining/g, 'beginning');
+  }
+
+  function unzippedScoreFor(mxlStem) {
+    const entries = fs.readdirSync(srcDir, { withFileTypes: true });
+    const want = normalizeStem(mxlStem);
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (normalizeStem(entry.name) !== want) continue;
+      const scoreXml = path.join(srcDir, entry.name, 'score.xml');
+      if (fs.existsSync(scoreXml)) return scoreXml;
+    }
+    return null;
+  }
+
   const mxlFiles = fs.readdirSync(srcDir)
     .filter(f => f.endsWith('.mxl') || f.endsWith('.musicxml') || (f.endsWith('.xml') && !f.includes('container')))
     .map(f => path.join(srcDir, f));
@@ -58,13 +74,23 @@ function convertMuseScoreIncremental(srcDir, destDir) {
       }
     }
 
+    const stem = path.basename(srcPath).replace(/\.(mxl|xml|musicxml)$/i, '');
+    const editedXml = unzippedScoreFor(stem);
+    const convertSrc = editedXml || srcPath;
+    if (editedXml) {
+      const editedStat = fs.statSync(editedXml);
+      if (!fs.existsSync(destPath) || fs.statSync(destPath).mtimeMs < editedStat.mtimeMs) {
+        needsBuild = true;
+      }
+    }
+
     if (needsBuild) {
       try {
         const destFolder = path.dirname(destPath);
         if (!fs.existsSync(destFolder)) {
           fs.mkdirSync(destFolder, { recursive: true });
         }
-        const abcContent = generateAbc(srcPath);
+        const abcContent = generateAbc(convertSrc);
         let contentChanged = true;
         if (fs.existsSync(destPath)) {
           const existingContent = fs.readFileSync(destPath, 'utf-8');
