@@ -13,6 +13,8 @@ const filesToLint = [
   'src/js/trainer.js',
   'src/js/trainer-utils.js',
   'src/js/duration.js',
+  'src/js/staff-layout.js',
+  'src/js/trainer-store.js',
   'src/shared/parse-abc.js',
   'scripts/build-musescore.js',
   'scripts/musicxml-to-abc.js',
@@ -21,6 +23,7 @@ const filesToLint = [
   'test/song-selector.test.js',
   'test/trainer-layout.test.js',
   'test/midi-abc-align.test.js',
+  'test/trainer-store.test.js',
 ];
 
 let hasError = false;

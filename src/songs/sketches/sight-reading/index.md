@@ -195,6 +195,10 @@ note-chart {
     let SONGS_LIST = [];
     let lastSongTitle = null;
     const songEl = document.getElementById('trainer-song');
+    const store = window.createTrainerStore({
+        playing: false,
+        bpm: parseInt(localStorage.getItem('tape-bpm'), 10) || 80,
+    });
 
     // metronome
     let metroInterval = null;
@@ -234,12 +238,33 @@ note-chart {
         }
     };
 
+    function syncPlayButton(playing) {
+        const icon = document.getElementById('play-btn-icon');
+        const label = document.getElementById('play-btn-label');
+        const btn = document.getElementById('play-btn');
+        if (!icon || !label || !btn) return;
+        icon.textContent = playing ? '⏸' : '▶';
+        label.textContent = playing ? 'Pause' : 'Play';
+        btn.style.background = playing ? 'var(--panel-bg)' : 'var(--accent)';
+        btn.style.color = playing ? 'var(--text)' : '#fff';
+    }
+
+    store.subscribe(function (state, prev) {
+        if (state.playing !== prev.playing) {
+            if (!state.playing && trainer && trainer.isPaused && !trainer.isPaused()) {
+                trainer.pause();
+            }
+            syncPlayButton(state.playing);
+        }
+    });
+
     window.updateBpm = function (val) {
-        metroBpm = parseInt(val);
+        metroBpm = parseInt(val, 10);
         localStorage.setItem('tape-bpm', metroBpm);
         var label = document.getElementById('bpm-label');
         if (label) label.textContent = metroBpm;
         if (trainer && trainer.setBpm) trainer.setBpm(metroBpm);
+        if (store.get().bpm !== metroBpm) store.set({ bpm: metroBpm });
         if (metroInterval) {
             clearInterval(metroInterval);
             metroBeat = 0;
@@ -276,7 +301,18 @@ note-chart {
                     if (song.keySignature) chart.keySignature = song.keySignature;
                     chart.tempo = song.tempo || 80;
                 }
-                if (song.tempo && title !== lastSongTitle) {
+                const songChanged = title !== lastSongTitle;
+                store.set({
+                    songId: song.id || song.title,
+                    songTitle: song.title,
+                    notes: notes,
+                    rests: song.rests || [],
+                    tempo: song.tempo || 80,
+                    timeSignature: song.timeSignature || null,
+                    keySignature: song.keySignature || [],
+                    playing: songChanged ? false : store.get().playing,
+                });
+                if (song.tempo && songChanged) {
                     const slider = document.getElementById('metro-bpm');
                     if (slider) slider.value = song.tempo;
                     if (typeof window.updateBpm === 'function') window.updateBpm(song.tempo);
@@ -291,6 +327,7 @@ note-chart {
         }
         if (songEl) songEl.title = 'random';
         lastSongTitle = '';
+        store.set({ songId: null, songTitle: '', notes: null, rests: [], playing: false });
         trainer.setNotes(null);
     }
 
@@ -503,6 +540,7 @@ note-chart {
         document.getElementById('trainer-range').addEventListener('change', function () {
             applySong();
             trainer.start();
+            store.set({ playing: false, range: this.value });
         });
         window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
             trainer.onMidi(midiNote, isNoteOn, isNoteOff);
@@ -514,29 +552,13 @@ note-chart {
         if (!trainer) return;
         if (trainer.togglePlay) {
             const playing = trainer.togglePlay();
-            const icon = document.getElementById('play-btn-icon');
-            const label = document.getElementById('play-btn-label');
-            const btn = document.getElementById('play-btn');
-            if (icon && label && btn) {
-                icon.textContent = playing ? '⏸' : '▶';
-                label.textContent = playing ? 'Pause' : 'Play';
-                btn.style.background = playing ? 'var(--panel-bg)' : 'var(--accent)';
-                btn.style.color = playing ? 'var(--text)' : '#fff';
-            }
+            store.set({ playing: playing });
         }
     };
 
     window.refreshTrainer = function () {
         if (trainer) trainer.start();
-        const icon = document.getElementById('play-btn-icon');
-        const label = document.getElementById('play-btn-label');
-        const btn = document.getElementById('play-btn');
-        if (icon && label && btn) {
-            icon.textContent = '▶';
-            label.textContent = 'Play';
-            btn.style.background = 'var(--accent)';
-            btn.style.color = '#fff';
-        }
+        store.set({ playing: false });
         document.getElementById('refresh-btn').style.transform = 'rotate(360deg)';
         setTimeout(function () {
             var rbtn = document.getElementById('refresh-btn');

@@ -25,16 +25,24 @@ class NoteChart extends HTMLElement {
 
     render() {
         const scale = parseFloat(this._cssVar('--ui-scale')) || 1;
+        const layout = (typeof globalThis !== 'undefined' && globalThis.computeStaffLayout)
+            ? globalThis.computeStaffLayout(scale)
+            : {
+                SVG_W: 1200 * scale, COLOR_X: 85 * scale, COLOR_W: 50 * scale,
+                LEFT_PAD: 145 * scale, STAFF_L: 50 * scale, STAFF_R: 1180 * scale,
+                TOP_PAD: 120 * scale, BOT_PAD: 155 * scale,
+                keyX: 76 * scale, clefX: 94 * scale, timeX: 136 * scale,
+            };
         const SPACING = 18 * scale;
         const BAND_H = SPACING;
-        const SVG_W = 1200 * scale;
-        const COLOR_X = 85 * scale;
-        const COLOR_W = 50 * scale;
-        const LEFT_PAD = COLOR_X + COLOR_W + 10 * scale;
-        const STAFF_L = 0;
-        const STAFF_R = SVG_W - 20 * scale;
-        const TOP_PAD = 120 * scale;
-        const BOT_PAD = 80 * scale;
+        const SVG_W = layout.SVG_W;
+        const COLOR_X = layout.COLOR_X;
+        const COLOR_W = layout.COLOR_W;
+        const LEFT_PAD = layout.LEFT_PAD;
+        const STAFF_L = layout.STAFF_L;
+        const STAFF_R = layout.STAFF_R;
+        const TOP_PAD = layout.TOP_PAD;
+        const BOT_PAD = layout.BOT_PAD;
 
         const noteAlpha = parseFloat(this._cssVar('--note-alpha')) || 0.2;
         const noteDAlpha = parseFloat(this._cssVar('--note-d-alpha')) || 0.4;
@@ -127,33 +135,35 @@ class NoteChart extends HTMLElement {
         svg += `<g id="staff-annotations">`;
         const braceTop = tTop - SPACING * 0.5;
         const braceBot = bBot + SPACING * 0.5;
+        const braceX = STAFF_L;
         const braceOffset = 10 * scale;
-        svg += `<path d="M 0,${braceTop} C ${braceOffset},${braceTop},${braceOffset},${braceMid},0,${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
-        svg += `<path d="M 0,${braceBot} C ${braceOffset},${braceBot},${braceOffset},${braceMid},0,${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
-        svg += `<line x1="0" y1="${braceMid - 3 * scale}" x2="0" y2="${braceMid + 3 * scale}" stroke="${staffColor}" stroke-width="${2.5 * scale}" stroke-linecap="round"/>`;
-        svg += `<text x="${15 * scale}" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
-        svg += `<text x="${15 * scale}" y="${bassClefY + 5 * scale}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
+        svg += `<path d="M ${braceX},${braceTop} C ${braceX + braceOffset},${braceTop},${braceX + braceOffset},${braceMid},${braceX},${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
+        svg += `<path d="M ${braceX},${braceBot} C ${braceX + braceOffset},${braceBot},${braceX + braceOffset},${braceMid},${braceX},${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
+        svg += `<line x1="${braceX}" y1="${braceMid - 3 * scale}" x2="${braceX}" y2="${braceMid + 3 * scale}" stroke="${staffColor}" stroke-width="${2.5 * scale}" stroke-linecap="round"/>`;
 
-        // Key signature
+        // Key signature — own column left of the clefs
         const ks = this._keySignature || [];
         if (ks.length > 0) {
-            const accX = 40 * scale;
+            const accX = layout.keyX;
             for (const k of ks) {
                 const ky = getY(k.note, k.oct);
-                svg += `<text x="${accX}" y="${ky}" font-size="${22 * scale}" dy="0.3em" font-family="serif" fill="${staffColor}">${k.acc === 'sharp' ? '♯' : '♭'}</text>`;
+                svg += `<text class="key-accidental" x="${accX}" y="${ky}" font-size="${22 * scale}" dy="0.3em" text-anchor="middle" font-family="serif" fill="${staffColor}">${k.acc === 'sharp' ? '♯' : '♭'}</text>`;
             }
         }
+
+        svg += `<text class="clef-treble" x="${layout.clefX}" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
+        svg += `<text class="clef-bass" x="${layout.clefX}" y="${bassClefY + 5 * scale}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
 
         // Time signature
         const ts = this._timeSignature || null;
         if (ts) {
-            const tsX = 75 * scale;
+            const tsX = layout.timeX;
             const tMid = (tBot + tTop) / 2;
             const bMid = (bBot + bTop) / 2;
-            svg += `<text x="${tsX}" y="${tMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
-            svg += `<text x="${tsX}" y="${tMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
-            svg += `<text x="${tsX}" y="${bMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
-            svg += `<text x="${tsX}" y="${bMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
+            svg += `<text class="time-sig" x="${tsX}" y="${tMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
+            svg += `<text class="time-sig" x="${tsX}" y="${tMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
+            svg += `<text class="time-sig" x="${tsX}" y="${bMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
+            svg += `<text class="time-sig" x="${tsX}" y="${bMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
         }
         svg += `</g>`;
 
@@ -190,7 +200,7 @@ class NoteChart extends HTMLElement {
         svg += `</svg>`;
         this.innerHTML = svg;
 
-        this._ctx = { getY, LEFT_PAD, STAFF_R, STAFF_L, scale, staffColor, SPACING, SVG_H };
+        this._ctx = { getY, LEFT_PAD, STAFF_R, STAFF_L, scale, staffColor, SPACING, SVG_H, layout };
     }
 
     get timeSignature() { return this._timeSignature; }
@@ -214,7 +224,7 @@ class NoteChart extends HTMLElement {
     _rerenderAnnotations() {
         const ann = this.querySelector('#staff-annotations');
         if (!ann || !this._ctx) return;
-        const { getY, scale, staffColor, SPACING } = this._ctx;
+        const { getY, scale, staffColor, SPACING, STAFF_L, layout } = this._ctx;
         const bBot = getY('G', 2);
         const bTop = getY('A', 3);
         const tBot = getY('E', 4);
@@ -222,39 +232,42 @@ class NoteChart extends HTMLElement {
         const tCenter = (tBot + tTop) / 2;
         const bassClefY = getY('F', 3);
         const braceMid = (bTop + tBot) / 2;
+        const braceX = STAFF_L;
+        const keyX = layout ? layout.keyX : 40 * scale;
+        const clefX = layout ? layout.clefX : 15 * scale;
+        const timeX = layout ? layout.timeX : 75 * scale;
 
         let html = '';
         const braceTop = tTop - SPACING * 0.5;
         const braceBot = bBot + SPACING * 0.5;
         const braceOffset = 10 * scale;
-        html += `<path d="M 0,${braceTop} C ${braceOffset},${braceTop},${braceOffset},${braceMid},0,${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
-        html += `<path d="M 0,${braceBot} C ${braceOffset},${braceBot},${braceOffset},${braceMid},0,${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
-        html += `<line x1="0" y1="${braceMid - 3 * scale}" x2="0" y2="${braceMid + 3 * scale}" stroke="${staffColor}" stroke-width="${2.5 * scale}" stroke-linecap="round"/>`;
-        html += `<text x="${15 * scale}" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
-        html += `<text x="${15 * scale}" y="${bassClefY + 5 * scale}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
-
-        const tempoVal = this._tempo || 80;
-        const tempoY = tTop - SPACING * 1.8;
-        html += `<text x="${15 * scale}" y="${tempoY}" font-size="${18 * scale}" font-family="sans-serif" font-weight="bold" fill="${staffColor}">♩ = ${tempoVal}</text>`;
+        html += `<path d="M ${braceX},${braceTop} C ${braceX + braceOffset},${braceTop},${braceX + braceOffset},${braceMid},${braceX},${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
+        html += `<path d="M ${braceX},${braceBot} C ${braceX + braceOffset},${braceBot},${braceX + braceOffset},${braceMid},${braceX},${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
+        html += `<line x1="${braceX}" y1="${braceMid - 3 * scale}" x2="${braceX}" y2="${braceMid + 3 * scale}" stroke="${staffColor}" stroke-width="${2.5 * scale}" stroke-linecap="round"/>`;
 
         const ks = this._keySignature || [];
         if (ks.length > 0) {
-            const accX = 40 * scale;
             for (const k of ks) {
                 const ky = getY(k.note, k.oct);
-                html += `<text x="${accX}" y="${ky}" font-size="${22 * scale}" dy="0.3em" font-family="serif" fill="${staffColor}">${k.acc === 'sharp' ? '♯' : '♭'}</text>`;
+                html += `<text class="key-accidental" x="${keyX}" y="${ky}" font-size="${22 * scale}" dy="0.3em" text-anchor="middle" font-family="serif" fill="${staffColor}">${k.acc === 'sharp' ? '♯' : '♭'}</text>`;
             }
         }
 
+        html += `<text class="clef-treble" x="${clefX}" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
+        html += `<text class="clef-bass" x="${clefX}" y="${bassClefY + 5 * scale}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
+
+        const tempoVal = this._tempo || 80;
+        const tempoY = tTop - SPACING * 1.8;
+        html += `<text x="${clefX}" y="${tempoY}" font-size="${18 * scale}" font-family="sans-serif" font-weight="bold" fill="${staffColor}">♩ = ${tempoVal}</text>`;
+
         const ts = this._timeSignature || null;
         if (ts) {
-            const tsX = 75 * scale;
             const tMid = (tBot + tTop) / 2;
             const bMid = (bBot + bTop) / 2;
-            html += `<text x="${tsX}" y="${tMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
-            html += `<text x="${tsX}" y="${tMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
-            html += `<text x="${tsX}" y="${bMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
-            html += `<text x="${tsX}" y="${bMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
+            html += `<text class="time-sig" x="${timeX}" y="${tMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
+            html += `<text class="time-sig" x="${timeX}" y="${tMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
+            html += `<text class="time-sig" x="${timeX}" y="${bMid - SPACING * 0.4}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.top}</text>`;
+            html += `<text class="time-sig" x="${timeX}" y="${bMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
         }
         ann.innerHTML = html;
     }
