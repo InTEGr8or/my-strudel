@@ -326,18 +326,16 @@ class NoteChart extends HTMLElement {
             el.appendChild(line);
         }
 
-        // note head duration classification
-        const dur = duration !== undefined ? duration : 1;
-        const isDottedWhole = dur >= 4.25;
-        const isWhole = (dur >= 3.5 && dur < 4.25);
-        const isDottedHalf = dur >= 2.5 && dur < 3.5;
-        const isHalf = (dur >= 1.75 && dur < 2.5);
-        const isDottedQuarter = dur >= 1.25 && dur < 1.75;
-        const isDotted = isDottedWhole || isDottedHalf || isDottedQuarter;
-        const isHollow = isWhole || isDottedWhole || isHalf || isDottedHalf;
-        const hasStem = !isWhole && !isDottedWhole;
-        const isEighth = dur >= 0.35 && dur < 0.875;
-        const isSixteenth = dur < 0.35;
+        // note head duration classification (beats: 6=dotted whole, 4=whole, 3=dotted half, …)
+        const classify = (typeof globalThis !== 'undefined' && globalThis.classifyDuration) || null;
+        const classified = classify
+            ? classify(duration)
+            : { name: 'quarter', dotted: false, hollow: false, stem: true, flags: 0 };
+        const isDotted = classified.dotted;
+        const isHollow = classified.hollow;
+        const hasStem = classified.stem;
+        const isEighth = classified.flags === 1;
+        const isSixteenth = classified.flags === 2;
 
         // note head
         const head = document.createElementNS(svgNs, 'ellipse');
@@ -478,9 +476,14 @@ class NoteChart extends HTMLElement {
 
         const isBass = clef === 'bass';
         const yCenter = isBass ? getY('D', 3) : getY('B', 4);
-        const dur = duration !== undefined ? duration : 1;
+        const classify = (typeof globalThis !== 'undefined' && globalThis.classifyDuration) || null;
+        const classified = classify
+            ? classify(duration)
+            : { name: 'quarter', dotted: false };
+        const dur = classified.beats !== undefined ? classified.beats : (duration !== undefined ? duration : 1);
+        const restKind = classified.name || '';
 
-        if (dur >= 3.5) {
+        if (restKind === 'dotted-whole' || restKind === 'whole' || restKind === 'breve' || dur >= 3.5) {
             // Whole rest: rectangle hanging below 4th line
             const rect = document.createElementNS(svgNs, 'rect');
             rect.setAttribute('x', cx - SPACING * 0.4);
@@ -489,6 +492,7 @@ class NoteChart extends HTMLElement {
             rect.setAttribute('height', SPACING * 0.45);
             rect.setAttribute('fill', staffColor);
             rect.setAttribute('opacity', '0.75');
+            rect.setAttribute('data-rest-kind', restKind || 'whole');
             g.appendChild(rect);
         } else if (dur >= 1.75) {
             // Half rest: rectangle sitting on 3rd line
@@ -499,6 +503,7 @@ class NoteChart extends HTMLElement {
             rect.setAttribute('height', SPACING * 0.45);
             rect.setAttribute('fill', staffColor);
             rect.setAttribute('opacity', '0.75');
+            rect.setAttribute('data-rest-kind', restKind || 'half');
             g.appendChild(rect);
         } else if (dur >= 0.875) {
             // Quarter rest vector path
@@ -530,6 +535,16 @@ class NoteChart extends HTMLElement {
             grp.appendChild(circle);
             grp.appendChild(line);
             g.appendChild(grp);
+        }
+
+        if (classified.dotted) {
+            const dotCircle = document.createElementNS(svgNs, 'circle');
+            dotCircle.setAttribute('cx', cx + SPACING * 0.85);
+            dotCircle.setAttribute('cy', yCenter - 2 * scale);
+            dotCircle.setAttribute('r', 2.5 * scale);
+            dotCircle.setAttribute('fill', staffColor);
+            dotCircle.setAttribute('class', 'rest-dot');
+            g.appendChild(dotCircle);
         }
     }
 

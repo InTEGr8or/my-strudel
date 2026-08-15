@@ -49,6 +49,60 @@ function parseKeySig(kStr) {
   return result;
 }
 
+function keyLetterAlter(letter, keyStr) {
+  if (!keyStr) return 0;
+  let clean = keyStr.trim().replace(/\s*(major|maj|minor|min)\b/i, '').trim();
+  if (clean.length > 1 && (clean[1] === '#' || clean[1] === 'b')) {
+    clean = clean[0].toUpperCase() + clean[1];
+  } else if (clean.length > 0) {
+    clean = clean[0].toUpperCase() + clean.slice(1);
+  }
+  const majorKey = MINOR_REL[clean] || clean;
+  const info = KEY_SIGS[majorKey];
+  if (!info) return 0;
+  if (info.sharps && SHARP_NOTES.slice(0, info.sharps).includes(letter)) return 1;
+  if (info.flats && FLAT_NOTES.slice(0, info.flats).includes(letter)) return -1;
+  return 0;
+}
+
+function accidentalToAlter(acc) {
+  if (!acc) return null;
+  if (acc[0] === '^') return acc.length;
+  if (acc[0] === '_') return -acc.length;
+  if (acc === '=') return 0;
+  return null;
+}
+
+function noteToMidi(letter, oct, alter) {
+  const stepVal = SCALE_MIDI[letter] !== undefined ? SCALE_MIDI[letter] : 0;
+  return (oct + 1) * 12 + stepVal + (alter || 0);
+}
+
+function mergeTiedNotes(notes) {
+  const result = notes.map((n) => Object.assign({}, n));
+  for (let i = 0; i < result.length; i++) {
+    let n = result[i];
+    if (!n || !n.tie) continue;
+    for (let j = i + 1; j < result.length; j++) {
+      const nxt = result[j];
+      if (!nxt) continue;
+      if (nxt.note !== n.note || nxt.oct !== n.oct) continue;
+      if ((nxt.alter || 0) !== (n.alter || 0)) continue;
+      if (Math.abs(nxt.startBeat - (n.startBeat + n.duration)) > 0.08) continue;
+      n.duration += nxt.duration;
+      n.tie = !!nxt.tie;
+      result[j] = null;
+      if (!n.tie) break;
+    }
+  }
+  return result.filter(Boolean).map((n) => {
+    const copy = Object.assign({}, n);
+    delete copy.tie;
+    copy.midi = noteToMidi(copy.note, copy.oct, copy.alter);
+    return copy;
+  });
+}
+
 function parseAbc(text) {
   const lines = text.split('\n');
   let title = '';
@@ -93,7 +147,29 @@ function parseAbc(text) {
   const beatsPerBar = timeSig ? timeSig.top : 4;
   const rawMeasures = bodyLines.join('\n').split(/\|+/);
   let currentMeasureStart = 0;
-  const tokenRe = /\[(.*?)\](\d*)(\/*)(\d*)|([\^_=])?([A-Ga-gzZxX])([',]*)(\d*)(\/*)(\d*)/g;
+  const tokenRe = /\[(.*?)\](\d*)(\/*)(\d*)(-)?|(\^{1,2}|_{1,2}|=)?([A-Ga-gzZxX])([',]*)(\d*)(\/*)(\d*)(-)?/g;
+
+  function makeNote(letter, markers, duration, beat, acc, tie) {
+    let oct = letter === letter.toUpperCase() ? 4 : 5;
+    for (const ch of markers) {
+      if (ch === "'") oct++;
+      else if (ch === ',') oct--;
+    }
+    if (oct < 1 || oct > 8) return null;
+    const name = letter.toUpperCase();
+    const explicit = accidentalToAlter(acc);
+    const alter = explicit === null ? keyLetterAlter(name, keyStr) : explicit;
+    return {
+      type: 'note',
+      note: name,
+      oct,
+      alter,
+      midi: noteToMidi(name, oct, alter),
+      startBeat: beat,
+      duration,
+      tie: !!tie,
+    };
+  }
 
   for (let mRaw of rawMeasures) {
     let mClean = mRaw.replace(/^[A-Z]:.*$/gm, '').replace(/:/g, ' ').trim();
@@ -115,8 +191,9 @@ function parseAbc(text) {
           const explicitDiv = m[4] ? parseInt(m[4], 10) : 0;
           const divisor = explicitDiv > 0 ? explicitDiv : (slashCount > 0 ? Math.pow(2, slashCount) : 1);
           const baseChordDur = defaultLength * mult / divisor;
+          const chordTie = m[5];
 
-          const noteRe = /([\^_=])?([A-Ga-gzZxX])([',]*)(\d*)(\/*)(\d*)/g;
+          const noteRe = /(\^{1,2}|_{1,2}|=)?([A-Ga-gzZxX])([',]*)(\d*)(\/*)(\d*)(-)?/g;
           let nm;
           let chordNotesCount = 0;
           let maxChordDur = baseChordDur;
@@ -129,13 +206,8 @@ function parseAbc(text) {
             const nDivisor = nDiv > 0 ? nDiv : (nSlash > 0 ? Math.pow(2, nSlash) : 1);
             const nDur = (nm[4] || nm[5] || nm[6]) ? (defaultLength * nMult / nDivisor) : baseChordDur;
 
-            let oct = letter === letter.toUpperCase() ? 4 : 5;
-            for (const ch of markers) {
-              if (ch === "'") oct++;
-              else if (ch === ',') oct--;
-            }
-            if (oct < 1 || oct > 8) continue;
-            const noteObj = { type: 'note', note: letter.toUpperCase(), oct, startBeat: beat, duration: nDur };
+            const noteObj = makeNote(letter, markers, nDur, beat, nm[1], nm[7] || chordTie);
+            if (!noteObj) continue;
             notes.push(noteObj);
             events.push(noteObj);
             if (nDur > maxChordDur) maxChordDur = nDur;
@@ -145,31 +217,25 @@ function parseAbc(text) {
             beat += maxChordDur;
           }
         } else {
-          const letter = m[6];
+          const letter = m[7];
           if (!letter) continue;
 
-          const multiplier = parseInt(m[8] || '1', 10);
-          const slashCount = m[9].length;
-          const explicitDiv = m[10] ? parseInt(m[10], 10) : 0;
+          const multiplier = parseInt(m[9] || '1', 10);
+          const slashCount = m[10].length;
+          const explicitDiv = m[11] ? parseInt(m[11], 10) : 0;
           const divisor = explicitDiv > 0 ? explicitDiv : (slashCount > 0 ? Math.pow(2, slashCount) : 1);
           const duration = defaultLength * multiplier / divisor;
 
           if (/^[zZxX]$/.test(letter)) {
-            rests.push({ type: 'rest', startBeat: beat, duration });
-            events.push({ type: 'rest', startBeat: beat, duration });
+            const restObj = { type: 'rest', startBeat: beat, duration };
+            rests.push(restObj);
+            events.push(restObj);
             beat += duration;
             continue;
           }
 
-          const markers = m[7];
-          let oct = letter === letter.toUpperCase() ? 4 : 5;
-          for (const ch of markers) {
-            if (ch === "'") oct++;
-            else if (ch === ',') oct--;
-          }
-          if (oct < 1 || oct > 8) continue;
-
-          const noteObj = { type: 'note', note: letter.toUpperCase(), oct, startBeat: beat, duration };
+          const noteObj = makeNote(letter, m[8], duration, beat, m[6], m[12]);
+          if (!noteObj) continue;
           notes.push(noteObj);
           events.push(noteObj);
           beat += duration;
@@ -181,9 +247,30 @@ function parseAbc(text) {
     currentMeasureStart += maxVoiceBeats > 0 ? maxVoiceBeats : beatsPerBar;
   }
 
+  const mergedNotes = mergeTiedNotes(notes);
+  const noteId = new Set(mergedNotes.map((n) => n.startBeat + ':' + n.note + ':' + n.oct + ':' + n.duration));
+  const mergedEvents = events.map((e) => {
+    if (e.type !== 'note') return e;
+    return mergedNotes.find((n) => n.startBeat === e.startBeat && n.note === e.note && n.oct === e.oct) || null;
+  }).filter(Boolean);
+  // Drop events whose notes were absorbed into a tie
+  const eventsOut = [];
+  const seen = new Set();
+  for (const e of mergedEvents) {
+    if (e.type === 'rest') {
+      eventsOut.push(e);
+      continue;
+    }
+    const k = e.startBeat + ':' + e.note + ':' + e.oct + ':' + e.duration;
+    if (seen.has(k)) continue;
+    if (!noteId.has(k)) continue;
+    seen.add(k);
+    eventsOut.push(e);
+  }
+
   const keySignature = parseKeySig(keyStr);
 
-  return { title: title || 'Unknown', tempo, notes, rests, events, timeSignature: timeSig, keySignature };
+  return { title: title || 'Unknown', tempo, notes: mergedNotes, rests, events: eventsOut, timeSignature: timeSig, keySignature };
 }
 
-module.exports = { parseAbc, SCALE, SCALE_MIDI, MIDI_NAMES };
+module.exports = { parseAbc, SCALE, SCALE_MIDI, MIDI_NAMES, noteToMidi, keyLetterAlter, mergeTiedNotes };

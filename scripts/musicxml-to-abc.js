@@ -147,18 +147,41 @@ function generateAbc(inputPath) {
       } else if (key === 'note') {
         let isRest = false;
         let isChord = false;
-        let dotCount = 0;
+        let isGrace = false;
         let durRaw = 1;
         let pitch = null;
         let typeStr = '';
+        let staff = 1;
+        let voice = 1;
+        let tieStart = false;
+        let tieStop = false;
+
+        function readTieType(node) {
+          if (!node) return;
+          const attrs = node[':@'] || {};
+          const t = attrs['@_type'] || attrs.type;
+          if (t === 'start') tieStart = true;
+          if (t === 'stop') tieStop = true;
+        }
 
         for (const sub of el.note) {
           const subKey = Object.keys(sub).find(k => k !== ':@');
           if (subKey === 'rest') isRest = true;
           if (subKey === 'chord') isChord = true;
-          if (subKey === 'dot') dotCount++;
-          if (subKey === 'type') typeStr = sub.type[0]['#text'];
-          if (subKey === 'duration') durRaw = parseInt(sub['duration'][0]['#text']);
+          if (subKey === 'grace') isGrace = true;
+          if (subKey === 'type' && sub.type && sub.type[0]) typeStr = sub.type[0]['#text'];
+          if (subKey === 'duration' && sub.duration && sub.duration[0]) {
+            durRaw = parseInt(sub.duration[0]['#text']);
+          }
+          if (subKey === 'staff' && sub.staff && sub.staff[0]) staff = parseInt(sub.staff[0]['#text']);
+          if (subKey === 'voice' && sub.voice && sub.voice[0]) voice = parseInt(sub.voice[0]['#text']);
+          if (subKey === 'tie') readTieType(sub);
+          if (subKey === 'notations' && sub.notations) {
+            for (const nSub of sub.notations) {
+              const nKey = Object.keys(nSub).find(k => k !== ':@');
+              if (nKey === 'tied') readTieType(nSub);
+            }
+          }
           if (subKey === 'pitch') {
             let step = 'C', alter = 0, octave = 4;
             for (const pSub of sub.pitch) {
@@ -171,10 +194,10 @@ function generateAbc(inputPath) {
           }
         }
 
+        if (isGrace) continue;
+
+        // MusicXML <duration> is already the performed length, including dots.
         let durInBeats = durRaw / divisions;
-        if (dotCount > 0) {
-          durInBeats *= (1 + 1 - Math.pow(0.5, dotCount));
-        }
         durInBeats = Math.round(durInBeats * 16) / 16;
         if (durInBeats <= 0) durInBeats = 0.25;
 
@@ -187,10 +210,22 @@ function generateAbc(inputPath) {
           currentBeat += durInBeats;
         }
 
+        const ev = {
+          type: isRest ? 'rest' : 'note',
+          pitch,
+          durInBeats,
+          noteBeat,
+          staff,
+          voice,
+          tieStart,
+          tieStop,
+          typeStr,
+        };
+
         if (isRest) {
-          measureEvs.push({ type: 'rest', durInBeats, noteBeat });
+          measureEvs.push(ev);
         } else if (pitch) {
-          measureEvs.push({ type: 'note', pitch, durInBeats, noteBeat });
+          measureEvs.push(ev);
         }
       }
     }
@@ -244,35 +279,17 @@ function generateAbc(inputPath) {
     const measureEvs = measuresData[mIdx];
     if (measureEvs.length === 0) continue;
 
-    const groups = {};
-    measureEvs.forEach(e => {
-      const k = e.noteBeat;
-      groups[k] = groups[k] || [];
-      groups[k].push(e);
+    const byVoice = {};
+    measureEvs.forEach((e) => {
+      const k = `${e.staff || 1}:${e.voice || 1}`;
+      (byVoice[k] = byVoice[k] || []).push(e);
     });
-
-    const sortedBeats = Object.keys(groups).sort((a, b) => parseFloat(a) - parseFloat(b));
-    let mAbc = '';
-
-    sortedBeats.forEach(bKey => {
-      const evs = groups[bKey];
-      const noteEvs = evs.filter(e => e.type === 'note');
-      const restEvs = evs.filter(e => e.type === 'rest');
-
-      if (noteEvs.length > 1) {
-        const len = beatsToAbc(noteEvs[0].durInBeats);
-        const chordPitches = noteEvs.map(n => noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave)).join('');
-        mAbc += '[' + chordPitches + ']' + len + ' ';
-      } else if (noteEvs.length === 1) {
-        const n = noteEvs[0];
-        const len = beatsToAbc(n.durInBeats);
-        mAbc += noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave) + len + ' ';
-      } else if (restEvs.length > 0) {
-        const r = restEvs[0];
-        const len = beatsToAbc(r.durInBeats);
-        mAbc += 'z' + len + ' ';
-      }
+    const voiceKeys = Object.keys(byVoice).sort((a, b) => {
+      const [s1, v1] = a.split(':').map(Number);
+      const [s2, v2] = b.split(':').map(Number);
+      return s1 - s2 || v1 - v2;
     });
+    const mAbc = voiceKeys.map((k) => emitVoiceAbc(byVoice[k])).filter(Boolean).join(' & ');
 
     if (mAbc.trim().length > 0) {
       abc += mAbc.trimRight() + (mIdx < measuresData.length - 1 ? ' |\n' : ' |]\n');
@@ -280,6 +297,58 @@ function generateAbc(inputPath) {
   }
 
   return abc;
+}
+
+function emitVoiceAbc(evs) {
+  if (!evs || evs.length === 0) return '';
+  const groups = {};
+  evs.forEach((e) => {
+    const k = String(e.noteBeat);
+    (groups[k] = groups[k] || []).push(e);
+  });
+  const sortedBeats = Object.keys(groups).sort((a, b) => parseFloat(a) - parseFloat(b));
+  let cursor = 0;
+  let out = '';
+
+  sortedBeats.forEach((bKey) => {
+    const beat = parseFloat(bKey);
+    if (beat > cursor + 0.001) {
+      out += 'z' + beatsToAbc(beat - cursor) + ' ';
+      cursor = beat;
+    }
+    const atBeat = groups[bKey];
+    const noteEvs = atBeat.filter((e) => e.type === 'note' && e.pitch);
+    const restEvs = atBeat.filter((e) => e.type === 'rest');
+
+    if (noteEvs.length > 1) {
+      const maxDur = Math.max(...noteEvs.map((n) => n.durInBeats));
+      const sameDur = noteEvs.every((n) => Math.abs(n.durInBeats - noteEvs[0].durInBeats) < 0.001);
+      const tie = noteEvs.some((n) => n.tieStart) ? '-' : '';
+      if (sameDur) {
+        const len = beatsToAbc(noteEvs[0].durInBeats);
+        const chordPitches = noteEvs.map((n) => noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave)).join('');
+        out += '[' + chordPitches + ']' + len + tie + ' ';
+      } else {
+        const chordPitches = noteEvs.map((n) => (
+          noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave) + beatsToAbc(n.durInBeats)
+        )).join('');
+        out += '[' + chordPitches + ']' + tie + ' ';
+      }
+      cursor = beat + maxDur;
+    } else if (noteEvs.length === 1) {
+      const n = noteEvs[0];
+      const len = beatsToAbc(n.durInBeats);
+      const tie = n.tieStart ? '-' : '';
+      out += noteToAbc(n.pitch.step, n.pitch.alter, n.pitch.octave) + len + tie + ' ';
+      cursor = beat + n.durInBeats;
+    } else if (restEvs.length > 0) {
+      const r = restEvs[0];
+      out += 'z' + beatsToAbc(r.durInBeats) + ' ';
+      cursor = beat + r.durInBeats;
+    }
+  });
+
+  return out.trimRight();
 }
 
 function parseMusicXml(xmlString) {
@@ -320,4 +389,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { parseMusicXml, generateAbc, noteToAbc, beatsToAbc, KEY_MAP };
+module.exports = { parseMusicXml, generateAbc, noteToAbc, beatsToAbc, emitVoiceAbc, KEY_MAP };

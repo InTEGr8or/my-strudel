@@ -18,7 +18,9 @@
   }
 
   function posToMidi(pos) {
-    return naturalToMidi(pos.note, pos.oct);
+    if (typeof pos.midi === 'number') return pos.midi;
+    var alter = pos.alter || 0;
+    return (pos.oct + 1) * 12 + SCALE_MIDI[pos.note] + alter;
   }
 
   window.TRAINER_UTILS = {

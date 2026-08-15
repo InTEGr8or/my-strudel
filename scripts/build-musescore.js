@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const { generateAbc } = require('./musicxml-to-abc');
-try { require('/home/mstouffer/.gemini/antigravity-cli/brain/538d6d59-5e09-45d3-a8fe-01f0366c041b/scratch/inspect-xml-tempo.js'); } catch (_) {}
 
 function getFilesRecursively(dir, extensions) {
   let results = [];

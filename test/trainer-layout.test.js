@@ -38,20 +38,14 @@ assert.strictEqual(!noteChartCode.includes("symbol = '𝄽'"), true, 'renderRest
 assert.strictEqual(noteChartCode.includes("createElementNS(svgNs, 'rect')"), true, 'renderRest uses SVG vector rects/paths');
 console.log('PASS: note-chart.js renders vector SVG rest shapes instead of font-dependent unicode text');
 
-// Test 5: Verify Jingle Bells MIDI vs MXL rendering accuracy
-const { verifyMidiAndAbc } = require('../scripts/verify-midi-abc');
-const midiPath = path.join(__dirname, '../data/musescore/jingle-bells.mid');
-const mxlPath = path.join(__dirname, '../data/musescore/jingle-bells.mxl');
-if (fs.existsSync(midiPath) && fs.existsSync(mxlPath)) {
-  const res = verifyMidiAndAbc(midiPath, mxlPath);
-  assert.strictEqual(res.accuracy >= 0.75, true, `MIDI cross-reference accuracy is ${(res.accuracy * 100).toFixed(1)}%, expected >= 75%`);
-  console.log('PASS: Rendered Jingle Bells ABC matches defacto source MIDI sequence');
-}
+// Test 5: MIDI/ABC timing lives in test/midi-abc-align.test.js (pitch+start, not pitch-only).
+console.log('SKIP: MIDI timing assertions moved to test/midi-abc-align.test.js');
 
-// Test 6: Verify Dotted Whole Note & Augmentation Dot Circle Rendering
-assert.strictEqual(noteChartCode.includes('isDottedWhole'), true, 'note-chart.js classifies dotted whole notes');
-assert.strictEqual(noteChartCode.includes('dotCircle.setAttribute'), true, 'note-chart.js renders augmentation dot circle');
-console.log('PASS: note-chart.js renders dotted whole notes and augmentation dot circles');
+// Test 6: Dotted-whole / rest duration classification lives in midi-abc-align.test.js
+const { classifyDuration } = require('../src/js/duration');
+assert.strictEqual(classifyDuration(6).name, 'dotted-whole');
+assert.strictEqual(noteChartCode.includes('classified.dotted'), true, 'note-chart.js uses classifyDuration for augmentation dots');
+console.log('PASS: note-chart.js uses shared duration classifier (dotted whole = 6 beats)');
 
 // Test 7: Verify parseAbc Q: tempo header parsing
 const jingleAbcPath = path.join(__dirname, '../src/songs/sight-reading/songs/musescore/jingle-bells.abc');

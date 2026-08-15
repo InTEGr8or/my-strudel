@@ -7,7 +7,7 @@
     "build": "eleventy",
     "start": "eleventy --serve",
     "lint": "node scripts/lint.js",
-    "test": "npm run lint && node test/bar-structure.test.js && node test/song-selector.test.js && node test/trainer-layout.test.js && node test/score-tempo.test.js"
+    "test": "npm run lint && node test/bar-structure.test.js && node test/song-selector.test.js && node test/trainer-layout.test.js && node test/score-tempo.test.js && node test/midi-abc-align.test.js"
   },
   "keywords": [],
   "author": "",
