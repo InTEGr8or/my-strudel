@@ -149,7 +149,7 @@ function parseAbc(text) {
   let currentMeasureStart = 0;
   const tokenRe = /\[(.*?)\](\d*)(\/*)(\d*)(-)?|(\^{1,2}|_{1,2}|=)?([A-Ga-gzZxX])([',]*)(\d*)(\/*)(\d*)(-)?/g;
 
-  function makeNote(letter, markers, duration, beat, acc, tie) {
+  function makeNote(letter, markers, duration, beat, acc, tie, voice) {
     let oct = letter === letter.toUpperCase() ? 4 : 5;
     for (const ch of markers) {
       if (ch === "'") oct++;
@@ -168,6 +168,7 @@ function parseAbc(text) {
       startBeat: beat,
       duration,
       tie: !!tie,
+      voice: voice,
     };
   }
 
@@ -178,7 +179,8 @@ function parseAbc(text) {
     const voices = mClean.split('&');
     let maxVoiceBeats = 0;
 
-    for (let vStr of voices) {
+    for (let vIdx = 0; vIdx < voices.length; vIdx++) {
+      const vStr = voices[vIdx];
       let beat = currentMeasureStart;
       tokenRe.lastIndex = 0;
       let m;
@@ -206,7 +208,7 @@ function parseAbc(text) {
             const nDivisor = nDiv > 0 ? nDiv : (nSlash > 0 ? Math.pow(2, nSlash) : 1);
             const nDur = (nm[4] || nm[5] || nm[6]) ? (defaultLength * nMult / nDivisor) : baseChordDur;
 
-            const noteObj = makeNote(letter, markers, nDur, beat, nm[1], nm[7] || chordTie);
+            const noteObj = makeNote(letter, markers, nDur, beat, nm[1], nm[7] || chordTie, vIdx);
             if (!noteObj) continue;
             notes.push(noteObj);
             events.push(noteObj);
@@ -227,14 +229,14 @@ function parseAbc(text) {
           const duration = defaultLength * multiplier / divisor;
 
           if (/^[zZxX]$/.test(letter)) {
-            const restObj = { type: 'rest', startBeat: beat, duration };
+            const restObj = { type: 'rest', startBeat: beat, duration, voice: vIdx };
             rests.push(restObj);
             events.push(restObj);
             beat += duration;
             continue;
           }
 
-          const noteObj = makeNote(letter, m[8], duration, beat, m[6], m[12]);
+          const noteObj = makeNote(letter, m[8], duration, beat, m[6], m[12], vIdx);
           if (!noteObj) continue;
           notes.push(noteObj);
           events.push(noteObj);

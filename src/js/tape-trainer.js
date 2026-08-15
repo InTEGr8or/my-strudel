@@ -136,20 +136,88 @@
         chart.renderBarLine(headX + barBeat * spacing - barOffset);
       }
 
+      function staffOf(ev) {
+        if (window.noteStaff) return window.noteStaff(ev);
+        if (ev.voice !== undefined && ev.voice !== null) return ev.voice === 0 ? 'treble' : 'bass';
+        return ev.oct >= 4 ? 'treble' : 'bass';
+      }
+
+      function noteNameOf(n) {
+        var acc = '';
+        if (n.alter > 0) acc = 's';
+        else if (n.alter < 0) acc = 'f';
+        return n.note.toLowerCase() + acc + n.oct;
+      }
+
       if (shared.rests && shared.rests.length > 0) {
         for (var r = 0; r < shared.rests.length; r++) {
           var rest = shared.rests[r];
+          var restStaff = staffOf(rest);
+          var covered = notes.some(function (n) {
+            return Math.abs(n.startBeat - rest.startBeat) < 0.05 && staffOf(n) === restStaff;
+          });
+          if (covered) continue;
           var rx = headX + rest.startBeat * spacing;
-          chart.renderRest(rx, rest.duration);
+          chart.renderRest(rx, rest.duration, restStaff);
         }
+      }
+
+      var classify = window.classifyDuration;
+      var beamedIds = {};
+      var beamSegs = [];
+      if (classify) {
+        var flagged = notes.map(function (n, idx) {
+          return { n: n, idx: idx, flags: classify(n.duration).flags || 0, staff: staffOf(n) };
+        }).filter(function (x) { return x.flags > 0; });
+        flagged.sort(function (a, b) {
+          return a.n.startBeat - b.n.startBeat || a.staff.localeCompare(b.staff);
+        });
+        var group = [];
+        function flushGroup() {
+          if (group.length < 2) return;
+          var onsets = [];
+          group.forEach(function (g) {
+            if (onsets.indexOf(g.n.startBeat) === -1) onsets.push(g.n.startBeat);
+          });
+          if (onsets.length < 2) return;
+          group.forEach(function (g) { beamedIds[g.idx] = true; });
+          var first = group[0].n;
+          var last = group[group.length - 1].n;
+          var x1 = headX + first.startBeat * spacing + ctx.SPACING * 0.6;
+          var x2 = headX + last.startBeat * spacing + ctx.SPACING * 0.6;
+          var topY = Infinity;
+          group.forEach(function (g) {
+            var gy = ctx.getY(g.n.note, g.n.oct) - ctx.SPACING * 3.5;
+            if (gy < topY) topY = gy;
+          });
+          var maxFlags = 1;
+          group.forEach(function (g) { if (g.flags > maxFlags) maxFlags = g.flags; });
+          beamSegs.push({ x1: x1, x2: x2, y: topY, levels: maxFlags });
+        }
+        flagged.forEach(function (item) {
+          if (group.length === 0) {
+            group = [item];
+            return;
+          }
+          var prev = group[group.length - 1];
+          var contiguous = Math.abs(item.n.startBeat - (prev.n.startBeat + (prev.n.duration || 0))) < 0.08
+            || Math.abs(item.n.startBeat - prev.n.startBeat) < 0.001;
+          if (contiguous && item.staff === prev.staff) {
+            group.push(item);
+          } else {
+            flushGroup();
+            group = [item];
+          }
+        });
+        flushGroup();
       }
 
       for (var i = 0; i < notes.length; i++) {
         var n = notes[i];
         var x = headX + n.startBeat * spacing;
-        var name = n.note.toLowerCase() + n.oct;
-        chart.renderNoteHead(name, 'pending', x, false, n.duration);
+        chart.renderNoteHead(noteNameOf(n), 'pending', x, false, n.duration, { hideFlags: !!beamedIds[i] });
       }
+      if (beamSegs.length && chart.renderBeams) chart.renderBeams(beamSegs);
 
       setGroupTransform(0);
     }

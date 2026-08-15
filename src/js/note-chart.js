@@ -286,10 +286,11 @@ class NoteChart extends HTMLElement {
         if (g) g.innerHTML = '';
     }
 
-    renderNoteHead(noteName, type, cx, showLabel, duration) {
-        const match = noteName.match(/^([a-g])(s?)(\d+)$/);
+    renderNoteHead(noteName, type, cx, showLabel, duration, opts) {
+        const match = noteName.match(/^([a-g])([sfb]?)(\d+)$/);
         if (!match) return;
         const note = match[1].toUpperCase();
+        const accMark = match[2] || '';
         const oct = parseInt(match[3], 10);
         const ctx = this._ctx;
         if (!ctx) return;
@@ -312,20 +313,18 @@ class NoteChart extends HTMLElement {
         const el = document.createElementNS(svgNs, 'g');
         el.style.transition = 'transform 150ms ease-out';
 
-        // ledger lines for notes outside/between the staff ranges
+        // ledger lines: only outside the staves (plus middle C). B2 is on the bass staff.
         let ledgerYs = [];
-        if (oct === 4 && note === 'C') {
+        const ledgerFn = (typeof globalThis !== 'undefined' && globalThis.ledgerStaffIndices) || null;
+        const toPitch = (typeof globalThis !== 'undefined' && globalThis.indexToPitch) || null;
+        if (ledgerFn && toPitch) {
+            const idxs = ledgerFn(note, oct);
+            for (let li = 0; li < idxs.length; li++) {
+                const p = toPitch(idxs[li]);
+                ledgerYs.push(getY(p.note, p.oct));
+            }
+        } else if (oct === 4 && note === 'C') {
             ledgerYs.push(y);
-        } else if (oct === 2 && (note === 'E' || note === 'D')) {
-            ledgerYs.push(getY('E', 2));
-        } else if (oct === 2 && (note === 'C' || note === 'B')) {
-            ledgerYs.push(getY('E', 2));
-            ledgerYs.push(getY('C', 2));
-        } else if (oct === 5 && (note === 'A' || note === 'B')) {
-            ledgerYs.push(getY('A', 5));
-        } else if (oct >= 6 && (note === 'C' || note === 'D')) {
-            ledgerYs.push(getY('A', 5));
-            ledgerYs.push(getY('C', 6));
         }
 
         for (const ly of ledgerYs) {
@@ -347,8 +346,8 @@ class NoteChart extends HTMLElement {
         const isDotted = classified.dotted;
         const isHollow = classified.hollow;
         const hasStem = classified.stem;
-        const isEighth = classified.flags === 1;
-        const isSixteenth = classified.flags === 2;
+        const hideFlags = opts && opts.hideFlags;
+        const flagCount = hideFlags ? 0 : (classified.flags || 0);
 
         // note head
         const head = document.createElementNS(svgNs, 'ellipse');
@@ -388,6 +387,20 @@ class NoteChart extends HTMLElement {
         }
         el.appendChild(head);
 
+        if (accMark === 's' || accMark === 'f' || accMark === 'b') {
+            const acc = document.createElementNS(svgNs, 'text');
+            acc.textContent = accMark === 's' ? '♯' : '♭';
+            acc.setAttribute('x', centerX - headW * 0.95);
+            acc.setAttribute('y', y);
+            acc.setAttribute('font-size', 18 * scale);
+            acc.setAttribute('text-anchor', 'end');
+            acc.setAttribute('dominant-baseline', 'central');
+            acc.setAttribute('font-family', 'serif');
+            acc.setAttribute('fill', type === 'target' ? accentColor : (type === 'correct' ? '#28a745' : staffColor));
+            acc.setAttribute('class', 'note-accidental');
+            el.appendChild(acc);
+        }
+
         if (isDotted) {
             const dotCircle = document.createElementNS(svgNs, 'circle');
             dotCircle.setAttribute('cx', centerX + headW * 0.85);
@@ -419,15 +432,15 @@ class NoteChart extends HTMLElement {
             }
             el.appendChild(stem);
 
-            // flags for 8th & 16th notes
-            const flagCount = isSixteenth ? 2 : (isEighth ? 1 : 0);
             for (let f = 0; f < flagCount; f++) {
-                const fy = stemY2 + f * 6 * scale;
+                const fy = stemY2 + f * 7 * scale;
                 const flag = document.createElementNS(svgNs, 'path');
-                flag.setAttribute('d', `M ${stemX},${fy} C ${stemX + 8 * scale},${fy + 6 * scale} ${stemX + 8 * scale},${fy + 14 * scale} ${stemX + 2 * scale},${fy + 18 * scale}`);
-                flag.setAttribute('fill', 'none');
-                flag.setAttribute('stroke', stemColor);
-                flag.setAttribute('stroke-width', 2 * scale);
+                const w = 11 * scale;
+                const h = 16 * scale;
+                flag.setAttribute('d', `M ${stemX},${fy} C ${stemX + w},${fy + 3 * scale} ${stemX + w},${fy + h * 0.65} ${stemX + 1 * scale},${fy + h} L ${stemX},${fy + h - 4 * scale} Z`);
+                flag.setAttribute('fill', stemColor);
+                flag.setAttribute('stroke', 'none');
+                flag.setAttribute('class', 'note-flag');
                 el.appendChild(flag);
             }
         }
@@ -558,6 +571,33 @@ class NoteChart extends HTMLElement {
             dotCircle.setAttribute('fill', staffColor);
             dotCircle.setAttribute('class', 'rest-dot');
             g.appendChild(dotCircle);
+        }
+    }
+
+    renderBeams(segments) {
+        const ctx = this._ctx;
+        if (!ctx || !segments || segments.length === 0) return;
+        const { scale, staffColor } = ctx;
+        const svgNs = 'http://www.w3.org/2000/svg';
+        let g = this.querySelector('#note-heads');
+        if (!g) return;
+        for (let i = 0; i < segments.length; i++) {
+            const seg = segments[i];
+            if (!seg || seg.x1 === undefined) continue;
+            const thickness = 4 * scale;
+            const gap = 5 * scale;
+            const levels = seg.levels || 1;
+            for (let lv = 0; lv < levels; lv++) {
+                const y = seg.y + lv * (thickness + gap);
+                const beam = document.createElementNS(svgNs, 'rect');
+                beam.setAttribute('x', seg.x1);
+                beam.setAttribute('y', y);
+                beam.setAttribute('width', Math.max(1, seg.x2 - seg.x1));
+                beam.setAttribute('height', thickness);
+                beam.setAttribute('fill', staffColor);
+                beam.setAttribute('class', 'note-beam');
+                g.appendChild(beam);
+            }
         }
     }
 
