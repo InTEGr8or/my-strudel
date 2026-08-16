@@ -186,6 +186,58 @@
     return next === Infinity ? null : next;
   }
 
+  /**
+   * Pitch span of a note list. totalSpan is the whole piece;
+   * maxColumnSpan is the widest simultaneous attack (same startBeat).
+   * A 32-key board can play the piece in one octave offset when
+   * totalSpan <= high-low and every column fits that window.
+   */
+  function analyzeNoteRange(notes) {
+    var min = Infinity;
+    var max = -Infinity;
+    var maxSpan = 0;
+    var byBeat = {};
+    if (!notes) notes = [];
+    for (var i = 0; i < notes.length; i++) {
+      var midi = notes[i] && notes[i].midi;
+      if (typeof midi !== 'number') continue;
+      if (midi < min) min = midi;
+      if (midi > max) max = midi;
+      var key = Math.round(notes[i].startBeat * 100);
+      if (!byBeat[key]) byBeat[key] = { min: midi, max: midi };
+      else {
+        if (midi < byBeat[key].min) byBeat[key].min = midi;
+        if (midi > byBeat[key].max) byBeat[key].max = midi;
+      }
+    }
+    var keys = Object.keys(byBeat);
+    for (var k = 0; k < keys.length; k++) {
+      var col = byBeat[keys[k]];
+      var span = col.max - col.min;
+      if (span > maxSpan) maxSpan = span;
+    }
+    var empty = min === Infinity;
+    return {
+      minMidi: empty ? null : min,
+      maxMidi: empty ? null : max,
+      totalSpan: empty ? 0 : max - min,
+      maxColumnSpan: maxSpan,
+    };
+  }
+
+  function fitsKeyboard(notes, low, high) {
+    var range = analyzeNoteRange(notes);
+    if (range.minMidi == null) return true;
+    var window = high - low;
+    return range.totalSpan <= window && range.maxColumnSpan <= window;
+  }
+
+  function fitsKeyboardAbsolute(notes, low, high) {
+    var range = analyzeNoteRange(notes);
+    if (range.minMidi == null) return true;
+    return range.minMidi >= low && range.maxMidi <= high;
+  }
+
   function noteStaff(n) {
     if (n && n.voice !== undefined && n.voice !== null) {
       return n.voice === 0 ? 'treble' : 'bass';
@@ -200,6 +252,9 @@
   root.noteStaff = noteStaff;
   root.quarterBeatsPerBar = quarterBeatsPerBar;
   root.nextUnplayedStartBeat = nextUnplayedStartBeat;
+  root.analyzeNoteRange = analyzeNoteRange;
+  root.fitsKeyboard = fitsKeyboard;
+  root.fitsKeyboardAbsolute = fitsKeyboardAbsolute;
   root.matchMidiAtOnset = matchMidiAtOnset;
   root.staffNoteLabel = staffNoteLabel;
   root.spellNoteForKey = spellNoteForKey;
@@ -216,6 +271,9 @@
       noteStaff: noteStaff,
       quarterBeatsPerBar: quarterBeatsPerBar,
       nextUnplayedStartBeat: nextUnplayedStartBeat,
+      analyzeNoteRange: analyzeNoteRange,
+      fitsKeyboard: fitsKeyboard,
+      fitsKeyboardAbsolute: fitsKeyboardAbsolute,
       matchMidiAtOnset: matchMidiAtOnset,
       staffNoteLabel: staffNoteLabel,
       spellNoteForKey: spellNoteForKey,

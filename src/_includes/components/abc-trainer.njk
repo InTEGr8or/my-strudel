@@ -1,0 +1,219 @@
+<style>
+#abc-trainer-panel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.5rem 0 0.25rem;
+    flex-wrap: wrap;
+}
+#abc-trainer-panel .score-item {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text);
+    opacity: 0.8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+}
+#abc-trainer-panel .score-item strong {
+    font-size: 1.4rem;
+    color: var(--accent);
+    opacity: 1;
+}
+#abc-trainer-panel .score-item.wrong strong { color: #dc3545; }
+#abc-trainer-panel button {
+    font-size: 0.9rem;
+    padding: 0.3rem 0.9rem;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: var(--panel-bg);
+    color: var(--text);
+    cursor: pointer;
+    font-weight: bold;
+}
+</style>
+
+<script type="application/json" id="abc-song-data">{{ abcSong | dump | safe }}</script>
+
+<div id="abc-trainer-panel">
+    <div class="score-item">Score<strong id="score-correct">0</strong></div>
+    <div class="score-item wrong">Wrong<strong id="score-wrong">0</strong></div>
+    <button id="play-btn" type="button" onclick="togglePlayTrainer()">
+        <span id="play-btn-icon">▶</span> <span id="play-btn-label">Play</span>
+    </button>
+    <button id="wait-btn" type="button" onclick="toggleWaitTrainer()" title="Advance only after the correct keys">Wait</button>
+    <button id="refresh-btn" type="button" onclick="refreshTrainer()">↻</button>
+    <label class="score-item" style="flex-direction:row;gap:0.3rem;cursor:pointer;user-select:none">
+        <input type="checkbox" id="play-wrong-toggle" checked onchange="togglePlayWrong(this.checked)">
+        <span style="opacity:0.7">Play wrong notes</span>
+    </label>
+    <div class="score-item" style="flex-direction:row;gap:0.4rem">
+        <input type="checkbox" id="metronome-toggle" onchange="toggleMetronome(this.checked)">
+        <label for="metronome-toggle">♫</label>
+        <input type="range" id="metro-bpm" min="20" max="200" value="80" style="width:140px;height:4px" oninput="updateBpm(this.value)">
+        <span id="bpm-label" style="font-size:0.8rem;opacity:0.7;min-width:2em">80</span>
+    </div>
+</div>
+
+<script>
+(function () {
+    var DATA = {};
+    try {
+        DATA = JSON.parse(document.getElementById('abc-song-data').textContent || '{}');
+    } catch (_) {
+        DATA = {};
+    }
+    var trainer = null;
+    var metroInterval = null;
+    var metroBpm = DATA.tempo || 80;
+    var metroBeat = 0;
+    var metroAudioCtx = null;
+
+    function metroClick(accent) {
+        try {
+            var ctx = metroAudioCtx || (metroAudioCtx = new (window.AudioContext || window.webkitAudioContext)());
+            if (ctx.state === 'suspended') ctx.resume();
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.frequency.value = accent ? 1200 : 800;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.04);
+        } catch (_) {}
+    }
+
+    window.toggleMetronome = function (on) {
+        if (on) {
+            metroBeat = 0;
+            if (metroInterval) clearInterval(metroInterval);
+            metroInterval = setInterval(function () {
+                metroClick(metroBeat % 4 === 0);
+                metroBeat++;
+            }, 60000 / metroBpm);
+        } else if (metroInterval) {
+            clearInterval(metroInterval);
+            metroInterval = null;
+        }
+    };
+
+    window.updateBpm = function (val) {
+        metroBpm = parseInt(val, 10);
+        var label = document.getElementById('bpm-label');
+        if (label) label.textContent = metroBpm;
+        if (trainer && trainer.setBpm) trainer.setBpm(metroBpm);
+        if (metroInterval) {
+            clearInterval(metroInterval);
+            metroBeat = 0;
+            metroInterval = setInterval(function () {
+                metroClick(metroBeat % 4 === 0);
+                metroBeat++;
+            }, 60000 / metroBpm);
+        }
+    };
+
+    function syncWaitButton(on) {
+        var btn = document.getElementById('wait-btn');
+        if (!btn) return;
+        btn.style.background = on ? 'var(--accent)' : 'var(--panel-bg)';
+        btn.style.color = on ? '#fff' : 'var(--text)';
+        btn.style.borderColor = on ? 'var(--accent)' : 'var(--border)';
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+
+    function syncPlayButton(playing) {
+        var icon = document.getElementById('play-btn-icon');
+        var label = document.getElementById('play-btn-label');
+        var btn = document.getElementById('play-btn');
+        if (!icon || !label || !btn) return;
+        icon.textContent = playing ? '⏸' : '▶';
+        label.textContent = playing ? 'Pause' : 'Play';
+        btn.style.background = playing ? 'var(--panel-bg)' : 'var(--accent)';
+        btn.style.color = playing ? 'var(--text)' : '#fff';
+        btn.style.borderColor = playing ? 'var(--border)' : 'var(--accent)';
+    }
+
+    window.toggleWaitTrainer = function () {
+        var next = !(trainer && trainer.getWait && trainer.getWait());
+        if (trainer && trainer.setWait) trainer.setWait(next);
+        syncWaitButton(next);
+    };
+
+    window.togglePlayTrainer = function () {
+        if (!trainer || !trainer.togglePlay) return;
+        var starting = trainer.isPaused ? trainer.isPaused() : true;
+        if (starting) {
+            if (trainer.setWait) trainer.setWait(false);
+            syncWaitButton(false);
+        }
+        syncPlayButton(trainer.togglePlay());
+    };
+
+    window.refreshTrainer = function () {
+        if (trainer) trainer.start();
+        syncPlayButton(false);
+        var btn = document.getElementById('refresh-btn');
+        if (btn) {
+            btn.style.transform = 'rotate(360deg)';
+            setTimeout(function () { btn.style.transform = ''; }, 400);
+        }
+    };
+
+    window.togglePlayWrong = function (on) {
+        localStorage.setItem('play-wrong-notes', on ? 'true' : 'false');
+        window.__playMidiFilter = on ? null : function (midiNote) {
+            if (!trainer) return true;
+            var notes = trainer.getNotes();
+            if (!notes || notes.length === 0) return true;
+            var target = notes[trainer.getPatternPos()];
+            return target && midiNote === trainer.posToMidi(target);
+        };
+    };
+
+    function init() {
+        var chart = document.querySelector('note-chart');
+        if (!window.__midiObservers || !window.createTrainer || !chart || !chart._ctx) {
+            setTimeout(init, 20);
+            return;
+        }
+        if (DATA.timeSignature) chart.timeSignature = DATA.timeSignature;
+        if (DATA.keySignature) chart.keySignature = DATA.keySignature;
+        if (DATA.tempo) chart.tempo = DATA.tempo;
+
+        var bpmSlider = document.getElementById('metro-bpm');
+        var bpmLabel = document.getElementById('bpm-label');
+        if (bpmSlider) bpmSlider.value = metroBpm;
+        if (bpmLabel) bpmLabel.textContent = metroBpm;
+
+        trainer = window.createTrainer({
+            chartEl: chart,
+            mode: 'tape-head',
+            scoreCorrectEl: document.getElementById('score-correct'),
+            scoreWrongEl: document.getElementById('score-wrong'),
+        });
+        trainer.setNotes(DATA.notes || [], DATA.rests || []);
+        trainer.setBpm(metroBpm);
+        trainer.setWait(true);
+        syncWaitButton(true);
+        syncPlayButton(false);
+        window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
+            trainer.onMidi(midiNote, isNoteOn, isNoteOff);
+        });
+        trainer.start();
+    }
+
+    var pwSaved = localStorage.getItem('play-wrong-notes');
+    if (pwSaved === 'false') {
+        var toggle = document.getElementById('play-wrong-toggle');
+        if (toggle) toggle.checked = false;
+        window.__playMidiFilter = function () { return true; };
+    }
+
+    setTimeout(init, 0);
+})();
+</script>

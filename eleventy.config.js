@@ -11,10 +11,11 @@ module.exports = function (eleventyConfig) {
     convertMuseScoreIncremental(srcDir, destDir);
   });
 
-  eleventyConfig.addTemplateFormats('strudel,tidal');
+  eleventyConfig.addTemplateFormats('strudel,tidal,abc');
 
   eleventyConfig.addExtension('strudel', strudelExtension);
   eleventyConfig.addExtension('tidal', strudelExtension);
+  eleventyConfig.addExtension('abc', abcExtension);
 
   eleventyConfig.addPassthroughCopy({ 'src/js': 'js' });
   eleventyConfig.addPassthroughCopy({ 'src/css': 'css' });
@@ -22,6 +23,7 @@ module.exports = function (eleventyConfig) {
 
   eleventyConfig.addWatchTarget('./data/musescore/');
   eleventyConfig.addWatchTarget('./src/lessons/');
+  eleventyConfig.addWatchTarget('./src/songs/sketches/');
 
   eleventyConfig.addShortcode('lessonNotes', function (lessonId) {
     const abcPath = path.join(__dirname, 'src', 'lessons', lessonId, 'exercises.abc');
@@ -55,7 +57,29 @@ module.exports = function (eleventyConfig) {
         }
       }
       return data.strudelCode;
-    }
+    },
+    abcSource: (data) => {
+      if (data.page.inputPath.endsWith('.md')) {
+        const songPath = path.join(path.dirname(data.page.inputPath), 'song.abc');
+        if (fs.existsSync(songPath)) {
+          return fs.readFileSync(songPath, 'utf-8');
+        }
+      }
+      return data.abcSource;
+    },
+    abcSong: (data) => {
+      const src = data.abcSource;
+      if (!src) return data.abcSong || null;
+      const result = parseAbc(src);
+      return {
+        title: result.title,
+        tempo: result.tempo || 80,
+        notes: result.notes,
+        rests: result.rests,
+        timeSignature: result.timeSignature,
+        keySignature: result.keySignature,
+      };
+    },
   });
 
   // Only use pathPrefix if we are in a GitHub Actions environment
@@ -98,9 +122,57 @@ const strudelExtension = {
 
     return {
       title: title,
+      type: 'strudel',
       strudelCode: content,
       // Prevent song.strudel from being generated as a standalone page
       permalink: filename === 'song.strudel' || filename === 'song.tidal' ? false : undefined
+    };
+  },
+};
+
+function isAbcCompanionFile(inputPath) {
+  const norm = inputPath.replace(/\\/g, '/');
+  const base = path.basename(norm);
+  if (base === 'song.abc' || base === 'exercises.abc') return true;
+  if (norm.includes('/songs/sight-reading/songs/')) return true;
+  if (norm.includes('/lessons/') && base.endsWith('.abc')) return true;
+  return false;
+}
+
+const abcExtension = {
+  compile: async (inputContent) => {
+    return async (data) => {
+      if (isAbcCompanionFile(data.page.inputPath) || data.page.fileSlug === 'song') {
+        return;
+      }
+      return '';
+    };
+  },
+  getData: async (inputPath) => {
+    if (isAbcCompanionFile(inputPath)) {
+      return {
+        permalink: false,
+        eleventyExcludeFromCollections: true,
+      };
+    }
+    const content = fs.readFileSync(inputPath, 'utf-8');
+    const result = parseAbc(content);
+    const filename = path.basename(inputPath);
+    const parentDir = path.basename(path.dirname(inputPath));
+    const title = result.title
+      || (filename === 'song.abc' ? parentDir : filename.replace(/\.abc$/, ''));
+    return {
+      title,
+      type: 'abc',
+      abcSource: content,
+      abcSong: {
+        title: result.title || title,
+        tempo: result.tempo || 80,
+        notes: result.notes,
+        rests: result.rests,
+        timeSignature: result.timeSignature,
+        keySignature: result.keySignature,
+      },
     };
   },
 };

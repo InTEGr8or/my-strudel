@@ -176,6 +176,25 @@
 <body>
     <h1>My Strudel Dashboard</h1>
 
+    {%- set hasTrainers = false -%}
+    {%- for item in collections.all -%}{%- if item.data.type === 'trainer' -%}{%- set hasTrainers = true -%}{%- endif -%}{%- endfor -%}
+    {%- if hasTrainers -%}
+    <h2 class="section-heading">Trainers</h2>
+    <div class="card-grid compact">
+    {%- for item in collections.all -%}
+      {%- if item.data.type === 'trainer' -%}
+        <div class="activity-card">
+            <div class="title">{{ item.data.title }}</div>
+            {%- if item.data.description -%}
+            <div class="desc">{{ item.data.description }}</div>
+            {%- endif -%}
+            <a href="{{ item.url }}" class="open-btn">Open ↗</a>
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+    </div>
+    {%- endif -%}
+
     {%- set hasLessons = false -%}
     {%- for item in collections.all -%}{%- if item.data.type === 'lesson' -%}{%- set hasLessons = true -%}{%- endif -%}{%- endfor -%}
     {%- if hasLessons -%}
@@ -192,6 +211,25 @@
             <div class="title">{{ item.data.title }}</div>
             <div class="desc">{{ item.data.description }}</div>
             <a href="{{ item.url }}" class="open-btn">Start Lesson ↗</a>
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+    </div>
+    {%- endif -%}
+
+    {%- set hasAbc = false -%}
+    {%- for item in collections.all -%}{%- if item.data.type === 'abc' -%}{%- set hasAbc = true -%}{%- endif -%}{%- endfor -%}
+    {%- if hasAbc -%}
+    <h2 class="section-heading">32-key practice</h2>
+    <div class="card-grid compact">
+    {%- for item in collections.all -%}
+      {%- if item.data.type === 'abc' -%}
+        <div class="activity-card">
+            <div class="title">{{ item.data.title }}</div>
+            {%- if item.data.description -%}
+            <div class="desc">{{ item.data.description }}</div>
+            {%- endif -%}
+            <a href="{{ item.url }}" class="open-btn">Open ↗</a>
         </div>
       {%- endif -%}
     {%- endfor -%}
@@ -225,7 +263,7 @@
     <h2 class="section-heading">Activities</h2>
     <div class="card-grid compact">
     {%- for item in collections.all -%}
-      {%- if item.data.type and item.data.type !== 'song' and item.data.type !== 'lesson' and not item.data.strudelCode and item.url -%}
+      {%- if item.data.type and item.data.type !== 'song' and item.data.type !== 'lesson' and item.data.type !== 'abc' and item.data.type !== 'trainer' and not item.data.strudelCode and item.url -%}
         <div class="activity-card">
             <div class="title">{{ item.data.title }}</div>
             {%- if item.data.description -%}

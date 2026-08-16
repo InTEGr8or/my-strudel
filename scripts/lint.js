@@ -24,6 +24,7 @@ const filesToLint = [
   'test/trainer-layout.test.js',
   'test/midi-abc-align.test.js',
   'test/trainer-store.test.js',
+  'test/abc-pages.test.js',
 ];
 
 let hasError = false;

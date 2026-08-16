@@ -1,7 +1,7 @@
 <header>
     <div class="controls">
         <a href="{{ '/' | htmlBaseUrl }}">← Home</a>
-        {% if type !== 'trainer' and type !== 'lesson' %}<button id="play-btn" class="primary">▶ PLAY</button>
+        {% if showStrudel %}<button id="play-btn" class="primary">▶ PLAY</button>
         <button id="stop-btn" style="background: #dc3545; color: white; border-color: #bd2130;">■ STOP</button>{% endif %}
     </div>
     <h1 style="font-size: 1.3rem; margin: 0; color: var(--highlight); text-transform: uppercase;">{{ title }}</h1>

@@ -19,14 +19,21 @@ test('note heads appear on sight-reading trainer after init', async ({ page }) =
   expect(Number(cy)).toBeGreaterThan(0);
 });
 
-test('normal song page renders note-chart SVG', async ({ page }) => {
+test('strudel song page has piano and no staff', async ({ page }) => {
   await page.goto('/songs/sketches/mary-had-a-little-lamb/');
+  await expect(page.locator('#piano-container')).toBeVisible({ timeout: 5000 });
+  await expect(page.locator('note-chart')).toHaveCount(0);
+  await expect(page.locator('#strudel-repl')).toBeVisible();
+});
+
+test('abc song page renders the tape staff', async ({ page }) => {
+  await page.goto('/songs/sketches/i-iv-v-i/');
   const svg = page.locator('note-chart svg');
   await expect(svg).toBeVisible({ timeout: 5000 });
-
   const bands = svg.locator('#staff-bands rect');
-  const bandCount = await bands.count();
-  expect(bandCount).toBeGreaterThan(0);
+  expect(await bands.count()).toBeGreaterThan(0);
+  await expect(page.locator('#abc-trainer-panel')).toBeVisible();
+  await expect(page.locator('#strudel-repl')).toHaveCount(0);
 });
 
 test('song selection via combobox changes notes and shows song title', async ({ page }) => {

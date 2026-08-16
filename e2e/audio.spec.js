@@ -24,7 +24,7 @@ test('synth voice selection works', async ({ page }) => {
 
 test('AudioContext is created and running after first click', async ({ page }) => {
   await page.goto('/songs/sketches/mary-had-a-little-lamb/');
-  await page.waitForSelector('note-chart svg');
+  await page.waitForSelector('#piano-container');
 
   expect(await page.evaluate(() => window.__midiAudioCtx())).toBeNull();
 
@@ -52,7 +52,7 @@ test('AudioContext initializes even when clicking stopPropagation elements (capt
 
 test('playMidiNote transitions AudioContext to running', async ({ page }) => {
   await page.goto('/songs/sketches/mary-had-a-little-lamb/');
-  await page.waitForSelector('note-chart svg');
+  await page.waitForSelector('#piano-container');
 
   await page.evaluate(() => window.selectVoice('triangle'));
   await page.evaluate(() => window.playMidiNote(60, 100));
@@ -66,7 +66,7 @@ test('playMidiNote transitions AudioContext to running', async ({ page }) => {
 
 test('handleMidiMessage continues processing when playMidiNote errors are isolated', async ({ page }) => {
   await page.goto('/songs/sketches/mary-had-a-little-lamb/');
-  await page.waitForSelector('note-chart svg');
+  await page.waitForSelector('#piano-container');
 
   await page.evaluate(() => {
     window.__midiObservers.push((note, on, off) => {
@@ -91,7 +91,7 @@ test('handleMidiMessage continues processing when playMidiNote errors are isolat
 
 test('soundfont loads and zone lookup succeeds', async ({ page }) => {
   await page.goto('/songs/sketches/mary-had-a-little-lamb/');
-  await page.waitForSelector('note-chart svg');
+  await page.waitForSelector('#piano-container');
   await page.locator('body').click();
   await page.waitForFunction(() => {
     const ctx = window.__midiAudioCtx();
@@ -111,7 +111,7 @@ test('soundfont loads and zone lookup succeeds', async ({ page }) => {
 
 test('decodeBuffer decodes audio data for MIDI 60', async ({ page }) => {
   await page.goto('/songs/sketches/mary-had-a-little-lamb/');
-  await page.waitForSelector('note-chart svg');
+  await page.waitForSelector('#piano-container');
   await page.locator('body').click();
   await page.waitForFunction(() => {
     const ctx = window.__midiAudioCtx();
@@ -147,7 +147,7 @@ test('decodeBuffer decodes audio data for MIDI 60', async ({ page }) => {
 
 test('grand-piano and fallback oscillator both produce no-throw output', async ({ page }) => {
   await page.goto('/songs/sketches/mary-had-a-little-lamb/');
-  await page.waitForSelector('note-chart svg');
+  await page.waitForSelector('#piano-container');
   await page.locator('body').click();
   await page.waitForFunction(() => {
     const ctx = window.__midiAudioCtx();
