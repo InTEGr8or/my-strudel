@@ -77,4 +77,9 @@ if (fs.existsSync(gotAbcPath)) {
   console.log('PASS: parseAbc correctly extracts Q:1/4=168 score tempo (got 168 BPM)');
 }
 
+const synthSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/scripts/synth.njk'), 'utf-8');
+assert.strictEqual(synthSrc.includes("htmlBaseUrl"), true, 'soundfont fetch must use htmlBaseUrl so GitHub Pages /my-strudel/ works');
+assert.strictEqual(synthSrc.includes("fetch(`/soundfonts/"), false, 'soundfont fetch must not be root-absolute');
+console.log('PASS: soundfont URLs are prefixed for GitHub Pages');
+
 console.log('\nAll trainer layout, MIDI cross-reference & score tempo unit tests PASSED cleanly.');

@@ -7,9 +7,12 @@ let midiAudioCtx = null;
 window.__midiAudioCtx = () => midiAudioCtx;
 const fontCache = {};
 
+const SOUNDFONT_BASE = "{{ '/soundfonts/' | htmlBaseUrl }}";
+
 async function loadFontData(name) {
     if (fontCache[name]) return fontCache[name];
-    const text = await fetch(`/soundfonts/${name}.js`).then(r => {
+    const url = SOUNDFONT_BASE + name + '.js';
+    const text = await fetch(url).then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.text();
     });

@@ -1,12 +1,16 @@
 <script>
-// probe one font on load to set status
+// probe each soundfont on load so a single 404 does not mark both dead
 (async () => {
     try {
         await loadFontData(SF_FONTS['grand-piano']);
         sfStatus('piano', true);
-        sfStatus('epiano', true);
     } catch (_) {
         sfStatus('piano', false);
+    }
+    try {
+        await loadFontData(SF_FONTS['epiano']);
+        sfStatus('epiano', true);
+    } catch (_) {
         sfStatus('epiano', false);
     }
 })();
