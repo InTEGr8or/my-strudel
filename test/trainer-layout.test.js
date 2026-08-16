@@ -80,6 +80,11 @@ if (fs.existsSync(gotAbcPath)) {
 const synthSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/scripts/synth.njk'), 'utf-8');
 assert.strictEqual(synthSrc.includes("htmlBaseUrl"), true, 'soundfont fetch must use htmlBaseUrl so GitHub Pages /my-strudel/ works');
 assert.strictEqual(synthSrc.includes("fetch(`/soundfonts/"), false, 'soundfont fetch must not be root-absolute');
+assert.strictEqual(synthSrc.includes('0040_JCLive_sf2_file'), true, 'Wurlitzer uses JCLive electric piano 1');
+assert.strictEqual(synthSrc.includes('0060_JCLive_sf2_file'), true, 'Harpsichord uses JCLive program 6');
+assert.ok(fs.existsSync(path.join(__dirname, '../src/soundfonts/0040_JCLive_sf2_file.js')));
+assert.ok(fs.existsSync(path.join(__dirname, '../src/soundfonts/0060_JCLive_sf2_file.js')));
 console.log('PASS: soundfont URLs are prefixed for GitHub Pages');
+console.log('PASS: Wurlitzer and Harpsichord soundfonts are vendored');
 
 console.log('\nAll trainer layout, MIDI cross-reference & score tempo unit tests PASSED cleanly.');

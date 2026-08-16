@@ -8,12 +8,20 @@ test('soundfont files are served', async ({ page }) => {
   const r2 = await page.request.get('/soundfonts/0050_JCLive_sf2_file.js');
   expect(r2.ok()).toBeTruthy();
   expect((await r2.text()).length).toBeGreaterThan(1000);
+
+  const r3 = await page.request.get('/soundfonts/0040_JCLive_sf2_file.js');
+  expect(r3.ok()).toBeTruthy();
+  expect((await r3.text()).length).toBeGreaterThan(1000);
+
+  const r4 = await page.request.get('/soundfonts/0060_JCLive_sf2_file.js');
+  expect(r4.ok()).toBeTruthy();
+  expect((await r4.text()).length).toBeGreaterThan(1000);
 });
 
 test('synth voice selection works', async ({ page }) => {
   await page.goto('/songs/sketches/mary-had-a-little-lamb/');
   await page.locator('.tab[data-tab="synth"]').click();
-  await page.waitForSelector('#piano-status', { state: 'attached' });
+  await page.waitForSelector('#grand-piano-status', { state: 'attached' });
 
   await page.locator('[data-voice="triangle"]').click();
   await expect(page.locator('[data-voice="triangle"]')).toHaveClass(/active/);

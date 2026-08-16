@@ -23,7 +23,8 @@ async function loadFontData(name) {
 }
 
 function findZone(preset, pitch) {
-    return preset.find(z => z.keyRangeLow <= pitch && z.keyRangeHigh + 1 >= pitch);
+    const zones = Array.isArray(preset) ? preset : (preset && preset.zones) || [];
+    return zones.find(z => z.keyRangeLow <= pitch && z.keyRangeHigh + 1 >= pitch);
 }
 
 function decodeBuffer(zone, ac) {
@@ -37,14 +38,16 @@ function decodeBuffer(zone, ac) {
     });
 }
 
-function sfStatus(type, ok) {
-    const el = document.getElementById(type === 'piano' ? 'piano-status' : 'epiano-status');
+function sfStatus(id, ok) {
+    const el = document.getElementById(id + '-status');
     if (el) { el.textContent = ok ? '✓' : '⚠'; el.style.color = ok ? '#28a745' : '#dc3545'; }
 }
 
 const SF_FONTS = {
     'grand-piano': '0000_JCLive_sf2_file',
+    'wurlitzer': '0040_JCLive_sf2_file',
     'epiano': '0050_JCLive_sf2_file',
+    'harpsichord': '0060_JCLive_sf2_file',
 };
 
 async function playFromLocalSoundfont(midiNote, vol, voiceType) {
@@ -113,9 +116,25 @@ function playFallbackEpiano(midiNote, vol) {
     });
 }
 
+function playFallbackHarpsichord(midiNote, vol) {
+    const freq = midiToFreq(midiNote);
+    const osc = midiAudioCtx.createOscillator();
+    const g = midiAudioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(vol * 0.35, midiAudioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, midiAudioCtx.currentTime + 0.35);
+    osc.connect(g);
+    g.connect(midiAudioCtx.destination);
+    osc.start();
+    osc.stop(midiAudioCtx.currentTime + 0.4);
+}
+
 const VOICES = {
     'grand-piano': { type: 'sf', label: 'Grand Piano', fallback: playFallbackPiano },
+    'wurlitzer': { type: 'sf', label: 'Wurlitzer', fallback: playFallbackEpiano },
     'epiano': { type: 'sf', label: 'Roland EP', fallback: playFallbackEpiano },
+    'harpsichord': { type: 'sf', label: 'Harpsichord', fallback: playFallbackHarpsichord },
     'triangle': { type: 'osc', label: 'Triangle' },
     'sine': { type: 'osc', label: 'Sine' },
     'sawtooth': { type: 'osc', label: 'Sawtooth' },

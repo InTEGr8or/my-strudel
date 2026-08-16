@@ -1,19 +1,12 @@
 <script>
-// probe each soundfont on load so a single 404 does not mark both dead
-(async () => {
-    try {
-        await loadFontData(SF_FONTS['grand-piano']);
-        sfStatus('piano', true);
-    } catch (_) {
-        sfStatus('piano', false);
-    }
-    try {
-        await loadFontData(SF_FONTS['epiano']);
-        sfStatus('epiano', true);
-    } catch (_) {
-        sfStatus('epiano', false);
-    }
-})();
+// probe each soundfont on load so a single 404 does not mark the others dead
+Object.keys(SF_FONTS).forEach(function (id) {
+    loadFontData(SF_FONTS[id]).then(function () {
+        sfStatus(id, true);
+    }).catch(function () {
+        sfStatus(id, false);
+    });
+});
 
 document.querySelectorAll('.synth-voice').forEach(el => el.classList.toggle('active', el.dataset.voice === selectedVoice));
 
