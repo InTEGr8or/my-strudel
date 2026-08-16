@@ -10,11 +10,14 @@
     }
 
     function removeGhosts() {
+      var layer = chart.querySelector('#head-ghosts');
+      if (layer) layer.innerHTML = '';
       shared.ghostEls.forEach(function (el) { if (el.parentNode) el.remove(); });
       shared.ghostEls = [];
     }
 
     function renderHeldAtHead(customX) {
+      removeGhosts();
       if (shared.destroyed) return;
       if (shared.activeMidiNotes.size === 0) return;
       var ctx = chart._ctx;
@@ -22,8 +25,8 @@
       var spacing = getSpacing();
       var cx = customX !== undefined ? customX : (ctx.LEFT_PAD + 30 + spacing * (shared.patternPos + 1));
       shared.activeMidiNotes.forEach(function (midi) {
-        var name = U.midiToNatural(midi).replace('s', '');
-        var el = chart.renderNoteHead(name, 'ghost', cx, true);
+        var name = U.midiToNatural(midi);
+        var el = chart.renderNoteHead(name, 'ghost', cx, false);
         if (el) shared.ghostEls.push(el);
       });
     }
@@ -82,7 +85,6 @@
       var ctx = chart._ctx;
       var cx = ctx.LEFT_PAD + 30 + spacing * shared.patternPos;
       chart.renderNoteHead(U.noteName(shared.windowNotes[shared.patternPos - 1]), 'correct', cx, true);
-      removeGhosts();
       setTimeout(function () {
         if (shared.patternPos >= shared.patternSize) {
           shared.busy = false;
@@ -101,7 +103,6 @@
       shared.updateScore();
       chart.clearNoteHeads();
       renderWindow();
-      renderHeldAtHead();
       shared.busy = false;
     }
 
@@ -109,26 +110,19 @@
       if (shared.destroyed) return;
       if (isNoteOn) {
         shared.activeMidiNotes.add(midiNote);
-        if (shared.windowNotes.length === 0 || shared.busy || shared.patternPos >= shared.windowNotes.length) {
-          renderHeldAtHead();
-          return;
+        if (shared.windowNotes.length > 0 && !shared.busy && shared.patternPos < shared.windowNotes.length) {
+          var target = shared.windowNotes[shared.patternPos];
+          if (target && midiNote === U.posToMidi(target)) {
+            handleCorrect();
+          } else {
+            handleWrong();
+          }
         }
-        var target = shared.windowNotes[shared.patternPos];
-        if (target && midiNote === U.posToMidi(target)) {
-          removeGhosts();
-          handleCorrect();
-        } else {
-          handleWrong();
-        }
+        renderHeldAtHead();
       } else if (isNoteOff) {
         shared.activeMidiNotes.delete(midiNote);
-        if (shared.activeMidiNotes.size > 0) {
-          removeGhosts();
-          renderHeldAtHead();
-        } else {
-          removeGhosts();
-        }
-        if (shared.ghostEls.length === 0 && !shared.busy) {
+        renderHeldAtHead();
+        if (shared.activeMidiNotes.size === 0 && !shared.busy) {
           renderWindow();
         }
       }

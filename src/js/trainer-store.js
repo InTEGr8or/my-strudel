@@ -12,6 +12,7 @@
       timeSignature: null,
       keySignature: [],
       patternSize: 1,
+      wait: false,
     }, initial || {});
     var listeners = [];
 

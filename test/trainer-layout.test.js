@@ -34,6 +34,7 @@ console.log('PASS: parseAbc parses all chord notes simultaneously with identical
 
 // Test 4: Verify SVG Vector Rest Shapes in note-chart.js
 const noteChartCode = fs.readFileSync(path.join(__dirname, '../src/js/note-chart.js'), 'utf-8');
+assert.strictEqual(noteChartCode.includes("id=\"head-ghosts\""), true, 'held keys draw in a fixed #head-ghosts layer at the tape head');
 assert.strictEqual(noteChartCode.includes('renderRest('), true, 'renderRest method exists');
 assert.strictEqual(!noteChartCode.includes("symbol = '𝄽'"), true, 'renderRest no longer relies on unicode text glyphs');
 assert.strictEqual(noteChartCode.includes("createElementNS(svgNs, 'rect')"), true, 'renderRest uses SVG vector rects/paths');
@@ -54,6 +55,9 @@ assert.strictEqual(trainerPage.includes('createTrainerStore'), true, 'sight-read
 assert.strictEqual(trainerPage.includes('playing: songChanged ? false : s.get().playing'), true, 'song change sets store.playing to false');
 assert.strictEqual(trainerPage.includes('syncPlayButton'), true, 'play button is driven from store.playing');
 assert.strictEqual(trainerPage.includes('function ensureStore'), true, 'store is created lazily so the page script can load before trainer-store.js');
+assert.strictEqual(trainerPage.includes('toggleWaitTrainer'), true, 'Wait button sits next to Play');
+assert.strictEqual(trainerPage.includes("localStorage.setItem('tape-wait'"), true, 'Wait is persisted in localStorage');
+assert.strictEqual(trainerPage.includes("localStorage.setItem('tape-wait', 'false')"), true, 'Play turns Wait off');
 console.log('PASS: song selection updates #metro-bpm and resets Play via the trainer store');
 
 // Test 7: Verify parseAbc Q: tempo header parsing

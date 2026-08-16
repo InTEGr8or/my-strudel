@@ -138,24 +138,18 @@ test('held notes render as ghosts at the HEAD position', async ({ page }) => {
 
   await page.waitForFunction(function () {
     var chart = document.querySelector('note-chart');
-    var heads = chart && chart.querySelector('#note-heads');
-    return heads && heads.querySelectorAll('ellipse').length > 0;
-  });
-
-  var before = await page.evaluate(function () {
-    var chart = document.querySelector('note-chart');
-    var heads = chart.querySelector('#note-heads');
-    return heads.querySelectorAll('ellipse').length;
+    return chart && chart.querySelector('#head-ghosts');
   });
 
   await page.evaluate(function () {
     var event = { data: [0x90, 61, 100] };
-    window.handleMidiMessage(event);
+    if (typeof handleMidiMessage === 'function') handleMidiMessage(event);
+    else if (window.handleMidiMessage) window.handleMidiMessage(event);
   });
 
-  await page.waitForFunction(function (expected) {
+  await page.waitForFunction(function () {
     var chart = document.querySelector('note-chart');
-    var heads = chart && chart.querySelector('#note-heads');
-    return heads && heads.querySelectorAll('ellipse').length > expected;
-  }, before);
+    var ghosts = chart && chart.querySelector('#head-ghosts');
+    return ghosts && ghosts.querySelectorAll('ellipse').length >= 1;
+  });
 });

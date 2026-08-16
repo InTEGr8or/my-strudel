@@ -54,12 +54,20 @@ note-chart svg {
     height: auto;
 }
 
+/* Should-note names (F5, B♭4, …). Must beat the dark-mode svg text fill. */
+note-chart svg text.target-note-label {
+    fill: #00e5ff;
+}
+
 @media (prefers-color-scheme: dark) {
     #note-chart-container {
         background: var(--abc-bg, #111);
     }
     note-chart svg text {
         fill: var(--abc-text, #eee);
+    }
+    note-chart svg text.target-note-label {
+        fill: #00e5ff;
     }
     note-chart svg line {
         stroke: var(--abc-text, #eee);

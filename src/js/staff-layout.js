@@ -94,6 +94,98 @@
     return ts.top * (4 / bottom);
   }
 
+  /**
+   * First unmatched note at the current onset with this MIDI pitch.
+   * Used so three near-simultaneous note-ons can each claim a chord member.
+   */
+  function matchMidiAtOnset(notes, playedSet, missedSet, midiNote, waitBeat, posToMidi) {
+    if (!notes || typeof posToMidi !== 'function' || typeof midiNote !== 'number') return -1;
+    var best = -1;
+    for (var i = 0; i < notes.length; i++) {
+      if (playedSet && playedSet.has(i)) continue;
+      if (missedSet && missedSet.has(i)) continue;
+      if (waitBeat != null && Math.abs(notes[i].startBeat - waitBeat) > 0.05) continue;
+      if (posToMidi(notes[i]) !== midiNote) continue;
+      if (best === -1 || notes[i].startBeat < notes[best].startBeat) best = i;
+    }
+    return best;
+  }
+
+  var SCALE_MIDI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  var SHARP_PC = [
+    ['C', 0], ['C', 1], ['D', 0], ['D', 1], ['E', 0], ['F', 0],
+    ['F', 1], ['G', 0], ['G', 1], ['A', 0], ['A', 1], ['B', 0],
+  ];
+  var FLAT_PC = [
+    ['C', 0], ['D', -1], ['D', 0], ['E', -1], ['E', 0], ['F', 0],
+    ['G', -1], ['G', 0], ['A', -1], ['A', 0], ['B', -1], ['B', 0],
+  ];
+
+  function midiOfNote(n) {
+    if (!n) return null;
+    if (typeof n.midi === 'number') return n.midi;
+    var step = SCALE_MIDI[n.note];
+    if (step === undefined) return null;
+    return (n.oct + 1) * 12 + step + (n.alter || 0);
+  }
+
+  function keyPrefersFlats(keySig) {
+    return !!(keySig && keySig.some(function (k) { return k.acc === 'flat'; }));
+  }
+
+  function keyPrefersSharps(keySig) {
+    return !!(keySig && keySig.some(function (k) { return k.acc === 'sharp'; }));
+  }
+
+  function spellMidiForKey(midi, keySig) {
+    var table = keyPrefersFlats(keySig) ? FLAT_PC : SHARP_PC;
+    var oct = Math.floor(midi / 12) - 1;
+    var pair = table[((midi % 12) + 12) % 12];
+    return { note: pair[0], oct: oct, alter: pair[1] };
+  }
+
+  function spellNoteForKey(n, keySig) {
+    if (!n) return n;
+    if (n.accidental === 'natural') {
+      return { note: n.note, oct: n.oct, alter: 0, accidental: 'natural' };
+    }
+    var midi = midiOfNote(n);
+    if (midi == null || (!keyPrefersFlats(keySig) && !keyPrefersSharps(keySig))) {
+      return n;
+    }
+    var spelled = spellMidiForKey(midi, keySig);
+    return {
+      note: spelled.note,
+      oct: spelled.oct,
+      alter: spelled.alter,
+      accidental: spelled.alter === 1 ? 'sharp' : (spelled.alter === -1 ? 'flat' : null),
+      midi: midi,
+    };
+  }
+
+  function staffNoteLabel(n, keySig) {
+    if (!n || !n.note) return '';
+    var s = spellNoteForKey(n, keySig);
+    var glyph = '';
+    if (s.accidental === 'natural') glyph = '♮';
+    else if (s.accidental === 'double-sharp' || s.alter === 2) glyph = '𝄪';
+    else if (s.accidental === 'double-flat' || s.alter === -2) glyph = '𝄫';
+    else if (s.accidental === 'sharp' || s.alter === 1) glyph = '♯';
+    else if (s.accidental === 'flat' || s.alter === -1) glyph = '♭';
+    return s.note.toUpperCase() + glyph + String(s.oct);
+  }
+
+  function nextUnplayedStartBeat(notes, playedSet, missedSet) {
+    if (!notes || notes.length === 0) return null;
+    var next = Infinity;
+    for (var i = 0; i < notes.length; i++) {
+      if (playedSet && playedSet.has(i)) continue;
+      if (missedSet && missedSet.has(i)) continue;
+      if (notes[i].startBeat < next) next = notes[i].startBeat;
+    }
+    return next === Infinity ? null : next;
+  }
+
   function noteStaff(n) {
     if (n && n.voice !== undefined && n.voice !== null) {
       return n.voice === 0 ? 'treble' : 'bass';
@@ -107,6 +199,11 @@
   root.ledgerStaffIndices = ledgerStaffIndices;
   root.noteStaff = noteStaff;
   root.quarterBeatsPerBar = quarterBeatsPerBar;
+  root.nextUnplayedStartBeat = nextUnplayedStartBeat;
+  root.matchMidiAtOnset = matchMidiAtOnset;
+  root.staffNoteLabel = staffNoteLabel;
+  root.spellNoteForKey = spellNoteForKey;
+  root.spellMidiForKey = spellMidiForKey;
   root.BASS_BOTTOM = BASS_BOTTOM;
   root.TREBLE_TOP = TREBLE_TOP;
   root.MIDDLE_C = MIDDLE_C;
@@ -118,6 +215,11 @@
       ledgerStaffIndices: ledgerStaffIndices,
       noteStaff: noteStaff,
       quarterBeatsPerBar: quarterBeatsPerBar,
+      nextUnplayedStartBeat: nextUnplayedStartBeat,
+      matchMidiAtOnset: matchMidiAtOnset,
+      staffNoteLabel: staffNoteLabel,
+      spellNoteForKey: spellNoteForKey,
+      spellMidiForKey: spellMidiForKey,
       BASS_BOTTOM: BASS_BOTTOM,
       TREBLE_TOP: TREBLE_TOP,
       MIDDLE_C: MIDDLE_C,

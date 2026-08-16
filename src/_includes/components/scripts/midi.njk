@@ -10,7 +10,7 @@ function staffNote(noteName, on) {
 
 window.__midiObservers = [];
 
-function handleMidiMessage(event) {
+window.handleMidiMessage = function handleMidiMessage(event) {
     const [status, midiNote, velocity] = event.data;
     const isNoteOn = (status & 0xf0) === 0x90 && velocity > 0;
     const isNoteOff = (status & 0xf0) === 0x80 || ((status & 0xf0) === 0x90 && velocity === 0);

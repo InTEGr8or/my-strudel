@@ -1,6 +1,6 @@
 const assert = require('assert');
 const { createTrainerStore } = require('../src/js/trainer-store');
-const { computeStaffLayout, ledgerStaffIndices, indexToPitch, quarterBeatsPerBar } = require('../src/js/staff-layout');
+const { computeStaffLayout, ledgerStaffIndices, indexToPitch, quarterBeatsPerBar, nextUnplayedStartBeat, matchMidiAtOnset, staffNoteLabel } = require('../src/js/staff-layout');
 
 console.log('Testing trainer store and staff layout...');
 
@@ -29,7 +29,48 @@ store.set({ playing: false });
 assert.strictEqual(seen, null, 'unsubscribed listener does not run');
 assert.strictEqual(afterUnsub, 1);
 
-console.log('PASS: trainer store resets playing on song change and notifies subscribers');
+const waitStore = createTrainerStore({ wait: true, playing: false });
+assert.strictEqual(waitStore.get().wait, true, 'wait is a first-class store flag');
+waitStore.set({ songTitle: 'Take Five', playing: false });
+assert.strictEqual(waitStore.get().wait, true, 'song change must not clear wait');
+console.log('PASS: trainer store keeps wait across song changes');
+
+const ns = [
+  { startBeat: 0 },
+  { startBeat: 0 },
+  { startBeat: 1 },
+  { startBeat: 2 },
+];
+assert.strictEqual(nextUnplayedStartBeat(ns, new Set(), new Set()), 0);
+assert.strictEqual(nextUnplayedStartBeat(ns, new Set([0]), new Set()), 0, 'chord sibling still holds the head');
+assert.strictEqual(nextUnplayedStartBeat(ns, new Set([0, 1]), new Set()), 1);
+assert.strictEqual(nextUnplayedStartBeat(ns, new Set([0, 1, 2, 3]), new Set()), null);
+const chord = [
+  { startBeat: 0, midi: 60 },
+  { startBeat: 0, midi: 64 },
+  { startBeat: 0, midi: 67 },
+  { startBeat: 1, midi: 60 },
+];
+const played = new Set();
+const pitch = (n) => n.midi;
+assert.strictEqual(matchMidiAtOnset(chord, played, new Set(), 60, 0, pitch), 0);
+played.add(0);
+assert.strictEqual(matchMidiAtOnset(chord, played, new Set(), 64, 0, pitch), 1);
+played.add(1);
+assert.strictEqual(matchMidiAtOnset(chord, played, new Set(), 67, 0, pitch), 2);
+played.add(2);
+assert.strictEqual(nextUnplayedStartBeat(chord, played, new Set()), 1, 'tape advances only after the full triad');
+assert.strictEqual(matchMidiAtOnset(chord, played, new Set(), 60, 0, pitch), -1, 'already-claimed pitch is not rematched at this onset');
+played.delete(0);
+assert.strictEqual(matchMidiAtOnset(chord, played, new Set(), 60, 0, pitch), 0, 'a later attack of the same pitch can match if that member is still open');
+const fMajor = [{ note: 'B', oct: 4, acc: 'flat' }];
+assert.strictEqual(staffNoteLabel({ note: 'B', oct: 4, alter: -1 }, fMajor), 'B♭4', 'F major spells Bb, not A#');
+assert.strictEqual(staffNoteLabel({ note: 'A', oct: 4, alter: 1, midi: 70 }, fMajor), 'B♭4', 'MIDI A# is labeled B♭ in a flat key');
+assert.strictEqual(staffNoteLabel({ note: 'F', oct: 5, alter: 1 }), 'F♯5');
+assert.strictEqual(staffNoteLabel({ note: 'A', oct: 5, alter: 0 }), 'A5');
+assert.strictEqual(staffNoteLabel({ note: 'B', oct: 4, alter: 0, accidental: 'natural' }, fMajor), 'B♮4');
+console.log('PASS: target labels include the accidental the player should expect');
+console.log('PASS: three simultaneous note-ons each claim a chord member without a busy lock');
 
 const layout = computeStaffLayout(1);
 assert.strictEqual(layout.LEFT_MARGIN, 50, '50px left of the staff');

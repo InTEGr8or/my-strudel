@@ -95,11 +95,14 @@
     }
 
     function removeGhosts() {
+      var layer = chart.querySelector('#head-ghosts');
+      if (layer) layer.innerHTML = '';
       state.ghostEls.forEach(function (el) { if (el.parentNode) el.remove(); });
       state.ghostEls = [];
     }
 
-    function renderHeldAtHead(customX) {
+    function renderHeldAtHead(customX, nameForMidi) {
+      removeGhosts();
       if (state.destroyed) return;
       if (state.activeMidiNotes.size === 0) return;
       var ctx = chart._ctx;
@@ -108,8 +111,8 @@
       var spacing = staffW / (WINDOW_SIZE + 1);
       var cx = customX !== undefined ? customX : (ctx.LEFT_PAD + 30 + spacing * (state.patternPos + 1));
       state.activeMidiNotes.forEach(function (midi) {
-        var name = U.midiToNatural(midi).replace('s', '');
-        var el = chart.renderNoteHead(name, 'ghost', cx, true);
+        var name = typeof nameForMidi === 'function' ? nameForMidi(midi) : U.midiToNatural(midi);
+        var el = chart.renderNoteHead(name, 'ghost', cx, false);
         if (el) state.ghostEls.push(el);
       });
     }
@@ -178,6 +181,12 @@
       },
       getBpm: function () {
         return tapeTrainer ? tapeTrainer.getBpm() : 80;
+      },
+      setWait: function (on) {
+        if (tapeTrainer && tapeTrainer.setWait) tapeTrainer.setWait(on);
+      },
+      getWait: function () {
+        return tapeTrainer && tapeTrainer.getWait ? tapeTrainer.getWait() : false;
       },
       destroy: function () {
         state.destroyed = true;

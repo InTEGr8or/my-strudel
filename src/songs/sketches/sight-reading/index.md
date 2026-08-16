@@ -171,6 +171,9 @@ note-chart {
     <button id="play-btn" style="font-size:0.9rem;padding:0.3rem 0.9rem;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-weight:bold;display:inline-flex;align-items:center;gap:0.3rem" onclick="togglePlayTrainer()">
         <span id="play-btn-icon">▶</span> <span id="play-btn-label">Play</span>
     </button>
+    <button id="wait-btn" style="font-size:0.9rem;padding:0.3rem 0.9rem;border-radius:8px;border:2px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;font-weight:bold;display:inline-flex;align-items:center;gap:0.3rem" onclick="toggleWaitTrainer()" title="Advance only after the correct keys">
+        Wait
+    </button>
     <button id="refresh-btn" style="font-size:0.9rem;padding:0.3rem 0.8rem;border-radius:8px;border:2px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;transition:transform 0.3s ease" onclick="refreshTrainer()">↻</button>
     <label class="score-item" style="font-size:0.8rem;flex-direction:row;gap:0.3rem;cursor:pointer;user-select:none">
         <input type="checkbox" id="play-wrong-toggle" checked onchange="togglePlayWrong(this.checked)">
@@ -206,6 +209,7 @@ note-chart {
         store = window.createTrainerStore({
             playing: false,
             bpm: parseInt(localStorage.getItem('tape-bpm'), 10) || 80,
+            wait: localStorage.getItem('tape-wait') === 'true',
         });
         store.subscribe(function (state, prev) {
             if (state.playing !== prev.playing) {
@@ -213,6 +217,10 @@ note-chart {
                     trainer.pause();
                 }
                 syncPlayButton(state.playing);
+            }
+            if (state.wait !== prev.wait) {
+                syncWaitButton(state.wait);
+                if (trainer && trainer.setWait) trainer.setWait(state.wait);
             }
         });
         return store;
@@ -255,6 +263,15 @@ note-chart {
             if (metroInterval) { clearInterval(metroInterval); metroInterval = null; }
         }
     };
+
+    function syncWaitButton(on) {
+        const btn = document.getElementById('wait-btn');
+        if (!btn) return;
+        btn.style.background = on ? 'var(--accent)' : 'var(--panel-bg)';
+        btn.style.color = on ? '#fff' : 'var(--text)';
+        btn.style.borderColor = on ? 'var(--accent)' : 'var(--border)';
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
 
     function syncPlayButton(playing) {
         const icon = document.getElementById('play-btn-icon');
@@ -555,6 +572,11 @@ note-chart {
             rangeEl: document.getElementById('trainer-range'),
         });
         trainer.setBpm(metroBpm);
+        var waitOn = false;
+        var initStore = ensureStore();
+        if (initStore) waitOn = !!initStore.get().wait;
+        if (trainer.setWait) trainer.setWait(waitOn);
+        syncWaitButton(waitOn);
         document.getElementById('trainer-range').addEventListener('change', function () {
             applySong();
             trainer.start();
@@ -568,14 +590,31 @@ note-chart {
         loadSongs();
     }
 
+    window.toggleWaitTrainer = function () {
+        var s = ensureStore();
+        var next = s ? !s.get().wait : true;
+        localStorage.setItem('tape-wait', next ? 'true' : 'false');
+        if (s) s.set({ wait: next });
+        else {
+            if (trainer && trainer.setWait) trainer.setWait(next);
+            syncWaitButton(next);
+        }
+    };
+
     window.togglePlayTrainer = function () {
         if (!trainer) return;
-        if (trainer.togglePlay) {
-            const playing = trainer.togglePlay();
-            var playStore = ensureStore();
-            if (playStore) playStore.set({ playing: playing });
-            else syncPlayButton(playing);
+        if (!trainer.togglePlay) return;
+        var s = ensureStore();
+        var starting = trainer.isPaused ? trainer.isPaused() : true;
+        if (starting) {
+            localStorage.setItem('tape-wait', 'false');
+            if (s) s.set({ wait: false });
+            else if (trainer.setWait) trainer.setWait(false);
+            syncWaitButton(false);
         }
+        var playing = trainer.togglePlay();
+        if (s) s.set({ playing: playing });
+        else syncPlayButton(playing);
     };
 
     window.refreshTrainer = function () {

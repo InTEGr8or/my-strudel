@@ -196,6 +196,7 @@ class NoteChart extends HTMLElement {
         // Staff content container (player overlays: note heads, bar lines, head line)
         svg += `<g id="staff-content">`;
         svg += `</g>`;
+        svg += `<g id="head-ghosts"></g>`;
 
         svg += `</svg>`;
         this.innerHTML = svg;
@@ -298,19 +299,21 @@ class NoteChart extends HTMLElement {
 
         const centerX = cx !== undefined ? cx : (LEFT_PAD + STAFF_R) / 2;
         const y = getY(note, oct);
-        const headW = SPACING * 1.2;
-        const headH = SPACING * 0.75;
+        const headW = type === 'ghost' ? SPACING * 1.65 : SPACING * 1.2;
+        const headH = type === 'ghost' ? SPACING * 1.05 : SPACING * 0.75;
         const stemLen = SPACING * 3.5;
 
-        let g = this.querySelector('#note-heads');
+        const groupId = type === 'ghost' ? 'head-ghosts' : 'note-heads';
+        let g = this.querySelector('#' + groupId);
         if (!g) {
             g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-            g.setAttribute('id', 'note-heads');
+            g.setAttribute('id', groupId);
             const sc = this.querySelector('#staff-content') || this.querySelector('svg');
             sc.appendChild(g);
         }
         const svgNs = 'http://www.w3.org/2000/svg';
         const el = document.createElementNS(svgNs, 'g');
+        if (type === 'ghost') el.setAttribute('data-ghost', '1');
         el.style.transition = 'transform 150ms ease-out';
 
         // ledger lines: only outside the staves (plus middle C). B2 is on the bass staff.
@@ -345,9 +348,9 @@ class NoteChart extends HTMLElement {
             : { name: 'quarter', dotted: false, hollow: false, stem: true, flags: 0 };
         const isDotted = classified.dotted;
         const isHollow = classified.hollow;
-        const hasStem = classified.stem;
-        const hideFlags = opts && opts.hideFlags;
+        const hideFlags = type === 'ghost' || (opts && opts.hideFlags);
         const flagCount = hideFlags ? 0 : (classified.flags || 0);
+        const hasStem = type !== 'ghost' && classified.stem;
 
         // note head
         const head = document.createElementNS(svgNs, 'ellipse');
@@ -373,9 +376,9 @@ class NoteChart extends HTMLElement {
             head.setAttribute('stroke-width', 2 * scale);
         } else if (type === 'ghost') {
             head.setAttribute('fill', 'none');
-            head.setAttribute('stroke', staffColor);
-            head.setAttribute('stroke-width', 1.5 * scale);
-            head.setAttribute('stroke-dasharray', `${3 * scale} ${2 * scale}`);
+            head.setAttribute('stroke', accentColor);
+            head.setAttribute('stroke-width', 2 * scale);
+            head.setAttribute('stroke-dasharray', `${4 * scale} ${3 * scale}`);
         } else if (type === 'pending') {
             head.setAttribute('fill', isHollow ? 'none' : staffColor);
             head.setAttribute('stroke', staffColor);
@@ -469,14 +472,15 @@ class NoteChart extends HTMLElement {
             label.setAttribute('y', y);
             label.setAttribute('text-anchor', 'middle');
             label.setAttribute('dominant-baseline', 'central');
+            label.setAttribute('class', 'target-note-label');
+            label.setAttribute('fill', '#00e5ff');
+            label.style.fill = '#00e5ff';
             if (type === 'correct') {
                 label.setAttribute('font-size', `${28 * scale}`);
                 label.setAttribute('font-weight', 'bold');
-                label.setAttribute('fill', '#28a745');
             } else {
                 label.setAttribute('font-size', `${24 * scale}`);
                 label.setAttribute('font-weight', '300');
-                label.setAttribute('fill', staffColor);
                 label.setAttribute('opacity', '0.5');
             }
             label.style.animation = 'note-label-fade 500ms ease-out 250ms forwards';
