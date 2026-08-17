@@ -1,5 +1,7 @@
+{% if loadAbcjs %}
 <script>
 window.addEventListener('load', () => {
+    if (typeof ABCJS === 'undefined') return;
     document.querySelectorAll('code.language-abc').forEach((el) => {
         const pre = el.parentNode;
         const target = document.createElement('div');
@@ -9,3 +11,4 @@ window.addEventListener('load', () => {
     });
 });
 </script>
+{% endif %}

@@ -95,6 +95,32 @@
   }
 
   /**
+   * Conducting pulses in a bar. 4/4 → 4, 3/4 → 3, 2/2 → 2,
+   * 6/8 and 12/8 use the dotted-quarter (2 and 4).
+   */
+  function metroBeatsPerBar(ts) {
+    if (!ts || !ts.top) return 4;
+    var bottom = ts.bottom || 4;
+    if (bottom === 8 && ts.top % 3 === 0) return ts.top / 3;
+    return ts.top;
+  }
+
+  /**
+   * Length of one metronome pulse in quarter notes, given a slider
+   * that is quarter-notes-per-minute (same unit as the tape).
+   */
+  function metroBeatDurationQuarters(ts) {
+    if (!ts || !ts.bottom) return 1;
+    if (ts.bottom === 8 && ts.top && ts.top % 3 === 0) return 1.5;
+    return 4 / ts.bottom;
+  }
+
+  function metroIntervalMs(bpm, ts) {
+    var q = metroBeatDurationQuarters(ts);
+    return (60000 / (bpm || 80)) * q;
+  }
+
+  /**
    * First unmatched note at the current onset with this MIDI pitch.
    * Used so three near-simultaneous note-ons can each claim a chord member.
    */
@@ -251,6 +277,9 @@
   root.ledgerStaffIndices = ledgerStaffIndices;
   root.noteStaff = noteStaff;
   root.quarterBeatsPerBar = quarterBeatsPerBar;
+  root.metroBeatsPerBar = metroBeatsPerBar;
+  root.metroBeatDurationQuarters = metroBeatDurationQuarters;
+  root.metroIntervalMs = metroIntervalMs;
   root.nextUnplayedStartBeat = nextUnplayedStartBeat;
   root.analyzeNoteRange = analyzeNoteRange;
   root.fitsKeyboard = fitsKeyboard;
@@ -270,6 +299,9 @@
       ledgerStaffIndices: ledgerStaffIndices,
       noteStaff: noteStaff,
       quarterBeatsPerBar: quarterBeatsPerBar,
+      metroBeatsPerBar: metroBeatsPerBar,
+      metroBeatDurationQuarters: metroBeatDurationQuarters,
+      metroIntervalMs: metroIntervalMs,
       nextUnplayedStartBeat: nextUnplayedStartBeat,
       analyzeNoteRange: analyzeNoteRange,
       fitsKeyboard: fitsKeyboard,

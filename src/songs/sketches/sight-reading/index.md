@@ -1,7 +1,7 @@
 ---
 title: Sight Reading Trainer
 type: trainer
-description: Practice reading notes on the grand staff with your MIDI keyboard. Notes highlight green on correct, ghost on wrong.
+description: "Practice reading notes on the grand staff with your MIDI keyboard. Random is a baby-steps path: singles, then two notes, then triads."
 ---
 
 <style>
@@ -251,14 +251,26 @@ note-chart {
         } catch (_) {}
     }
 
+    function currentTimeSig() {
+        var chart = document.querySelector('note-chart');
+        return (chart && chart.timeSignature) || { top: 4, bottom: 4 };
+    }
+
+    function startMetroClicks() {
+        if (metroInterval) clearInterval(metroInterval);
+        metroBeat = 0;
+        var ts = currentTimeSig();
+        var perBar = window.metroBeatsPerBar ? window.metroBeatsPerBar(ts) : (ts.top || 4);
+        var ms = window.metroIntervalMs ? window.metroIntervalMs(metroBpm, ts) : (60000 / metroBpm);
+        metroInterval = setInterval(function () {
+            metroClick(metroBeat % perBar === 0);
+            metroBeat++;
+        }, ms);
+    }
+
     window.toggleMetronome = function (on) {
         if (on) {
-            metroBeat = 0;
-            if (metroInterval) clearInterval(metroInterval);
-            metroInterval = setInterval(function () {
-                metroClick(metroBeat % 4 === 0);
-                metroBeat++;
-            }, 60000 / metroBpm);
+            startMetroClicks();
         } else {
             if (metroInterval) { clearInterval(metroInterval); metroInterval = null; }
         }
@@ -292,14 +304,7 @@ note-chart {
         if (trainer && trainer.setBpm) trainer.setBpm(metroBpm);
         var s = store || ensureStore();
         if (s && s.get().bpm !== metroBpm) s.set({ bpm: metroBpm });
-        if (metroInterval) {
-            clearInterval(metroInterval);
-            metroBeat = 0;
-            metroInterval = setInterval(function () {
-                metroClick(metroBeat % 4 === 0);
-                metroBeat++;
-            }, 60000 / metroBpm);
-        }
+        if (metroInterval) startMetroClicks();
     };
 
     function applySong() {
@@ -350,19 +355,79 @@ note-chart {
                     if (typeof window.updateBpm === 'function') window.updateBpm(song.tempo);
                 }
                 lastSongTitle = title;
+                currentBabyStepId = null;
+                if (metroInterval) startMetroClicks();
                 return;
             }
         }
-        if (heading) {
-            heading.textContent = 'Random Sight Reading';
-            heading.title = 'random';
-        }
         if (songEl) songEl.title = 'random';
         lastSongTitle = '';
-        const randomStore = ensureStore();
-        if (randomStore) randomStore.set({ songId: null, songTitle: '', notes: null, rests: [], playing: false });
-        else syncPlayButton(false);
-        trainer.setNotes(null);
+        applyBabyStep();
+    }
+
+    var currentBabyStepId = null;
+
+    function applyBabyStep() {
+        var step = window.nextBabyStep ? window.nextBabyStep() : null;
+        if (!step && window.generateBabyStep) {
+            currentBabyStepId = null;
+            var review = window.generateBabyStep('review-triads');
+            var headingAll = document.getElementById('song-title-heading');
+            if (headingAll) {
+                headingAll.textContent = 'Baby steps complete — review';
+                headingAll.title = 'review-triads';
+            }
+            trainer.setNotes(review, []);
+            var chartAll = document.querySelector('note-chart');
+            if (chartAll) {
+                chartAll.timeSignature = { top: 4, bottom: 4 };
+                chartAll.keySignature = [];
+                chartAll.tempo = 72;
+            }
+            var reviewStore = ensureStore();
+            if (reviewStore) reviewStore.set({ songId: 'baby-steps-review', songTitle: 'Baby steps complete — review', notes: review, rests: [], playing: false });
+            else syncPlayButton(false);
+            if (metroInterval) startMetroClicks();
+            if (trainer) trainer.start();
+            return;
+        }
+        currentBabyStepId = step ? step.id : 'singles-five-finger';
+        var notes = window.generateBabyStep ? window.generateBabyStep(currentBabyStepId) : [];
+        var label = step ? ('Baby steps: ' + step.title) : 'Baby steps';
+        var headingEl = document.getElementById('song-title-heading');
+        if (headingEl) {
+            headingEl.textContent = label;
+            headingEl.title = currentBabyStepId;
+        }
+        trainer.setNotes(notes, []);
+        var chart = document.querySelector('note-chart');
+        if (chart) {
+            chart.timeSignature = { top: 4, bottom: 4 };
+            chart.keySignature = [];
+            chart.tempo = 72;
+        }
+        var babyStore = ensureStore();
+        if (babyStore) {
+            babyStore.set({
+                songId: currentBabyStepId,
+                songTitle: label,
+                notes: notes,
+                rests: [],
+                playing: false,
+            });
+        } else {
+            syncPlayButton(false);
+        }
+        if (metroInterval) startMetroClicks();
+        if (trainer) trainer.start();
+    }
+
+    function onBabyStepComplete(result) {
+        if (!result || !result.allCorrect) return;
+        if (!currentBabyStepId || !window.markBabyStepComplete) return;
+        window.markBabyStepComplete(currentBabyStepId);
+        applyBabyStep();
+        if (trainer) trainer.start();
     }
 
     function loadSongs() {
@@ -570,6 +635,7 @@ note-chart {
             scoreCorrectEl: document.getElementById('score-correct'),
             scoreWrongEl: document.getElementById('score-wrong'),
             rangeEl: document.getElementById('trainer-range'),
+            onExerciseComplete: onBabyStepComplete,
         });
         trainer.setBpm(metroBpm);
         var waitOn = false;

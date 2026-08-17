@@ -29,6 +29,8 @@
       updateScore: null,
       removeGhosts: null,
       renderHeldAtHead: null,
+      onExerciseComplete: config.onExerciseComplete || null,
+      _exerciseDone: false,
     };
 
     function getRange() {

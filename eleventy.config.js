@@ -20,6 +20,8 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'src/js': 'js' });
   eleventyConfig.addPassthroughCopy({ 'src/css': 'css' });
   eleventyConfig.addPassthroughCopy({ 'src/soundfonts': 'soundfonts' });
+  eleventyConfig.addPassthroughCopy({ 'src/favicon.svg': 'favicon.svg' });
+  eleventyConfig.addPassthroughCopy({ 'src/favicon.png': 'favicon.png' });
 
   eleventyConfig.addWatchTarget('./data/musescore/');
   eleventyConfig.addWatchTarget('./src/lessons/');

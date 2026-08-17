@@ -12,6 +12,9 @@ console.log('Testing ABC song pages and 32-key range...');
 
 const layout = fs.readFileSync(path.join(root, 'src/_includes/layout.njk'), 'utf-8');
 assert.strictEqual(layout.includes('showStaff'), true, 'layout computes showStaff');
+assert.strictEqual(layout.includes("loadAbcjs = type != 'trainer'"), true, 'trainer pages skip ABCJS/cdnjs');
+const headInc = fs.readFileSync(path.join(root, 'src/_includes/components/head.njk'), 'utf-8');
+assert.strictEqual(headInc.includes('{% if showStrudel %}'), true, 'Strudel CDN loads only on Strudel pages');
 assert.strictEqual(layout.includes("type == 'abc'"), true, 'ABC pages show the staff');
 assert.strictEqual(layout.includes('{% if showStaff %}'), true, 'staff is gated');
 assert.strictEqual(layout.includes("{% if showStrudel %}"), true, 'strudel editor is gated');
@@ -20,6 +23,12 @@ console.log('PASS: layout shows staff on ABC/trainer/lesson and hides it on Stru
 
 const header = fs.readFileSync(path.join(root, 'src/_includes/components/header.njk'), 'utf-8');
 assert.strictEqual(header.includes('showStrudel'), true, 'header Play/Stop only on Strudel pages');
+const head = fs.readFileSync(path.join(root, 'src/_includes/components/head.njk'), 'utf-8');
+const home = fs.readFileSync(path.join(root, 'src/index.njk'), 'utf-8');
+assert.strictEqual(head.includes("'/favicon.svg' | htmlBaseUrl"), true, 'layout pages link the favicon with the Pages prefix');
+assert.strictEqual(home.includes("'/favicon.svg' | htmlBaseUrl"), true, 'dashboard links the favicon with the Pages prefix');
+assert.ok(fs.existsSync(path.join(root, 'src/favicon.svg')), 'favicon.svg is in src/');
+console.log('PASS: favicon is on the dashboard and every layout page');
 
 const eleventy = fs.readFileSync(path.join(root, 'eleventy.config.js'), 'utf-8');
 assert.strictEqual(eleventy.includes("addTemplateFormats('strudel,tidal,abc')"), true, 'Eleventy registers .abc pages');
@@ -32,6 +41,7 @@ const sketches = [
   'src/songs/sketches/i-iv-v-i/song.abc',
   'src/songs/sketches/fifties-progression/song.abc',
   'src/songs/sketches/carol-ostinato/song.abc',
+  'src/songs/sketches/old-macdonald/song.abc',
 ];
 for (const rel of sketches) {
   const abc = fs.readFileSync(path.join(root, rel), 'utf-8');

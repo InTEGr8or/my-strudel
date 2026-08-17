@@ -1,6 +1,6 @@
 const assert = require('assert');
 const { createTrainerStore } = require('../src/js/trainer-store');
-const { computeStaffLayout, ledgerStaffIndices, indexToPitch, quarterBeatsPerBar, nextUnplayedStartBeat, matchMidiAtOnset, staffNoteLabel } = require('../src/js/staff-layout');
+const { computeStaffLayout, ledgerStaffIndices, indexToPitch, quarterBeatsPerBar, nextUnplayedStartBeat, matchMidiAtOnset, staffNoteLabel, metroBeatsPerBar, metroBeatDurationQuarters, metroIntervalMs } = require('../src/js/staff-layout');
 
 console.log('Testing trainer store and staff layout...');
 
@@ -71,6 +71,18 @@ assert.strictEqual(staffNoteLabel({ note: 'A', oct: 5, alter: 0 }), 'A5');
 assert.strictEqual(staffNoteLabel({ note: 'B', oct: 4, alter: 0, accidental: 'natural' }, fMajor), 'B♮4');
 console.log('PASS: target labels include the accidental the player should expect');
 console.log('PASS: three simultaneous note-ons each claim a chord member without a busy lock');
+
+assert.strictEqual(metroBeatsPerBar({ top: 4, bottom: 4 }), 4);
+assert.strictEqual(metroBeatsPerBar({ top: 3, bottom: 4 }), 3);
+assert.strictEqual(metroBeatsPerBar({ top: 5, bottom: 4 }), 5);
+assert.strictEqual(metroBeatsPerBar({ top: 2, bottom: 2 }), 2);
+assert.strictEqual(metroBeatsPerBar({ top: 6, bottom: 8 }), 2, '6/8 conducts in two dotted quarters');
+assert.strictEqual(metroBeatDurationQuarters({ top: 4, bottom: 4 }), 1);
+assert.strictEqual(metroBeatDurationQuarters({ top: 2, bottom: 2 }), 2);
+assert.strictEqual(metroBeatDurationQuarters({ top: 6, bottom: 8 }), 1.5);
+assert.strictEqual(metroIntervalMs(120, { top: 4, bottom: 4 }), 500);
+assert.strictEqual(metroIntervalMs(120, { top: 6, bottom: 8 }), 750);
+console.log('PASS: metronome pulse follows the time signature, not a hard-coded 4/4');
 
 const layout = computeStaffLayout(1);
 assert.strictEqual(layout.LEFT_MARGIN, 50, '50px left of the staff');

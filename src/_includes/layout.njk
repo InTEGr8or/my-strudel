@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+{%- set showStrudel = strudelCode and type != 'trainer' and type != 'lesson' -%}
+{%- set showStaff = type == 'trainer' or type == 'lesson' or type == 'abc' or abcSource -%}
+{%- set loadAbcjs = type != 'trainer' and type != 'abc' -%}
 <head>
     {% include 'components/head.njk' %}
 </head>
 <body{% if type %} data-type="{{ type }}"{% endif %}>
-    {%- set showStrudel = strudelCode and type != 'trainer' and type != 'lesson' -%}
-    {%- set showStaff = type == 'trainer' or type == 'lesson' or type == 'abc' or abcSource -%}
     {% include 'components/header.njk' %}
 
     <div class="app-container">
@@ -35,7 +36,9 @@
         {% include 'components/sidebar.njk' %}
     </div>
 
+    {% if showStrudel %}
     <strudel-editor id="preview-repl" style="position: absolute; visibility: hidden; width: 0; height: 0;"></strudel-editor>
+    {% endif %}
 
     {% include 'components/device-config.njk' %}
     {% include 'components/scripts/piano.njk' %}

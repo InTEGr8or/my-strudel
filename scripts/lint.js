@@ -15,16 +15,19 @@ const filesToLint = [
   'src/js/duration.js',
   'src/js/staff-layout.js',
   'src/js/trainer-store.js',
+  'src/js/baby-steps.js',
   'src/shared/parse-abc.js',
   'scripts/build-musescore.js',
   'scripts/musicxml-to-abc.js',
   'scripts/verify-midi-abc.js',
+  'scripts/run-tests.js',
   'test/bar-structure.test.js',
   'test/song-selector.test.js',
   'test/trainer-layout.test.js',
   'test/midi-abc-align.test.js',
   'test/trainer-store.test.js',
   'test/abc-pages.test.js',
+  'test/baby-steps.test.js',
 ];
 
 let hasError = false;

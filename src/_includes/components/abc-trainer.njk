@@ -88,15 +88,26 @@
         } catch (_) {}
     }
 
+    function currentTimeSig() {
+        var chart = document.querySelector('note-chart');
+        return (chart && chart.timeSignature) || (DATA.timeSignature) || { top: 4, bottom: 4 };
+    }
+
+    function startMetroClicks() {
+        if (metroInterval) clearInterval(metroInterval);
+        metroBeat = 0;
+        var ts = currentTimeSig();
+        var perBar = window.metroBeatsPerBar ? window.metroBeatsPerBar(ts) : (ts.top || 4);
+        var ms = window.metroIntervalMs ? window.metroIntervalMs(metroBpm, ts) : (60000 / metroBpm);
+        metroInterval = setInterval(function () {
+            metroClick(metroBeat % perBar === 0);
+            metroBeat++;
+        }, ms);
+    }
+
     window.toggleMetronome = function (on) {
-        if (on) {
-            metroBeat = 0;
-            if (metroInterval) clearInterval(metroInterval);
-            metroInterval = setInterval(function () {
-                metroClick(metroBeat % 4 === 0);
-                metroBeat++;
-            }, 60000 / metroBpm);
-        } else if (metroInterval) {
+        if (on) startMetroClicks();
+        else if (metroInterval) {
             clearInterval(metroInterval);
             metroInterval = null;
         }
@@ -107,14 +118,7 @@
         var label = document.getElementById('bpm-label');
         if (label) label.textContent = metroBpm;
         if (trainer && trainer.setBpm) trainer.setBpm(metroBpm);
-        if (metroInterval) {
-            clearInterval(metroInterval);
-            metroBeat = 0;
-            metroInterval = setInterval(function () {
-                metroClick(metroBeat % 4 === 0);
-                metroBeat++;
-            }, 60000 / metroBpm);
-        }
+        if (metroInterval) startMetroClicks();
     };
 
     function syncWaitButton(on) {

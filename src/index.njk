@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Strudel Dashboard</title>
+    <link rel="icon" href="{{ '/favicon.svg' | htmlBaseUrl }}" type="image/svg+xml">
+    <link rel="icon" href="{{ '/favicon.png' | htmlBaseUrl }}" type="image/png" sizes="32x32">
     <script>window.process = { env: { NODE_ENV: 'production' } };</script>
     <script src="https://unpkg.com/@strudel/repl"></script>
     <style>
@@ -240,7 +242,7 @@
     <div class="card-grid">
     {%- set songCount = 0 -%}
     {%- for item in collections.all -%}
-      {%- if item.data.strudelCode and item.url -%}
+      {%- if item.data.strudelCode and item.url and item.data.type !== 'abc' -%}
         {%- set songCount = songCount + 1 -%}
         <div class="song-card" id="card-{{ songCount }}">
             <div class="song-card-header">

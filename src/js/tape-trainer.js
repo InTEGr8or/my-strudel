@@ -171,8 +171,24 @@
             notes.push({ note: second.note, oct: second.oct, startBeat: i, duration: 1 });
           }
         });
+      } else if (window.generateBabyStep) {
+        var step = window.nextBabyStep ? window.nextBabyStep() : null;
+        notes = window.generateBabyStep(step ? step.id : 'singles-five-finger') || [];
+        shared.notes = notes;
       } else {
         notes = [];
+        var letters = ['C', 'D', 'E', 'F', 'G', 'G', 'F', 'E', 'D', 'C'];
+        for (var rep = 0; rep < 2; rep++) {
+          for (var li = 0; li < letters.length; li++) {
+            notes.push({
+              note: letters[li],
+              oct: 4,
+              startBeat: rep * letters.length + li,
+              duration: 1,
+            });
+          }
+        }
+        shared.notes = notes;
       }
       notes.sort(function (a, b) { return a.startBeat - b.startBeat; });
       if (notes.length > 0) {
@@ -392,6 +408,18 @@
       startTimestamp = 0;
     }
 
+    function maybeFinishExercise() {
+      if (!notes.length || !playedSet || !missedSet) return;
+      if (playedSet.size + missedSet.size < notes.length) return;
+      if (shared._exerciseDone) return;
+      shared._exerciseDone = true;
+      if (typeof shared.onExerciseComplete === 'function') {
+        shared.onExerciseComplete({
+          allCorrect: missedSet.size === 0 && playedSet.size === notes.length,
+        });
+      }
+    }
+
     function handleCorrect(idx) {
       if (playedSet.has(idx)) return;
       playedSet.add(idx);
@@ -402,6 +430,7 @@
         setNoteType(heads.children[idx], 'correct');
       }
       maybeAdvanceWait();
+      maybeFinishExercise();
     }
 
     function handleWrong() {
@@ -496,6 +525,7 @@
     function start() {
       playedSet = new Set();
       missedSet = new Set();
+      shared._exerciseDone = false;
       currentBeat = 0;
       startTimestamp = 0;
       paused = true;

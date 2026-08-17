@@ -1,12 +1,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ title }} - Strudel Kids Lab</title>
+<link rel="icon" href="{{ '/favicon.svg' | htmlBaseUrl }}" type="image/svg+xml">
+<link rel="icon" href="{{ '/favicon.png' | htmlBaseUrl }}" type="image/png" sizes="32x32">
 <script>window.process = { env: { NODE_ENV: 'production' } };</script>
 <script src="/js/duration.js"></script>
 <script src="/js/staff-layout.js"></script>
 <script src="/js/trainer-store.js"></script>
+<script src="{{ '/js/baby-steps.js' | htmlBaseUrl }}"></script>
+{% if showStrudel %}
 <script src="https://unpkg.com/@strudel/repl"></script>
+{% endif %}
+{% if loadAbcjs %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/6.4.1/abcjs-basic-min.js"></script>
+{% endif %}
 <link rel="stylesheet" href="/css/vars.css">
 <link rel="stylesheet" href="/css/layout.css">
 <link rel="stylesheet" href="/css/piano.css">
