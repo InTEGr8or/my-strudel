@@ -15,6 +15,7 @@ const filesToLint = [
   'src/js/duration.js',
   'src/js/staff-layout.js',
   'src/js/staff-player.js',
+  'src/js/freq-lab.js',
   'src/js/trainer-store.js',
   'src/js/baby-steps.js',
   'src/js/abc-highlight.js',
@@ -34,6 +35,7 @@ const filesToLint = [
   'test/abc-source.test.js',
   'test/lesson-foundations.test.js',
   'test/staff-player.test.js',
+  'test/freq-lab.test.js',
 ];
 
 let hasError = false;

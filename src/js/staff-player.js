@@ -90,9 +90,50 @@
     return n.letter + acc + n.oct;
   }
 
+  /**
+   * Where to scroll after this player is finished.
+   * An advance="#id" attribute wins. Otherwise the next heading or
+   * the start of the next try-it (text that leads into a staff-player).
+   */
+  function nextScrollTarget(player) {
+    if (!player) return null;
+    var sel = player.getAttribute && player.getAttribute('advance');
+    if (sel && typeof document !== 'undefined' && document.querySelector) {
+      var hit = document.querySelector(sel);
+      if (hit) return hit;
+    }
+    var start = null;
+    var n = player.nextElementSibling;
+    while (n) {
+      var tag = n.tagName;
+      if (tag === 'H2' || tag === 'H3' || tag === 'STAFF-PLAYER') {
+        return start || n;
+      }
+      if (!start) start = n;
+      n = n.nextElementSibling;
+    }
+    return start;
+  }
+
+  function nextStaffPlayer(player) {
+    if (typeof document === 'undefined' || !document.querySelectorAll) return null;
+    var all = document.querySelectorAll('staff-player');
+    var found = false;
+    for (var i = 0; i < all.length; i++) {
+      if (all[i] === player) {
+        found = true;
+        continue;
+      }
+      if (found && !all[i]._done) return all[i];
+    }
+    return null;
+  }
+
   root.parsePlayerNotes = parsePlayerNotes;
   root.whiteCountForWidth = whiteCountForWidth;
   root.midisCenteredOnC4 = midisCenteredOnC4;
+  root.nextScrollTarget = nextScrollTarget;
+  root.nextStaffPlayer = nextStaffPlayer;
 
   if (typeof customElements === 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
@@ -100,6 +141,8 @@
         parsePlayerNotes: parsePlayerNotes,
         whiteCountForWidth: whiteCountForWidth,
         midisCenteredOnC4: midisCenteredOnC4,
+        nextScrollTarget: nextScrollTarget,
+        nextStaffPlayer: nextStaffPlayer,
         N32_LOW: N32_LOW,
         N32_HIGH: N32_HIGH,
         CENTER_MIDI: CENTER_MIDI,
@@ -245,7 +288,7 @@
     }
 
     _onPitch(midi, opts) {
-      this._arm();
+      if (opts && opts.play) this._arm();
       if (StaffPlayer.active !== this) return;
       if (this._done) return;
       var name = midiToNoteName(midi);
@@ -288,16 +331,17 @@
     _complete() {
       if (this._done) return;
       this._done = true;
+      this._held.clear();
+      this._syncGhosts();
       this._clearShouldKeys();
       var chart = this.querySelector('note-chart');
       if (chart && chart.clearShouldLabels) chart.clearShouldLabels();
-      var sel = this.getAttribute('advance');
-      if (sel) {
-        var el = document.querySelector(sel);
-        if (el && el.scrollIntoView) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+      var target = nextScrollTarget(this);
+      if (target && target.scrollIntoView) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
+      var nxt = nextStaffPlayer(this);
+      if (nxt) StaffPlayer.active = nxt;
       this.dispatchEvent(new CustomEvent('staff-player-done', { bubbles: true }));
     }
 
@@ -392,6 +436,8 @@
       parsePlayerNotes: parsePlayerNotes,
       whiteCountForWidth: whiteCountForWidth,
       midisCenteredOnC4: midisCenteredOnC4,
+      nextScrollTarget: nextScrollTarget,
+      nextStaffPlayer: nextStaffPlayer,
       N32_LOW: N32_LOW,
       N32_HIGH: N32_HIGH,
       CENTER_MIDI: CENTER_MIDI,

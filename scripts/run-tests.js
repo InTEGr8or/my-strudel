@@ -23,6 +23,7 @@ const suites = [
   { name: 'baby-steps', cmd: ['node', 'test/baby-steps.test.js'] },
   { name: 'foundations', cmd: ['node', 'test/lesson-foundations.test.js'] },
   { name: 'staff-player', cmd: ['node', 'test/staff-player.test.js'] },
+  { name: 'freq-lab', cmd: ['node', 'test/freq-lab.test.js'] },
 ];
 
 const nameW = Math.max(...suites.map((s) => s.name.length));

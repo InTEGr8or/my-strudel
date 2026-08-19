@@ -5,6 +5,7 @@ const {
   parsePlayerNotes,
   whiteCountForWidth,
   midisCenteredOnC4,
+  nextScrollTarget,
   N32_LOW,
   N32_HIGH,
   CENTER_MIDI,
@@ -48,7 +49,18 @@ assert.strictEqual(src.includes('data-extent="base"'), true, 'inline player uses
 assert.strictEqual(src.includes('staff-player-keys'), true, 'inline player has a compact piano');
 assert.strictEqual(src.includes('playMidiNote'), true, 'compact keys share the page synth');
 assert.strictEqual(src.includes('showShouldLabel'), true, 'wrong keys show the should-note');
-assert.strictEqual(src.includes('advance'), true, 'a player can scroll the lesson forward');
+assert.strictEqual(src.includes('nextScrollTarget'), true, 'finishing a player finds the next section');
+assert.strictEqual(src.includes('nextStaffPlayer'), true, 'MIDI hands off to the next player');
+
+function fake(tag, next) {
+  return { tagName: tag, nextElementSibling: next || null, getAttribute: function () { return null; } };
+}
+const h3 = fake('H3');
+const player = fake('STAFF-PLAYER', h3);
+assert.strictEqual(nextScrollTarget(player), h3, 'a finished player scrolls to the next heading');
+const p = fake('P', fake('STAFF-PLAYER'));
+const mid = fake('STAFF-PLAYER', p);
+assert.strictEqual(nextScrollTarget(mid), p, 'the next try-it starts at the text before the next player');
 
 const layout = fs.readFileSync(path.join(__dirname, '../src/_includes/layout.njk'), 'utf-8');
 assert.strictEqual(layout.includes('staff-player.js'), true, 'layout loads the inline player');

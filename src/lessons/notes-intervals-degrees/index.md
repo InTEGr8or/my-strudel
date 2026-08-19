@@ -20,19 +20,6 @@ templateEngineOverride: njk
 #lesson-content .def { background: var(--panel-bg); border-left: 4px solid var(--accent); padding: 0.7rem 1rem; border-radius: 0 10px 10px 0; margin: 0.8rem 0 1.1rem; }
 #lesson-content table { width: 100%; border-collapse: collapse; margin: 0.8rem 0 1.2rem; font-size: 0.95rem; }
 #lesson-content th, #lesson-content td { border-bottom: 1px solid var(--border); padding: 0.35rem 0.45rem; text-align: left; }
-#freq-lab { background: var(--panel-bg); border: 2px solid var(--border); border-radius: 14px; padding: 1rem 1.1rem; margin: 1rem 0 1.4rem; }
-#freq-lab .freq-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem; }
-#freq-hz { font-size: 1.6rem; font-weight: 800; color: var(--accent); min-width: 5.5rem; }
-#freq-note { font-size: 1.25rem; font-weight: 800; }
-#freq-slider { width: 100%; display: block; }
-#freq-lab .freq-marks { display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.7; }
-#freq-lab .freq-wave-box { margin-top: 0.75rem; width: 100%; }
-#freq-lab .freq-wave-box canvas {
-    display: block; width: 100%; height: 140px;
-    background: #071208; border-radius: 6px; border: 2px solid #1a3d1a;
-}
-#freq-lab .freq-wave-legend { font-size: 0.8rem; opacity: 0.85; margin-top: 0.35rem; line-height: 1.45; }
-#freq-lab .setting-switch { width: auto; min-width: 7.5rem; margin: 0; }
 #trainer-panel { display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 0.5rem 0; flex-wrap: wrap; }
 .score-item { text-align: center; font-size: 0.9rem; color: var(--text); opacity: 0.8; display: flex; flex-direction: column; }
 .score-item strong { font-size: 1.2rem; color: var(--accent); }
@@ -76,27 +63,31 @@ templateEngineOverride: njk
 
 <staff-player notes="A3,B3,C4,D4,E4,F4,G4"></staff-player>
 
-<p>After G comes A again — the next <strong>octave</strong>.</p>
+<h3 id="octave">Octave</h3>
 
-<h3>Why do piano books often start at C?</h3>
+<div class="def">An <span class="word">octave</span> is the same letter, one “same-but-higher” (or lower) away. After G the letters start over at A. Count 1 on the first C and 8 on the next C. <em>Octo</em> means eight.</div>
 
-<p>We do <strong>not</strong> have to start at C. The letter list still begins at A. About a thousand years ago in Europe, people named the notes A through G, starting at A, just like the alphabet.</p>
+<p>We write the octave with a number: <strong>C4</strong> is middle C, <strong>C5</strong> is the C above it.</p>
 
-<p>If you play only the <strong>white keys from A to A</strong>, the tune has a softer, sadder color. That list is called <strong>A minor</strong>. If you play only the <strong>white keys from C to C</strong>, the tune has a brighter color. That list is called <strong>C major</strong>.</p>
+<p><strong>A4</strong> is often tuned to <strong>440</strong> vibrations per second. The A one octave higher is <strong>880</strong> — twice as many. You do not need that number to play. Slide it so you can <em>hear</em> one octave.</p>
 
-<p>Piano lessons often start at C because <strong>C major uses only white keys</strong> and sounds like many children’s songs. It is a handy door, not the start of the alphabet. Later we will start lists on other letters too.</p>
+<p>The small Donner keyboard only goes up to <strong>C5</strong> (~523). The slider can go past that, up to A5, so you can hear a full A-to-A octave. Tap <strong>Tone</strong> for a short sound. Double-tap, or press and slide, to keep it on while you move the slider.</p>
 
-<h3>Octave</h3>
+<p><strong>Hertz</strong> means “how many full waves in one second.” The screen below is a <strong>tenth of a second</strong> wide, so 440 Hz draws 44 waves here (440 in a whole second) and 880 Hz draws 88.</p>
 
-<div class="def">An <span class="word">octave</span> is the same letter, one “same-but-higher” (or lower) away. Count 1 on the first C and 8 on the next C. <em>Octo</em> means eight.</div>
+<freq-lab></freq-lab>
 
-<p>A good guitar picture: play a string open, then press at the <strong>12th fret</strong>. Same letter, one octave higher. On the piano, C to the next C is the same jump.</p>
+<p>Now play C4, then C5. Same letter, one octave. Do it four times.</p>
 
-<p>We write the octave with a number: <strong>C4</strong> is middle C, <strong>C5</strong> is the C above it. Play both:</p>
+<staff-player notes="C4,C5,C4,C5,C4,C5,C4,C5"></staff-player>
 
-<staff-player notes="C4,C5"></staff-player>
+<h3 id="octave-d">Octave in D</h3>
 
-<h3>Sharp and flat</h3>
+<p>There is an octave for every note. C to C is one. D to the next D is the same jump, just starting on D. Play D, then the D above it, four times.</p>
+
+<staff-player notes="D3,D4,D3,D4,D3,D4,D3,D4"></staff-player>
+
+<h3 id="sharp-flat">Sharp and flat</h3>
 
 <p>The black keys have two names.</p>
 
@@ -106,7 +97,7 @@ templateEngineOverride: njk
 
 <staff-player notes="F4,F#4,G4"></staff-player>
 
-<h3>Semitone and whole step</h3>
+<h3 id="semitone">Semitone and whole step</h3>
 
 <div class="def">A <span class="word">semitone</span> (half step) is the distance to the very next key, black or white. A <span class="word">whole step</span> is two semitones (skip one key).</div>
 
@@ -114,40 +105,13 @@ templateEngineOverride: njk
 
 <staff-player notes="C4,C#4,D4"></staff-player>
 
-<h3>Tonic (home)</h3>
+<h3 id="tonic">Tonic (home)</h3>
 
 <div class="def">The <span class="word">tonic</span> is the home note of a piece or a scale. It is also called degree <strong>1</strong>, and sometimes the <strong>root</strong> when we build a chord.</div>
 
-<p>In this lesson home is <strong>C</strong>, unless we say otherwise.</p>
+<p>In this lesson home is <strong>C</strong>, unless we say otherwise. Play home:</p>
 
-<h2>A little sound lab (440 to 880)</h2>
-
-<p><strong>A4</strong> is often tuned to <strong>440</strong> vibrations per second. The A one octave higher is <strong>880</strong> — twice as many. You do not need that number to play. It is here so you can <em>hear</em> one octave as a smooth slide.</p>
-
-<p>The small Donner keyboard only goes up to <strong>C5</strong> (~523). The slider can go past that, up to A5, so you can hear a full A-to-A octave. Tap <strong>Tone</strong> for a short sound. Double-tap, or press and slide, to keep it on while you move the slider.</p>
-
-<p><strong>Hertz</strong> means “how many full waves in one second.” The screen below is a <strong>tenth of a second</strong> wide, so 440 Hz draws 44 waves here (440 in a whole second) and 880 Hz draws 88.</p>
-
-<div id="freq-lab">
-  <div class="freq-row">
-    <button type="button" id="freq-toggle" class="setting-switch" role="switch" aria-checked="false" title="Tap for a short tone. Double-tap or press and slide to hold.">
-      <span class="setting-switch-label">Tone</span>
-      <span class="setting-switch-track" aria-hidden="true"><span class="setting-switch-knob"></span></span>
-    </button>
-    <span id="freq-hz">440</span>
-    <span>Hz</span>
-    <span id="freq-note">A4</span>
-    <span id="freq-cents" style="opacity:0.7;font-size:0.85rem"></span>
-  </div>
-  <input id="freq-slider" type="range" min="440" max="880" value="440" step="1">
-  <div class="freq-marks">
-    <span>A4 440</span><span>C5</span><span>E5</span><span>A5 880</span>
-  </div>
-  <div class="freq-wave-box">
-    <canvas id="freq-scope" width="780" height="140" aria-label="One second of the slider frequency"></canvas>
-    <div class="freq-wave-legend" id="freq-wave-legend">This screen is 0.1 seconds wide.</div>
-  </div>
-</div>
+<staff-player notes="C4"></staff-player>
 
 <h2>Scale</h2>
 
@@ -255,6 +219,14 @@ templateEngineOverride: njk
 <p>F♯ is <strong>not</strong> in the C major list. It is an in-between note. You can still name the interval (augmented fourth) because an interval only needs two pitches.</p>
 
 <p><strong>Degree is more specific than interval.</strong> A degree needs a home note and a scale list. An interval only needs two notes.</p>
+
+<h2 id="why-c">Why do piano books often start at C?</h2>
+
+<p>We do <strong>not</strong> have to start at C. The letter list still begins at A. About a thousand years ago in Europe, people named the notes A through G, starting at A, just like the alphabet.</p>
+
+<p>If you play only the <strong>white keys from A to A</strong>, the tune has a softer, sadder color. That list is called <strong>A minor</strong>. If you play only the <strong>white keys from C to C</strong>, the tune has a brighter color. That list is called <strong>C major</strong>.</p>
+
+<p>Piano lessons often start at C because <strong>C major uses only white keys</strong> and sounds like many children’s songs. It is a handy door, not the start of the alphabet. Later we will start lists on other letters too.</p>
 
 <h2>Longer sequences</h2>
 <p>These cards use the bigger staff and piano below. Tap a card, then play. Wait mode stays on a note until you play the right key. The same ideas come back more than once on purpose.</p>
@@ -378,230 +350,6 @@ templateEngineOverride: njk
         renderList();
         loadTune(0);
     }
-
-    (function freqLab() {
-        var slider = document.getElementById('freq-slider');
-        var toggle = document.getElementById('freq-toggle');
-        var hzEl = document.getElementById('freq-hz');
-        var noteEl = document.getElementById('freq-note');
-        var centsEl = document.getElementById('freq-cents');
-        if (!slider || !toggle) return;
-        var ctx = null;
-        var osc = null;
-        var gain = null;
-        var latched = false;
-        var pointerDown = false;
-        var startX = 0;
-        var startY = 0;
-        var slid = false;
-        var downAt = 0;
-        var pulseTimer = 0;
-        var lastTap = 0;
-        var phase = 0;
-        var waveRaf = 0;
-        var lastFrame = 0;
-        var scope = document.getElementById('freq-scope');
-        var names = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
-        var WINDOW_S = 0.1;
-
-        function hzNow() { return parseInt(slider.value, 10); }
-
-        function label(hz) {
-            var midi = 69 + 12 * Math.log(hz / 440) / Math.LN2;
-            var rounded = Math.round(midi);
-            var pc = ((rounded % 12) + 12) % 12;
-            var oct = Math.floor(rounded / 12) - 1;
-            var cents = Math.round((midi - rounded) * 100);
-            hzEl.textContent = String(hz);
-            noteEl.textContent = names[pc] + oct;
-            centsEl.textContent = cents === 0 ? 'in tune' : (cents > 0 ? '+' : '') + cents + ' cents';
-            drawWaves(hz);
-        }
-
-        function sizeScope() {
-            if (!scope) return;
-            var cssW = scope.clientWidth || scope.parentNode.clientWidth || 780;
-            var dpr = window.devicePixelRatio || 1;
-            var w = Math.max(320, Math.round(cssW * dpr));
-            var h = Math.round(140 * dpr);
-            if (scope.width !== w || scope.height !== h) {
-                scope.width = w;
-                scope.height = h;
-            }
-        }
-
-        function drawWaves(hz) {
-            if (!scope || !scope.getContext) return;
-            sizeScope();
-            var g = scope.getContext('2d');
-            var w = scope.width;
-            var h = scope.height;
-            g.fillStyle = '#071208';
-            g.fillRect(0, 0, w, h);
-
-            var steps = Math.max(w * 4, Math.ceil(hz * 8));
-            var mid = h / 2;
-            var amp = h * 0.36;
-            var i;
-            g.beginPath();
-            g.strokeStyle = '#7CFF9A';
-            g.lineWidth = 0.1;
-            g.lineJoin = 'round';
-            for (i = 0; i <= steps; i++) {
-                var t = (i / steps) * WINDOW_S;
-                var x = (i / steps) * w;
-                var y = mid - amp * Math.sin(2 * Math.PI * hz * t + phase);
-                if (i === 0) g.moveTo(x, y);
-                else g.lineTo(x, y);
-            }
-            g.stroke();
-        }
-
-        function waveTick(ts) {
-            waveRaf = 0;
-            if (!osc) {
-                drawWaves(hzNow());
-                return;
-            }
-            var dt = lastFrame ? Math.min(0.05, (ts - lastFrame) / 1000) : 0.016;
-            lastFrame = ts;
-            phase += 2 * Math.PI * hzNow() * dt;
-            drawWaves(hzNow());
-            waveRaf = requestAnimationFrame(waveTick);
-        }
-
-        function startWaveMotion() {
-            lastFrame = 0;
-            if (!waveRaf) waveRaf = requestAnimationFrame(waveTick);
-        }
-
-        function stopWaveMotion() {
-            if (waveRaf) cancelAnimationFrame(waveRaf);
-            waveRaf = 0;
-            drawWaves(hzNow());
-        }
-
-        function setLatchUi(on) {
-            toggle.setAttribute('aria-checked', on ? 'true' : 'false');
-        }
-
-        function startTone() {
-            try {
-                ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-                if (ctx.state === 'suspended') ctx.resume();
-            } catch (_) { return; }
-            if (osc) {
-                osc.frequency.setTargetAtTime(hzNow(), ctx.currentTime, 0.01);
-                return;
-            }
-            osc = ctx.createOscillator();
-            gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.value = hzNow();
-            gain.gain.value = 0.08;
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-            startWaveMotion();
-        }
-
-        function stopTone() {
-            if (!osc) return;
-            try { osc.stop(); } catch (_) {}
-            try { osc.disconnect(); gain.disconnect(); } catch (_) {}
-            osc = null;
-            gain = null;
-            stopWaveMotion();
-        }
-
-        function clearPulse() {
-            if (pulseTimer) {
-                clearTimeout(pulseTimer);
-                pulseTimer = 0;
-            }
-        }
-
-        function setFreq(hz) {
-            label(hz);
-            if (osc) osc.frequency.setTargetAtTime(hz, ctx.currentTime, 0.01);
-        }
-
-        function unlatch() {
-            latched = false;
-            setLatchUi(false);
-            clearPulse();
-            stopTone();
-        }
-
-        function latchOn() {
-            latched = true;
-            setLatchUi(true);
-            clearPulse();
-            startTone();
-        }
-
-        toggle.addEventListener('pointerdown', function (ev) {
-            ev.preventDefault();
-            pointerDown = true;
-            slid = false;
-            startX = ev.clientX;
-            startY = ev.clientY;
-            downAt = Date.now();
-            try { toggle.setPointerCapture(ev.pointerId); } catch (_) {}
-            if (latched) return;
-            startTone();
-        });
-
-        toggle.addEventListener('pointermove', function (ev) {
-            if (!pointerDown || slid) return;
-            var dx = ev.clientX - startX;
-            var dy = ev.clientY - startY;
-            if (Math.sqrt(dx * dx + dy * dy) > 12) {
-                slid = true;
-                latchOn();
-            }
-        });
-
-        toggle.addEventListener('pointerup', function () {
-            if (!pointerDown) return;
-            pointerDown = false;
-            var now = Date.now();
-            if (slid) return;
-            if (latched) {
-                unlatch();
-                lastTap = 0;
-                return;
-            }
-            if (now - lastTap < 400) {
-                lastTap = 0;
-                latchOn();
-                return;
-            }
-            lastTap = now;
-            var remain = Math.max(0, 500 - (now - downAt));
-            clearPulse();
-            pulseTimer = setTimeout(function () {
-                pulseTimer = 0;
-                if (!latched) stopTone();
-            }, remain);
-        });
-
-        toggle.addEventListener('pointercancel', function () {
-            pointerDown = false;
-            if (!latched) stopTone();
-        });
-
-        toggle.addEventListener('dblclick', function (ev) {
-            ev.preventDefault();
-            latchOn();
-        });
-
-        slider.addEventListener('input', function () {
-            setFreq(hzNow());
-        });
-        window.addEventListener('resize', function () { drawWaves(hzNow()); });
-        label(hzNow());
-    })();
 
     setTimeout(initTrainer, 0);
 })();
