@@ -285,6 +285,9 @@ function parseAbc(text) {
     currentMeasureStart += maxVoiceBeats > 0 ? maxVoiceBeats : beatsPerBar;
   }
 
+  try {
+    require('../js/abc-highlight').attachAbcSourceSpans(text, notes);
+  } catch (_) { /* browser build without the helper */ }
   const mergedNotes = mergeTiedNotes(notes);
   const noteId = new Set(mergedNotes.map((n) => n.startBeat + ':' + n.note + ':' + n.oct + ':' + n.duration));
   const mergedEvents = events.map((e) => {
@@ -311,4 +314,36 @@ function parseAbc(text) {
   return { title: title || 'Unknown', tempo, notes: mergedNotes, rests, events: eventsOut, timeSignature: timeSig, keySignature };
 }
 
-module.exports = { parseAbc, SCALE, SCALE_MIDI, MIDI_NAMES, noteToMidi, keyLetterAlter, mergeTiedNotes };
+function splitAbcTunes(text) {
+  if (!text) return [];
+  return String(text)
+    .split(/(?=^X:)/m)
+    .map(function (chunk) { return chunk.trim(); })
+    .filter(Boolean)
+    .map(function (abc, i) {
+      const result = parseAbc(abc);
+      return {
+        index: i,
+        id: i + 1,
+        title: result.title || ('Try ' + (i + 1)),
+        abc: abc,
+        notes: result.notes,
+        rests: result.rests,
+        events: result.events,
+        tempo: result.tempo,
+        timeSignature: result.timeSignature,
+        keySignature: result.keySignature,
+      };
+    });
+}
+
+module.exports = {
+  parseAbc,
+  splitAbcTunes,
+  SCALE,
+  SCALE_MIDI,
+  MIDI_NAMES,
+  noteToMidi,
+  keyLetterAlter,
+  mergeTiedNotes,
+};

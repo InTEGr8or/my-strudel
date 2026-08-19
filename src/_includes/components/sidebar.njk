@@ -26,6 +26,10 @@
         <p style="font-size: 0.9rem; color: #888; margin: 0 0 0.3rem 0;">Staff guide:</p>
         <label class="color-toggle"><input type="checkbox" id="color-guide-toggle" checked onchange="toggleColorGuide(this.checked)"> Show color guide</label>
         <label class="tint-slider">Key tint: <input type="range" id="piano-tint-slider" min="0" max="100" value="30"> <span id="piano-tint-value">30%</span></label>
+        <button type="button" id="bar-numbers-toggle" class="setting-switch" role="switch" aria-checked="true" onclick="toggleBarNumbers()">
+            <span class="setting-switch-label">Bar numbers</span>
+            <span class="setting-switch-track" aria-hidden="true"><span class="setting-switch-knob"></span></span>
+        </button>
     </div>
     <div id="ref" class="tab-content">
         <code>s()</code>, <code>n()</code>, <code>gain()</code>

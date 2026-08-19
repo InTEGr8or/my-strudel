@@ -6,12 +6,22 @@ class NoteChart extends HTMLElement {
         if (saved === 'false') {
             this.dataset.showColors = 'false';
         }
+        if (localStorage.getItem('show-bar-numbers') === 'false') {
+            this.dataset.showBarNumbers = 'false';
+        } else {
+            this.dataset.showBarNumbers = 'true';
+        }
         this.render();
     }
 
     setShowColors(show) {
         this.dataset.showColors = show ? 'true' : 'false';
         localStorage.setItem('show-color-guide', show ? 'true' : 'false');
+    }
+
+    setShowBarNumbers(show) {
+        this.dataset.showBarNumbers = show ? 'true' : 'false';
+        localStorage.setItem('show-bar-numbers', show ? 'true' : 'false');
     }
 
     _cssVar(name) {
@@ -34,7 +44,6 @@ class NoteChart extends HTMLElement {
                 keyX: 76 * scale, clefX: 94 * scale, timeX: 136 * scale,
             };
         const SPACING = 18 * scale;
-        const BAND_H = SPACING;
         const SVG_W = layout.SVG_W;
         const COLOR_X = layout.COLOR_X;
         const COLOR_W = layout.COLOR_W;
@@ -44,8 +53,6 @@ class NoteChart extends HTMLElement {
         const TOP_PAD = layout.TOP_PAD;
         const BOT_PAD = layout.BOT_PAD;
 
-        const noteAlpha = parseFloat(this._cssVar('--note-alpha')) || 0.2;
-        const noteDAlpha = parseFloat(this._cssVar('--note-d-alpha')) || 0.4;
         const octaveColors = [];
         for (let i = 0; i <= 8; i++) {
             octaveColors.push(this._cssVar(`--octave-${i}`) || '128, 128, 128');
@@ -133,13 +140,7 @@ class NoteChart extends HTMLElement {
 
         // Staff annotations (brace, clefs, key signature, time signature)
         svg += `<g id="staff-annotations">`;
-        const braceTop = tTop - SPACING * 0.5;
-        const braceBot = bBot + SPACING * 0.5;
-        const braceX = STAFF_L;
-        const braceOffset = 10 * scale;
-        svg += `<path d="M ${braceX},${braceTop} C ${braceX + braceOffset},${braceTop},${braceX + braceOffset},${braceMid},${braceX},${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
-        svg += `<path d="M ${braceX},${braceBot} C ${braceX + braceOffset},${braceBot},${braceX + braceOffset},${braceMid},${braceX},${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
-        svg += `<line x1="${braceX}" y1="${braceMid - 3 * scale}" x2="${braceX}" y2="${braceMid + 3 * scale}" stroke="${staffColor}" stroke-width="${2.5 * scale}" stroke-linecap="round"/>`;
+        svg += this._staffBraceMarkup(STAFF_L, tTop, bBot, braceMid, SPACING, scale, staffColor);
 
         // Key signature — own column left of the clefs
         const ks = this._keySignature || [];
@@ -167,7 +168,8 @@ class NoteChart extends HTMLElement {
         }
         svg += `</g>`;
 
-        // Color guide bands
+        // Color guide letters (no band backgrounds). Should-notes sit in the
+        // gutter after this group and before the scrolling staff-content / Now line.
         svg += `<g id="staff-bands">`;
         const leftW = COLOR_W / 2 - 2 * scale;
         const rightW = COLOR_W / 2 - 2 * scale;
@@ -176,22 +178,15 @@ class NoteChart extends HTMLElement {
             const p = this._positions[i];
             const y = getY(p.note, p.oct);
             const band = this._octaveBand(p.note, p.oct);
-            const alpha = p.note === 'D' ? noteDAlpha : noteAlpha;
             const isLine = i % 2 === 0;
             const bandX = isLine ? COLOR_X : COLOR_X + leftW + gap;
             const bandW = isLine ? leftW : rightW;
-            let bandY = y - BAND_H / 2;
-            let bandH = BAND_H;
-            if (p.note === 'G') {
-                bandY += 0.125 * BAND_H;
-                bandH = BAND_H * 0.75;
-            } else if (p.note === 'A') {
-                bandH = BAND_H * 0.75;
-            }
-            svg += `<rect x="${bandX}" y="${bandY}" width="${bandW}" height="${bandH}" fill="rgba(${octaveColors[band]}, ${alpha})" data-note="${p.note}" data-oct="${p.oct}"/>`;
-            svg += `<text x="${bandX + bandW / 2}" y="${y}" font-size="${10 * scale}" text-anchor="middle" dominant-baseline="central" font-weight="300" fill="${staffColor}" opacity="0.7">${p.note}</text>`;
+            const weight = p.note === 'D' ? 600 : 400;
+            svg += `<text class="staff-band-label" data-note="${p.note}" data-oct="${p.oct}" data-band="${band}" x="${bandX + bandW / 2}" y="${y}" font-size="${11 * scale}" text-anchor="middle" dominant-baseline="central" font-weight="${weight}" fill="rgb(${octaveColors[band]})" style="--band-rgb:${octaveColors[band]};fill:rgb(${octaveColors[band]})">${p.note}</text>`;
         }
         svg += `</g>`;
+
+        svg += `<g id="note-labels"></g>`;
 
         // Staff content container (player overlays: note heads, bar lines, head line)
         svg += `<g id="staff-content">`;
@@ -201,7 +196,12 @@ class NoteChart extends HTMLElement {
         svg += `</svg>`;
         this.innerHTML = svg;
 
-        this._ctx = { getY, LEFT_PAD, STAFF_R, STAFF_L, scale, staffColor, SPACING, SVG_H, layout };
+        const grandH = bBot - tTop;
+        this._ctx = {
+            getY, LEFT_PAD, STAFF_R, STAFF_L, scale, staffColor, SPACING, SVG_H, layout,
+            grandMidY: (bBot + tTop) / 2,
+            barNumSize: grandH * 2 / 3,
+        };
     }
 
     get timeSignature() { return this._timeSignature; }
@@ -233,18 +233,11 @@ class NoteChart extends HTMLElement {
         const tCenter = (tBot + tTop) / 2;
         const bassClefY = getY('F', 3);
         const braceMid = (bTop + tBot) / 2;
-        const braceX = STAFF_L;
         const keyX = layout ? layout.keyX : 40 * scale;
         const clefX = layout ? layout.clefX : 15 * scale;
         const timeX = layout ? layout.timeX : 75 * scale;
 
-        let html = '';
-        const braceTop = tTop - SPACING * 0.5;
-        const braceBot = bBot + SPACING * 0.5;
-        const braceOffset = 10 * scale;
-        html += `<path d="M ${braceX},${braceTop} C ${braceX + braceOffset},${braceTop},${braceX + braceOffset},${braceMid},${braceX},${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
-        html += `<path d="M ${braceX},${braceBot} C ${braceX + braceOffset},${braceBot},${braceX + braceOffset},${braceMid},${braceX},${braceMid}" fill="none" stroke="${staffColor}" stroke-width="${2 * scale}" stroke-linecap="round"/>`;
-        html += `<line x1="${braceX}" y1="${braceMid - 3 * scale}" x2="${braceX}" y2="${braceMid + 3 * scale}" stroke="${staffColor}" stroke-width="${2.5 * scale}" stroke-linecap="round"/>`;
+        let html = this._staffBraceMarkup(STAFF_L, tTop, bBot, braceMid, SPACING, scale, staffColor);
 
         const ks = this._keySignature || [];
         if (ks.length > 0) {
@@ -271,6 +264,52 @@ class NoteChart extends HTMLElement {
             html += `<text class="time-sig" x="${timeX}" y="${bMid + SPACING * 1.2}" font-size="${44 * scale}" text-anchor="middle" font-family="serif" font-weight="bold" fill="${staffColor}">${ts.bottom}</text>`;
         }
         ann.innerHTML = html;
+    }
+
+    /**
+     * Grand-staff brace: two italic S-curves, the lower one the reverse of
+     * the upper (VexFlow/Emmentaler piano brace). Tips sit just left of
+     * the staff; each S bends left, then back toward the staves.
+     */
+    _staffBraceMarkup(staffL, tTop, bBot, braceMid, spacing, scale, staffColor) {
+        const y1 = tTop - spacing * 0.5;
+        const y3 = bBot + spacing * 0.5;
+        const h = y3 - y1;
+        const gap = 4 * scale;
+        const x1 = staffL - gap;
+        const x3 = x1;
+        const width = 18 * scale;
+        const x2 = x1 - width;
+        const y2 = braceMid;
+        // Outer S (top) then reversed S (bottom). Control points sit on
+        // opposite sides of the chord so each half inflects like an italic S,
+        // not a parenthesis.
+        const cpx1 = x2 - 0.9 * width;
+        const cpy1 = y1 + 0.2 * h;
+        const cpx2 = x1 + 1.1 * width;
+        const cpy2 = y2 - 0.135 * h;
+        const cpx3 = cpx2;
+        const cpy3 = y2 + 0.135 * h;
+        const cpx4 = cpx1;
+        const cpy4 = y3 - 0.2 * h;
+        // Inner edge (same S pair, slightly thinner).
+        const cpx5 = x2 - width;
+        const cpy5 = cpy4;
+        const cpx6 = x1 + 0.4 * width;
+        const cpy6 = y2 + 0.135 * h;
+        const cpx7 = cpx6;
+        const cpy7 = y2 - 0.135 * h;
+        const cpx8 = cpx5;
+        const cpy8 = cpy1;
+        const d = [
+            `M ${x1} ${y1}`,
+            `C ${cpx1} ${cpy1} ${cpx2} ${cpy2} ${x2} ${y2}`,
+            `C ${cpx3} ${cpy3} ${cpx4} ${cpy4} ${x3} ${y3}`,
+            `C ${cpx5} ${cpy5} ${cpx6} ${cpy6} ${x2} ${y2}`,
+            `C ${cpx7} ${cpy7} ${cpx8} ${cpy8} ${x1} ${y1}`,
+            'Z',
+        ].join(' ');
+        return `<path class="staff-brace" d="${d}" fill="${staffColor}" stroke="${staffColor}" stroke-width="${0.6 * scale}"/>`;
     }
 
     _noteY(note, oct) {
@@ -463,8 +502,10 @@ class NoteChart extends HTMLElement {
             if (!labels) {
                 labels = document.createElementNS(svgNs, 'g');
                 labels.setAttribute('id', 'note-labels');
-                const sc = this.querySelector('#staff-content') || this.querySelector('svg');
-                sc.appendChild(labels);
+                const svgEl = this.querySelector('svg');
+                const content = this.querySelector('#staff-content');
+                if (content && svgEl) svgEl.insertBefore(labels, content);
+                else (content || svgEl).appendChild(labels);
             }
             const label = document.createElementNS(svgNs, 'text');
             label.textContent = `${match[1].toUpperCase()}${match[2] ? '#' : ''}${match[3]}`;
@@ -651,6 +692,18 @@ class NoteChart extends HTMLElement {
         }
     }
 
+    _barLinesGroup() {
+        const svgNs = 'http://www.w3.org/2000/svg';
+        let g = this.querySelector('#bar-lines');
+        if (!g) {
+            g = document.createElementNS(svgNs, 'g');
+            g.setAttribute('id', 'bar-lines');
+            const sc = this.querySelector('#staff-content') || this.querySelector('svg');
+            sc.appendChild(g);
+        }
+        return g;
+    }
+
     renderBarLine(x) {
         const ctx = this._ctx;
         if (!ctx) return;
@@ -666,25 +719,36 @@ class NoteChart extends HTMLElement {
         barline.setAttribute('stroke', staffColor);
         barline.setAttribute('stroke-width', 2 * scale);
         barline.style.transition = 'transform 150ms ease-out';
-        let g = this.querySelector('#bar-lines');
-        if (!g) {
-            g = document.createElementNS(svgNs, 'g');
-            g.setAttribute('id', 'bar-lines');
-            const sc = this.querySelector('#staff-content') || this.querySelector('svg');
-            sc.appendChild(g);
-        }
-        g.appendChild(barline);
+        this._barLinesGroup().appendChild(barline);
+    }
+
+    renderBarNumber(x, n) {
+        const ctx = this._ctx;
+        if (!ctx || n == null) return;
+        const svgNs = 'http://www.w3.org/2000/svg';
+        const label = document.createElementNS(svgNs, 'text');
+        label.textContent = String(n);
+        label.setAttribute('class', 'bar-number');
+        label.setAttribute('x', x);
+        label.setAttribute('y', ctx.grandMidY);
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('dominant-baseline', 'middle');
+        label.setAttribute('font-size', ctx.barNumSize);
+        label.setAttribute('font-weight', '700');
+        label.setAttribute('font-family', 'sans-serif');
+        label.setAttribute('fill', ctx.staffColor);
+        label.setAttribute('opacity', '0.14');
+        label.style.pointerEvents = 'none';
+        this._barLinesGroup().appendChild(label);
     }
 
     highlightOctave(index) {
-        const noteAlpha = parseFloat(this._cssVar('--note-alpha')) || 0.2;
-        this.querySelectorAll('rect').forEach((r, i) => {
-            if (i > 0) {
-                const pIdx = i - 1;
-                const pos = this._positions[pIdx];
-                if (pos && this._octaveBand(pos.note, pos.oct) === index) {
-                    r.setAttribute('fill-opacity', noteAlpha * 3);
-                }
+        this.querySelectorAll('#staff-bands text').forEach((el) => {
+            const note = el.getAttribute('data-note');
+            const oct = parseInt(el.getAttribute('data-oct'), 10);
+            if (note && this._octaveBand(note, oct) === index) {
+                el.setAttribute('font-weight', '800');
+                el.setAttribute('opacity', '1');
             }
         });
     }
@@ -805,12 +869,14 @@ class NoteChart extends HTMLElement {
         if (!match) return;
         const note = match[1].toUpperCase();
         const oct = parseInt(match[3], 10);
-        const bandEl = this.querySelector(`rect[data-note="${note}"][data-oct="${oct}"]`);
+        const bandEl = this.querySelector(`#staff-bands text[data-note="${note}"][data-oct="${oct}"]`);
         if (bandEl) {
             if (on) {
-                bandEl.setAttribute('fill-opacity', '0.9');
+                bandEl.setAttribute('font-weight', '800');
+                bandEl.setAttribute('opacity', '1');
             } else {
-                bandEl.removeAttribute('fill-opacity');
+                bandEl.setAttribute('font-weight', note === 'D' ? '600' : '400');
+                bandEl.removeAttribute('opacity');
             }
         }
     }

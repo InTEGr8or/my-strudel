@@ -31,4 +31,22 @@ function setPianoTint(val) {
     root.style.setProperty('--piano-tint-opacity', val / 100);
     localStorage.setItem('piano-tint-opacity', val);
 }
+
+function applyBarNumbers(show) {
+    const on = !!show;
+    document.body.dataset.showBarNumbers = on ? 'true' : 'false';
+    document.querySelectorAll('note-chart').forEach((chart) => {
+        if (chart.setShowBarNumbers) chart.setShowBarNumbers(on);
+        else chart.dataset.showBarNumbers = on ? 'true' : 'false';
+    });
+    const btn = document.getElementById('bar-numbers-toggle');
+    if (btn) btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    localStorage.setItem('show-bar-numbers', on ? 'true' : 'false');
+}
+
+window.toggleBarNumbers = () => {
+    const btn = document.getElementById('bar-numbers-toggle');
+    const next = !(btn && btn.getAttribute('aria-checked') === 'true');
+    applyBarNumbers(next);
+};
 </script>

@@ -3,6 +3,8 @@
     justify-content: flex-start; align-items: flex-start; padding: calc(25px * var(--ui-scale)) calc(10px * var(--ui-scale));
     border-top: 3px solid var(--border);
     overflow-x: auto;
+    min-width: 0;
+    max-width: 100%;
 }
 .piano-key {
     border: 1px solid #444; background: white; height: calc(110px * var(--ui-scale)); width: calc(35px * var(--ui-scale));

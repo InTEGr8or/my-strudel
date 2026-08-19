@@ -1,0 +1,239 @@
+X:1
+T:One note — C (degree 1)
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C4 |]
+
+X:2
+T:One note — C again
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C4 |]
+
+X:3
+T:One note — C one more time
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C4 |]
+
+X:4
+T:Two neighbors — C then D
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C2 D2 |]
+
+X:5
+T:Two neighbors again — C then D
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C2 D2 |]
+
+X:6
+T:Step up and back — C D C
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C D C2 |]
+
+X:7
+T:Three steps — 1 2 3 (C D E)
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C D E2 |]
+
+X:8
+T:Three steps again — 1 2 3
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C D E2 |]
+
+X:9
+T:Walk down — 3 2 1 (E D C)
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+E D C2 |]
+
+X:10
+T:The fourth — C to F
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C2 F2 |]
+
+X:11
+T:The fifth — C to G
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C2 G2 |]
+
+X:12
+T:The sixth — C to A
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C2 A2 |]
+
+X:13
+T:Same A, going down — C down to A
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C2 A,2 |]
+
+X:14
+T:Home–fourth–home–fifth — 1 4 1 5
+M:4/4
+L:1/4
+Q:1/4=80
+K:C
+C F C G |]
+
+X:15
+T:1 4 1 5 again
+M:4/4
+L:1/4
+Q:1/4=80
+K:C
+C F C G |]
+
+X:16
+T:1 4 1 5 one more time
+M:4/4
+L:1/4
+Q:1/4=80
+K:C
+C F C G |]
+
+X:17
+T:Tubular shape on C — 1 4 1 5 1 3 4
+M:4/4
+L:1/8
+Q:1/4=80
+K:C
+C F C G C E F2 |]
+
+X:18
+T:Same numbers again
+M:4/4
+L:1/8
+Q:1/4=80
+K:C
+C F C G C E F2 |]
+
+X:19
+T:Octave — low C to high C
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C2 c2 |]
+
+X:20
+T:Octave again
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C2 c2 |]
+
+X:21
+T:C major scale up
+M:4/4
+L:1/8
+Q:1/4=80
+K:C
+CDEF GABc |]
+
+X:22
+T:C major scale down
+M:4/4
+L:1/8
+Q:1/4=80
+K:C
+cBAG FEDC |]
+
+X:23
+T:C major scale up and down
+M:4/4
+L:1/8
+Q:1/4=80
+K:C
+CDEF GABc | cBAG FEDC |]
+
+X:24
+T:A minor sound — A C E A
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+A, C E A |]
+
+X:25
+T:A minor again
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+A, C E A |]
+
+X:26
+T:Black key — C to F sharp
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C2 ^F2 |]
+
+X:27
+T:Black key again — C to F sharp
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C2 ^F2 |]
+
+X:28
+T:Together later — C then E then G
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C E G2 |]
+
+X:29
+T:C E G again
+M:4/4
+L:1/4
+Q:1/4=72
+K:C
+C E G2 |]
+
+X:30
+T:All seven degrees 1–7
+M:4/4
+L:1/8
+Q:1/4=80
+K:C
+C D E F G A B2 |]

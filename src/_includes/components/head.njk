@@ -8,6 +8,10 @@
 <script src="/js/staff-layout.js"></script>
 <script src="/js/trainer-store.js"></script>
 <script src="{{ '/js/baby-steps.js' | htmlBaseUrl }}"></script>
+{% if showAbcPanel %}
+<script src="{{ '/js/abc-highlight.js' | htmlBaseUrl }}"></script>
+<script src="{{ '/js/abc-source.js' | htmlBaseUrl }}"></script>
+{% endif %}
 {% if showStrudel %}
 <script src="https://unpkg.com/@strudel/repl"></script>
 {% endif %}

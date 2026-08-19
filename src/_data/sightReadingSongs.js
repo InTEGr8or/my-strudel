@@ -34,6 +34,7 @@ module.exports = function () {
         rests: result.rests,
         timeSignature: result.timeSignature,
         keySignature: result.keySignature,
+        abc: text,
       });
     }
   }

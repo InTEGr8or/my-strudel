@@ -1,7 +1,7 @@
 const { getMetadata } = require('./metadata-parser.js');
 const path = require('path');
 const fs = require('fs');
-const { parseAbc } = require('./src/shared/parse-abc');
+const { parseAbc, splitAbcTunes } = require('./src/shared/parse-abc');
 const { convertMuseScoreIncremental } = require('./scripts/build-musescore');
 
 module.exports = function (eleventyConfig) {
@@ -35,6 +35,13 @@ module.exports = function (eleventyConfig) {
     return JSON.stringify(result.notes);
   });
 
+  eleventyConfig.addShortcode('lessonTunes', function (lessonId) {
+    const abcPath = path.join(__dirname, 'src', 'lessons', lessonId, 'exercises.abc');
+    if (!fs.existsSync(abcPath)) return '[]';
+    const text = fs.readFileSync(abcPath, 'utf-8');
+    return JSON.stringify(splitAbcTunes(text));
+  });
+
   eleventyConfig.addFilter('lessonNav', function (allPages, currentPage) {
     const currentUrl = currentPage && currentPage.url;
     const lessons = allPages.filter(p => p.data && p.data.type === 'lesson')
@@ -62,9 +69,13 @@ module.exports = function (eleventyConfig) {
     },
     abcSource: (data) => {
       if (data.page.inputPath.endsWith('.md')) {
-        const songPath = path.join(path.dirname(data.page.inputPath), 'song.abc');
-        if (fs.existsSync(songPath)) {
-          return fs.readFileSync(songPath, 'utf-8');
+        const dir = path.dirname(data.page.inputPath);
+        const companions = ['song.abc', 'exercises.abc'];
+        for (let i = 0; i < companions.length; i++) {
+          const songPath = path.join(dir, companions[i]);
+          if (fs.existsSync(songPath)) {
+            return fs.readFileSync(songPath, 'utf-8');
+          }
         }
       }
       return data.abcSource;
@@ -80,6 +91,7 @@ module.exports = function (eleventyConfig) {
         rests: result.rests,
         timeSignature: result.timeSignature,
         keySignature: result.keySignature,
+        abc: src,
       };
     },
   });
@@ -174,6 +186,7 @@ const abcExtension = {
         rests: result.rests,
         timeSignature: result.timeSignature,
         keySignature: result.keySignature,
+        abc: content,
       },
     };
   },

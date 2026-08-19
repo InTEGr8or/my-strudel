@@ -16,6 +16,8 @@ const filesToLint = [
   'src/js/staff-layout.js',
   'src/js/trainer-store.js',
   'src/js/baby-steps.js',
+  'src/js/abc-highlight.js',
+  'src/js/abc-source.js',
   'src/shared/parse-abc.js',
   'scripts/build-musescore.js',
   'scripts/musicxml-to-abc.js',
@@ -28,6 +30,8 @@ const filesToLint = [
   'test/trainer-store.test.js',
   'test/abc-pages.test.js',
   'test/baby-steps.test.js',
+  'test/abc-source.test.js',
+  'test/lesson-foundations.test.js',
 ];
 
 let hasError = false;

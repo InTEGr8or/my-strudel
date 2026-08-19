@@ -19,12 +19,30 @@ button {
 button:hover { border-color: var(--accent); }
 button.primary { background: #28a745; color: white; border-color: #1e7e34; }
 
-.app-container { display: flex; flex: 1; overflow: hidden; position: relative; }
-main { flex: 1; display: flex; flex-direction: column; padding: 0 10px; overflow-y: auto; position: relative; }
+.app-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 250px;
+    grid-template-rows: minmax(0, 1fr);
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+}
+main {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0 10px;
+    overflow-y: auto;
+    position: relative;
+}
 
 .doc-container { background: var(--panel-bg); padding: 1.5rem; border-bottom: 2px solid var(--border); line-height: 1.6; flex-shrink: 0; }
 .doc-container h1, .doc-container h2 { margin-top: 0; color: var(--highlight); }
-#trainer-content { flex-shrink: 0; }
+#trainer-content { flex-shrink: 0; overflow: visible; }
 
 .editor-container { flex-shrink: 0; display: flex; flex-direction: column; min-height: 400px; background: var(--code-bg); }
 .editor-container div.cm-editor { flex: 1; height: 100% !important; font-size: 18px; }
@@ -50,7 +68,7 @@ note-chart {
 note-chart svg {
     display: block;
     margin: 0 auto;
-    max-width: none;
+    max-width: 100%;
     height: auto;
 }
 
@@ -59,15 +77,34 @@ note-chart svg text.target-note-label {
     fill: #00e5ff;
 }
 
+note-chart svg text.bar-number {
+    fill: var(--abc-text, #666);
+    opacity: 0.14;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+note-chart[data-show-bar-numbers="false"] svg text.bar-number {
+    display: none;
+}
+
+/* Octave-colored pitch letters; fill is set per note via --band-rgb / inline style. */
+note-chart svg #staff-bands text.staff-band-label {
+    fill: rgb(var(--band-rgb, 128, 128, 128));
+}
+
 @media (prefers-color-scheme: dark) {
     #note-chart-container {
         background: var(--abc-bg, #111);
     }
-    note-chart svg text {
+    note-chart svg text:not(.target-note-label):not(.staff-band-label):not(.bar-number) {
         fill: var(--abc-text, #eee);
     }
     note-chart svg text.target-note-label {
         fill: #00e5ff;
+    }
+    note-chart svg text.bar-number {
+        fill: var(--abc-text, #eee);
     }
     note-chart svg line {
         stroke: var(--abc-text, #eee);
@@ -77,7 +114,12 @@ note-chart svg text.target-note-label {
 @media (max-width: 768px) {
     body { height: auto; overflow: auto; }
     header { position: sticky; top: 0; z-index: 100; }
-    .app-container { flex-direction: column; overflow: visible; }
+    .app-container {
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+        grid-template-columns: none;
+    }
     main { overflow: visible; }
     .editor-container { min-height: 500px; }
     aside { width: 100%; border-left: none; }

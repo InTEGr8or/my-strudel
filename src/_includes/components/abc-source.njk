@@ -1,0 +1,12 @@
+<script type="application/json" id="abc-source-data">{{ (abcSource or '') | dump | safe }}</script>
+<div id="abc-source-panel" data-show="false" data-expanded="false" data-empty="{% if abcSource %}false{% else %}true{% endif %}">
+    <div class="abc-source-toolbar">
+        <button type="button" class="abc-show-btn" data-abc-toggle role="switch" aria-checked="false" onclick="toggleAbcSource()">ABC</button>
+        <span class="abc-source-title">source</span>
+        <button type="button" id="abc-sync-toggle" class="abc-sync-btn" role="switch" aria-checked="false" title="Catch the highlighter up when the browser is idle">Sync</button>
+        <button type="button" id="abc-expand-toggle" class="abc-expand-btn" aria-pressed="false">Expand</button>
+    </div>
+    <div id="abc-source-scroll">
+        <pre id="abc-source-code" class="language-abc" aria-label="ABC notation"></pre>
+    </div>
+</div>

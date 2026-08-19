@@ -1,7 +1,16 @@
 aside {
-    width: 250px; display: flex; flex-direction: column; background: var(--sidebar-bg);
-    flex-shrink: 0; border-left: 2px solid var(--border);
+    grid-column: 2;
+    grid-row: 1;
+    width: 250px;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    background: var(--sidebar-bg);
+    flex-shrink: 0;
+    border-left: 2px solid var(--border);
     transition: transform 0.3s ease, margin-right 0.3s ease;
+    z-index: 2;
+    min-height: 0;
 }
 aside.collapsed { margin-right: -250px; transform: translateX(100%); }
 .tabs { display: flex; background: var(--header-bg); border-bottom: 2px solid var(--border); }
@@ -22,3 +31,52 @@ aside.collapsed { margin-right: -250px; transform: translateX(100%); }
 .color-toggle input { margin-right: 0.4rem; }
 .tint-slider { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #888; margin: 0.3rem 0 0.3rem 0; }
 .tint-slider input[type="range"] { flex: 1; max-width: 100px; }
+
+.setting-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    width: 100%;
+    margin: 0.55rem 0 0;
+    padding: 0.35rem 0;
+    background: none;
+    border: none;
+    color: #888;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: left;
+}
+.setting-switch-track {
+    position: relative;
+    flex-shrink: 0;
+    width: 2.4rem;
+    height: 1.3rem;
+    border-radius: 999px;
+    background: var(--border);
+    border: 2px solid var(--border);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.setting-switch-knob {
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: calc(1.3rem - 6px);
+    height: calc(1.3rem - 6px);
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease;
+}
+.setting-switch[aria-checked="true"] .setting-switch-track {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+.setting-switch[aria-checked="true"] .setting-switch-knob {
+    transform: translateX(1.05rem);
+}
+.setting-switch[aria-checked="true"] {
+    color: var(--text);
+}

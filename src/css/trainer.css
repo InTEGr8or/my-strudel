@@ -10,6 +10,101 @@
 }
 .abc-notation svg { display: block; margin: 0 auto; max-width: 100%; }
 
+#abc-source-panel {
+    flex-shrink: 0;
+    margin: 0 0 0.4rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--code-bg);
+    overflow: hidden;
+}
+.abc-source-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.15rem 0.7rem 0.1rem;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--border);
+}
+#abc-source-panel .setting-switch { margin: 0.2rem 0; width: auto; flex: 1; }
+.abc-expand-btn,
+.abc-sync-btn,
+.abc-show-btn {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: var(--panel-bg);
+    color: var(--text);
+    font-family: inherit;
+    font-weight: bold;
+    cursor: pointer;
+}
+.abc-show-btn[aria-checked="true"],
+.abc-show-btn[aria-pressed="true"],
+.abc-sync-btn[aria-checked="true"],
+.abc-sync-btn[aria-pressed="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+.abc-source-title {
+    flex: 1;
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+}
+#abc-source-panel[data-show="false"] #abc-source-scroll,
+#abc-source-panel[data-show="false"] #abc-expand-toggle { display: none; }
+#abc-source-panel[data-show="false"] .abc-source-toolbar { border-bottom: none; }
+#abc-source-scroll {
+    max-height: 200px;
+    overflow: auto;
+    contain: content;
+}
+#abc-source-panel[data-expanded="true"] #abc-source-scroll { max-height: min(70vh, 720px); }
+#abc-source-code {
+    margin: 0;
+    padding: 0.6rem 0.8rem 0.8rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text);
+}
+#abc-source-code .abc-empty { color: #888; font-family: inherit; }
+#abc-source-code .abc-header-key { color: var(--accent); font-weight: bold; }
+#abc-source-code .abc-header-val { color: var(--text); opacity: 0.75; }
+#abc-source-code .abc-note { color: #0a7; }
+#abc-source-code .abc-accidental { color: #a4f; }
+#abc-source-code .abc-rest { color: #888; font-style: italic; }
+#abc-source-code .abc-bar { color: #c90; font-weight: bold; }
+#abc-source-code .abc-voice { color: #e67e22; }
+#abc-source-code .abc-duration { color: #888; }
+#abc-source-code .abc-tuplet { color: #58a6ff; }
+#abc-source-code .abc-chord { color: #888; }
+#abc-source-code .abc-comment { color: #6a9955; font-style: italic; }
+#abc-source-code .abc-current {
+    background: rgba(0, 229, 255, 0.35);
+    color: inherit;
+    border-radius: 3px;
+    box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.45);
+    font-weight: bold;
+}
+
+@media (prefers-color-scheme: dark) {
+    #abc-source-code .abc-note { color: #3ddc97; }
+    #abc-source-code .abc-accidental { color: #c4b5fd; }
+    #abc-source-code .abc-bar { color: #f5d76e; }
+    #abc-source-code .abc-current {
+        background: rgba(0, 229, 255, 0.28);
+        color: #fff;
+    }
+}
+
 @media (prefers-color-scheme: dark) {
     .abc-notation svg path,
     .abc-notation svg text,
@@ -20,32 +115,4 @@
 
 note-chart[data-show-colors="false"] #staff-bands { display: none; }
 
-@media (min-width: 900px) {
-    body[data-type="lesson"] main #lesson-content,
-    body[data-type="trainer"] main #lesson-content {
-        max-width: none;
-        width: 100%;
-        column-count: 2;
-        column-gap: 2.5rem;
-    }
-    body[data-type="lesson"] #lesson-content h2:first-child,
-    body[data-type="trainer"] #lesson-content h2:first-child {
-        column-span: all;
-    }
-    body[data-type="lesson"] #lesson-content h3,
-    body[data-type="trainer"] #lesson-content h3,
-    body[data-type="lesson"] #lesson-content .scale-diagram,
-    body[data-type="trainer"] #lesson-content .scale-diagram,
-    body[data-type="lesson"] #lesson-content .chord-notes,
-    body[data-type="trainer"] #lesson-content .chord-notes,
-    body[data-type="lesson"] #lesson-content .interval-diagram,
-    body[data-type="trainer"] #lesson-content .interval-diagram,
-    body[data-type="lesson"] #lesson-content .triad-grid,
-    body[data-type="trainer"] #lesson-content .triad-grid,
-    body[data-type="lesson"] #lesson-content .chord-preview,
-    body[data-type="trainer"] #lesson-content .chord-preview,
-    body[data-type="lesson"] #lesson-content table,
-    body[data-type="trainer"] #lesson-content table {
-        break-inside: avoid;
-    }
-}
+/* Long lessons stay one column so prose is not poured under the sidebar. */

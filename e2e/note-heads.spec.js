@@ -30,7 +30,7 @@ test('abc song page renders the tape staff', async ({ page }) => {
   await page.goto('/songs/sketches/i-iv-v-i/');
   const svg = page.locator('note-chart svg');
   await expect(svg).toBeVisible({ timeout: 5000 });
-  const bands = svg.locator('#staff-bands rect');
+  const bands = svg.locator('#staff-bands text.staff-band-label');
   expect(await bands.count()).toBeGreaterThan(0);
   await expect(page.locator('#abc-trainer-panel')).toBeVisible();
   await expect(page.locator('#strudel-repl')).toHaveCount(0);

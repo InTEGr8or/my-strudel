@@ -44,6 +44,7 @@
         <span id="play-btn-icon">▶</span> <span id="play-btn-label">Play</span>
     </button>
     <button id="wait-btn" type="button" onclick="toggleWaitTrainer()" title="Advance only after the correct keys">Wait</button>
+    <button type="button" class="abc-show-btn" data-abc-toggle onclick="toggleAbcSource()" title="Show or hide the ABC source">ABC</button>
     <button id="refresh-btn" type="button" onclick="refreshTrainer()">↻</button>
     <label class="score-item" style="flex-direction:row;gap:0.3rem;cursor:pointer;user-select:none">
         <input type="checkbox" id="play-wrong-toggle" checked onchange="togglePlayWrong(this.checked)">
@@ -202,6 +203,7 @@
         });
         trainer.setNotes(DATA.notes || [], DATA.rests || []);
         trainer.setBpm(metroBpm);
+        if (window.setAbcSource) window.setAbcSource(DATA.abc || '');
         trainer.setWait(true);
         syncWaitButton(true);
         syncPlayButton(false);

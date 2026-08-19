@@ -59,6 +59,29 @@
       return ctx ? ctx.LEFT_PAD + (ctx.STAFF_R - ctx.LEFT_PAD) * 0.03 : 0;
     }
 
+    // Gutter between the color-guide letters and the Now tape-head.
+    function getShouldNoteX() {
+      var ctx = chart._ctx;
+      var layout = ctx && ctx.layout;
+      if (!layout) return getHeadX();
+      var bandsRight = layout.COLOR_X + layout.COLOR_W;
+      var gutter = (bandsRight + getHeadX()) / 2;
+      return gutter - 30 * (ctx.scale || 1);
+    }
+
+    function ensureNoteLabels() {
+      var labels = chart.querySelector('#note-labels');
+      if (labels) return labels;
+      var svgNs = 'http://www.w3.org/2000/svg';
+      labels = document.createElementNS(svgNs, 'g');
+      labels.setAttribute('id', 'note-labels');
+      var svg = chart.querySelector('svg');
+      var content = chart.querySelector('#staff-content');
+      if (svg && content) svg.insertBefore(labels, content);
+      else if (svg) svg.appendChild(labels);
+      return labels;
+    }
+
     function getHeads() {
       return chart.querySelector('#note-heads');
     }
@@ -99,13 +122,7 @@
 
     function addLabelForNote(n) {
       if (!n) return;
-      if (!noteLabelsEl || !noteLabelsEl.parentNode) {
-        var svgNs = 'http://www.w3.org/2000/svg';
-        noteLabelsEl = document.createElementNS(svgNs, 'g');
-        noteLabelsEl.setAttribute('id', 'note-labels');
-        var svg = chart.querySelector('svg');
-        svg.appendChild(noteLabelsEl);
-      }
+      if (!noteLabelsEl || !noteLabelsEl.parentNode) noteLabelsEl = ensureNoteLabels();
       var ctx = chart._ctx;
       if (!ctx) return;
       var svgNs2 = 'http://www.w3.org/2000/svg';
@@ -113,11 +130,11 @@
       var ks = chart.keySignature;
       var spelled = window.spellNoteForKey ? window.spellNoteForKey(n, ks) : n;
       label.textContent = window.staffNoteLabel ? window.staffNoteLabel(n, ks) : (n.note + n.oct);
-      label.setAttribute('x', getHeadX());
+      label.setAttribute('x', getShouldNoteX());
       label.setAttribute('y', ctx.getY(spelled.note, spelled.oct));
       label.setAttribute('text-anchor', 'middle');
       label.setAttribute('dominant-baseline', 'central');
-      label.setAttribute('font-size', (28 * ctx.scale) + 'px');
+      label.setAttribute('font-size', (22.4 * ctx.scale) + 'px');
       label.setAttribute('font-weight', 'bold');
       label.setAttribute('fill', '#00e5ff');
       label.style.fill = '#00e5ff';
@@ -131,14 +148,10 @@
     }
 
     function showColumnTargets(beat) {
-      if (!noteLabelsEl || !noteLabelsEl.parentNode) {
-        var svgNs = 'http://www.w3.org/2000/svg';
-        noteLabelsEl = document.createElementNS(svgNs, 'g');
-        noteLabelsEl.setAttribute('id', 'note-labels');
-        var svg = chart.querySelector('svg');
-        if (svg) svg.appendChild(noteLabelsEl);
-      }
+      if (!noteLabelsEl || !noteLabelsEl.parentNode) noteLabelsEl = ensureNoteLabels();
       if (noteLabelsEl) noteLabelsEl.innerHTML = '';
+      window.__abcCursorBeat = beat;
+      if (notes) window.__abcCursorNotes = notes;
       if (beat == null) return;
       for (var i = 0; i < notes.length; i++) {
         if (playedSet && playedSet.has(i)) continue;
@@ -214,6 +227,13 @@
       var barOffset = noteHalfW + ctx.SPACING * 0.35;
       for (var barBeat = barInterval; barBeat <= totalDuration + 0.001; barBeat += barInterval) {
         chart.renderBarLine(headX + barBeat * spacing - barOffset);
+      }
+      if (chart.renderBarNumber) {
+        var bar = 0;
+        for (var barStart = 0; barStart < totalDuration + 0.001; barStart += barInterval) {
+          bar += 1;
+          chart.renderBarNumber(headX + (barStart + barInterval / 2) * spacing, bar);
+        }
       }
 
       function staffOf(ev) {
@@ -539,6 +559,7 @@
       noteLabelsEl = chart.querySelector('#note-labels');
       chart.renderHeadLine();
       renderAllNotes();
+      showColumnTargets(columnBeat());
       syncHeadGhosts();
       shared.updateScore();
 

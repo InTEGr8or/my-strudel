@@ -35,6 +35,24 @@ console.log('PASS: parseAbc parses all chord notes simultaneously with identical
 // Test 4: Verify SVG Vector Rest Shapes in note-chart.js
 const noteChartCode = fs.readFileSync(path.join(__dirname, '../src/js/note-chart.js'), 'utf-8');
 assert.strictEqual(noteChartCode.includes("id=\"head-ghosts\""), true, 'held keys draw in a fixed #head-ghosts layer at the tape head');
+assert.strictEqual(noteChartCode.includes("id=\"note-labels\""), true, 'should-notes live in a fixed #note-labels layer');
+assert.ok(noteChartCode.indexOf('id="staff-bands"') < noteChartCode.indexOf('id="note-labels"'), 'should-notes are painted after staff-bands');
+assert.ok(noteChartCode.indexOf('id="note-labels"') < noteChartCode.indexOf('id="staff-content"'), 'should-notes sit before the Now tape-head / scrolling notes');
+assert.strictEqual(noteChartCode.includes('staff-band-label'), true, 'staff-bands are colored letters');
+assert.strictEqual(noteChartCode.includes('rgba(${octaveColors[band]}'), false, 'staff-bands no longer paint octave background rects');
+assert.strictEqual(noteChartCode.includes('renderBarNumber'), true, 'bar numbers are drawn on the staff');
+assert.strictEqual(noteChartCode.includes('bar-number'), true, 'bar numbers use .bar-number');
+assert.strictEqual(noteChartCode.includes("'0.14'"), true, 'bar numbers are 14% opacity');
+assert.strictEqual(noteChartCode.includes('grandH * 2 / 3'), true, 'bar numbers are two-thirds the grand staff');
+assert.strictEqual(noteChartCode.includes('staff-brace'), true, 'grand staff has a curly brace');
+assert.strictEqual(noteChartCode.includes('staffL - gap'), true, 'brace sits left of the staff');
+assert.strictEqual(noteChartCode.includes('italic S'), true, 'brace is two italic S-curves, one reversed');
+assert.strictEqual(noteChartCode.includes('x1 + 1.1 * width'), true, 'S inflection pulls back toward the staff');
+assert.strictEqual(noteChartCode.includes('braceX + braceOffset'), false, 'brace no longer bulges onto the staff');
+assert.strictEqual(tapeTrainerCode.includes('getShouldNoteX'), true, 'should-notes sit between the color guide and the Now head');
+assert.strictEqual(tapeTrainerCode.includes('gutter - 30'), true, 'should-notes shift 30px left over the staff-bands');
+assert.strictEqual(tapeTrainerCode.includes('22.4 * ctx.scale'), true, 'should-notes are 20% smaller than 28px');
+assert.strictEqual(tapeTrainerCode.includes('renderBarNumber'), true, 'tape trainer draws a number in the middle of each bar');
 assert.strictEqual(noteChartCode.includes('renderRest('), true, 'renderRest method exists');
 assert.strictEqual(!noteChartCode.includes("symbol = '𝄽'"), true, 'renderRest no longer relies on unicode text glyphs');
 assert.strictEqual(noteChartCode.includes("createElementNS(svgNs, 'rect')"), true, 'renderRest uses SVG vector rects/paths');
@@ -76,6 +94,20 @@ if (fs.existsSync(gotAbcPath)) {
   assert.strictEqual(gotParsed.tempo, 168, `Game of Thrones parsed tempo is ${gotParsed.tempo}, expected 168`);
   console.log('PASS: parseAbc correctly extracts Q:1/4=168 score tempo (got 168 BPM)');
 }
+
+const sidebarSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/sidebar.njk'), 'utf-8');
+const uiSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/scripts/ui.njk'), 'utf-8');
+const initSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/scripts/init.njk'), 'utf-8');
+const layoutCss = fs.readFileSync(path.join(__dirname, '../src/css/layout.css'), 'utf-8');
+assert.strictEqual(sidebarSrc.includes('id="bar-numbers-toggle"'), true, 'Synth tab has a Bar numbers switch under key tint');
+assert.ok(sidebarSrc.indexOf('piano-tint-slider') < sidebarSrc.indexOf('bar-numbers-toggle'), 'Bar numbers toggle sits under the tint slider');
+assert.strictEqual(sidebarSrc.includes('role="switch"'), true, 'Bar numbers control is a switch');
+assert.strictEqual(uiSrc.includes('toggleBarNumbers'), true, 'toggleBarNumbers lives with the other synth settings');
+assert.strictEqual(uiSrc.includes("show-bar-numbers"), true, 'bar-number visibility is persisted');
+assert.strictEqual(initSrc.includes("show-bar-numbers"), true, 'saved bar-number setting is restored on load');
+assert.strictEqual(noteChartCode.includes('setShowBarNumbers'), true, 'note-chart can hide bar numbers');
+assert.strictEqual(layoutCss.includes('data-show-bar-numbers="false"'), true, 'CSS hides .bar-number when the switch is off');
+console.log('PASS: Synth tab can toggle bar numbers and remembers the choice');
 
 const synthSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/scripts/synth.njk'), 'utf-8');
 assert.strictEqual(synthSrc.includes("htmlBaseUrl"), true, 'soundfont fetch must use htmlBaseUrl so GitHub Pages /my-strudel/ works');

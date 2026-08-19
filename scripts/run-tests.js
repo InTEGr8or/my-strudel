@@ -19,7 +19,9 @@ const suites = [
   { name: 'midi-abc-align', cmd: ['node', 'test/midi-abc-align.test.js'] },
   { name: 'trainer-store', cmd: ['node', 'test/trainer-store.test.js'] },
   { name: 'abc-pages', cmd: ['node', 'test/abc-pages.test.js'] },
+  { name: 'abc-source', cmd: ['node', 'test/abc-source.test.js'] },
   { name: 'baby-steps', cmd: ['node', 'test/baby-steps.test.js'] },
+  { name: 'foundations', cmd: ['node', 'test/lesson-foundations.test.js'] },
 ];
 
 const nameW = Math.max(...suites.map((s) => s.name.length));

@@ -12,13 +12,15 @@ console.log('Testing ABC song pages and 32-key range...');
 
 const layout = fs.readFileSync(path.join(root, 'src/_includes/layout.njk'), 'utf-8');
 assert.strictEqual(layout.includes('showStaff'), true, 'layout computes showStaff');
-assert.strictEqual(layout.includes("loadAbcjs = type != 'trainer'"), true, 'trainer pages skip ABCJS/cdnjs');
+assert.strictEqual(layout.includes("loadAbcjs = type != 'trainer' and type != 'abc' and type != 'lesson'"), true, 'trainer, ABC, and lesson pages skip ABCJS/cdnjs');
 const headInc = fs.readFileSync(path.join(root, 'src/_includes/components/head.njk'), 'utf-8');
 assert.strictEqual(headInc.includes('{% if showStrudel %}'), true, 'Strudel CDN loads only on Strudel pages');
 assert.strictEqual(layout.includes("type == 'abc'"), true, 'ABC pages show the staff');
 assert.strictEqual(layout.includes('{% if showStaff %}'), true, 'staff is gated');
 assert.strictEqual(layout.includes("{% if showStrudel %}"), true, 'strudel editor is gated');
 assert.strictEqual(layout.includes('abc-trainer.njk'), true, 'ABC pages include the tape trainer');
+assert.strictEqual(layout.includes('abc-source.njk'), true, 'ABC pages include the ABC source viewer');
+assert.ok(layout.indexOf('abc-source.njk') < layout.indexOf('piano.njk'), 'ABC viewer is above the keyboard');
 console.log('PASS: layout shows staff on ABC/trainer/lesson and hides it on Strudel pages');
 
 const header = fs.readFileSync(path.join(root, 'src/_includes/components/header.njk'), 'utf-8');

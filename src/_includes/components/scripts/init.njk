@@ -27,6 +27,11 @@ if (localStorage.getItem('show-color-guide') === 'false') {
     guideCheckbox.checked = false;
     document.body.dataset.showColors = 'false';
 }
+if (localStorage.getItem('show-bar-numbers') === 'false') {
+    applyBarNumbers(false);
+} else {
+    applyBarNumbers(true);
+}
 const savedTab = localStorage.getItem('selected-tab');
 if (savedTab && document.querySelector(`.tab[data-tab="${savedTab}"]`)) {
     activateTab(savedTab);

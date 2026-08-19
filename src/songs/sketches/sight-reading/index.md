@@ -1,6 +1,7 @@
 ---
 title: Sight Reading Trainer
 type: trainer
+layout: layout.njk
 description: "Practice reading notes on the grand staff with your MIDI keyboard. Random is a baby-steps path: singles, then two notes, then triads."
 ---
 
@@ -174,6 +175,7 @@ note-chart {
     <button id="wait-btn" style="font-size:0.9rem;padding:0.3rem 0.9rem;border-radius:8px;border:2px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;font-weight:bold;display:inline-flex;align-items:center;gap:0.3rem" onclick="toggleWaitTrainer()" title="Advance only after the correct keys">
         Wait
     </button>
+    <button type="button" class="abc-show-btn" data-abc-toggle onclick="toggleAbcSource()" title="Show or hide the ABC source" style="font-size:0.9rem;padding:0.3rem 0.9rem;border-radius:8px;border:2px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;font-weight:bold">ABC</button>
     <button id="refresh-btn" style="font-size:0.9rem;padding:0.3rem 0.8rem;border-radius:8px;border:2px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;transition:transform 0.3s ease" onclick="refreshTrainer()">↻</button>
     <label class="score-item" style="font-size:0.8rem;flex-direction:row;gap:0.3rem;cursor:pointer;user-select:none">
         <input type="checkbox" id="play-wrong-toggle" checked onchange="togglePlayWrong(this.checked)">
@@ -349,6 +351,7 @@ note-chart {
                 } else if (songChanged) {
                     syncPlayButton(false);
                 }
+                if (window.setAbcSource) window.setAbcSource(song.abc || '');
                 if (song.tempo && songChanged) {
                     const slider = document.getElementById('metro-bpm');
                     if (slider) slider.value = song.tempo;
@@ -362,6 +365,7 @@ note-chart {
         }
         if (songEl) songEl.title = 'random';
         lastSongTitle = '';
+        if (window.setAbcSource) window.setAbcSource('');
         applyBabyStep();
     }
 
