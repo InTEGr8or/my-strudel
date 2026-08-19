@@ -5,7 +5,7 @@ type: "lesson"
 lessonType: "foundations"
 difficulty: "beginner"
 order: 0
-description: "The words first: note, pitch, octave, tonic, scale, major, minor, degree, interval. Then many short things to play on the keyboard."
+description: "Play each idea as you read it: note, pitch, octave, tonic, scale, major, minor, degree, interval."
 layout: layout.njk
 tags: lessons
 templateEngineOverride: njk
@@ -17,10 +17,6 @@ templateEngineOverride: njk
 #lesson-content h3 { margin-top: 1.4rem; }
 #lesson-content p { color: var(--text); opacity: 0.92; }
 #lesson-content .word { font-weight: 800; color: var(--accent); }
-#lesson-content .num-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.8rem 0 1rem; }
-#lesson-content .num { min-width: 2.4rem; height: 2.4rem; padding: 0 0.45rem; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: var(--panel-bg); border: 2px solid var(--border); font-weight: 800; color: var(--accent); cursor: pointer; user-select: none; touch-action: manipulation; }
-#lesson-content .num:hover, #lesson-content .num.playing { border-color: var(--accent); background: var(--accent); color: #fff; }
-#lesson-content .num small { display: block; font-size: 0.65rem; font-weight: 700; opacity: 0.7; margin-left: 0.25rem; }
 #lesson-content .def { background: var(--panel-bg); border-left: 4px solid var(--accent); padding: 0.7rem 1rem; border-radius: 0 10px 10px 0; margin: 0.8rem 0 1.1rem; }
 #lesson-content table { width: 100%; border-collapse: collapse; margin: 0.8rem 0 1.2rem; font-size: 0.95rem; }
 #lesson-content th, #lesson-content td { border-bottom: 1px solid var(--border); padding: 0.35rem 0.45rem; text-align: left; }
@@ -50,25 +46,23 @@ templateEngineOverride: njk
 
 <div id="lesson-content">
 
-<h2>How we will practice</h2>
+<h2>Play this C</h2>
 
 <p>On the piano we <strong>play</strong>. We <strong>press keys</strong>. Notes one after another make a <strong>sequence</strong> (a little tune). Two or more keys at the same time make a <strong>chord</strong>.</p>
 
-<p>The staff at the bottom of this page is our <strong>practice box</strong>. Each card below is a short sequence. Tap a card, then play those notes on the keyboard. The box can <strong>wait</strong>: it stays on a note until you play the right key. We repeat the same ideas on purpose, so your fingers and the words get used to each other.</p>
+<p>Each staff on this page is a little practice box. Play what you see, then keep reading. Near the end there are longer sequences: those wait on a note until you play the right key.</p>
 
-<p>Tap or hold a letter chip in the lesson to hear it.</p>
+<p>This is a <strong>C</strong>. Press the C key on your keyboard, or tap it on the small piano under the staff. The <strong>Now</strong> line is where the note is waiting. A wrong key shows the name you want.</p>
 
-<h2>The words, one at a time</h2>
+<staff-player notes="C4" advance="#the-words"></staff-player>
+
+<h2 id="the-words">The words, one at a time</h2>
 
 <h3>Note</h3>
 
 <div class="def">A <span class="word">note</span> is one sound we can name and write. It is the smallest piece we will talk about.</div>
 
-<p>On the piano, one note is one <strong>key</strong>. Press a <strong>C</strong>. That is one note.</p>
-
-<div class="num-row">
-  <span class="num" data-play="C4" role="button" tabindex="0">C</span>
-</div>
+<p>You just played one note. On the piano, one note is one <strong>key</strong>.</p>
 
 <h3>Pitch</h3>
 
@@ -78,17 +72,9 @@ templateEngineOverride: njk
 
 <h3>Letter names</h3>
 
-<p>Music uses seven letters, then starts over. They are the same letters you already know, and they <strong>do start at A</strong>:</p>
+<p>Music uses seven letters, then starts over. They are the same letters you already know, and they <strong>do start at A</strong>. Play them in order:</p>
 
-<div class="num-row">
-  <span class="num" data-play="A3" role="button" tabindex="0">A</span>
-  <span class="num" data-play="B3" role="button" tabindex="0">B</span>
-  <span class="num" data-play="C4" role="button" tabindex="0">C</span>
-  <span class="num" data-play="D4" role="button" tabindex="0">D</span>
-  <span class="num" data-play="E4" role="button" tabindex="0">E</span>
-  <span class="num" data-play="F4" role="button" tabindex="0">F</span>
-  <span class="num" data-play="G4" role="button" tabindex="0">G</span>
-</div>
+<staff-player notes="A3,B3,C4,D4,E4,F4,G4"></staff-player>
 
 <p>After G comes A again — the next <strong>octave</strong>.</p>
 
@@ -106,12 +92,9 @@ templateEngineOverride: njk
 
 <p>A good guitar picture: play a string open, then press at the <strong>12th fret</strong>. Same letter, one octave higher. On the piano, C to the next C is the same jump.</p>
 
-<p>We write the octave with a number: <strong>C4</strong> is middle C, <strong>C5</strong> is the C above it.</p>
+<p>We write the octave with a number: <strong>C4</strong> is middle C, <strong>C5</strong> is the C above it. Play both:</p>
 
-<div class="num-row">
-  <span class="num" data-play="C4" role="button" tabindex="0">C4</span>
-  <span class="num" data-play="C5" role="button" tabindex="0">C5</span>
-</div>
+<staff-player notes="C4,C5"></staff-player>
 
 <h3>Sharp and flat</h3>
 
@@ -119,23 +102,17 @@ templateEngineOverride: njk
 
 <div class="def">A <span class="word">sharp</span> (♯) is one key to the <strong>right</strong> (a little higher). A <span class="word">flat</span> (♭) is one key to the <strong>left</strong> (a little lower). The same black key can be F♯ or G♭.</div>
 
-<div class="num-row">
-  <span class="num" data-play="F4" role="button" tabindex="0">F</span>
-  <span class="num" data-play="F#4" role="button" tabindex="0">F♯</span>
-  <span class="num" data-play="G4" role="button" tabindex="0">G</span>
-</div>
+<p>Play F, the black key F♯, then G:</p>
+
+<staff-player notes="F4,F#4,G4"></staff-player>
 
 <h3>Semitone and whole step</h3>
 
 <div class="def">A <span class="word">semitone</span> (half step) is the distance to the very next key, black or white. A <span class="word">whole step</span> is two semitones (skip one key).</div>
 
-<p>C to C♯ is a semitone. C to D is a whole step.</p>
+<p>C to C♯ is a semitone. C to D is a whole step. Play all three:</p>
 
-<div class="num-row">
-  <span class="num" data-play="C4" role="button" tabindex="0">C</span>
-  <span class="num" data-play="C#4" role="button" tabindex="0">C♯</span>
-  <span class="num" data-play="D4" role="button" tabindex="0">D</span>
-</div>
+<staff-player notes="C4,C#4,D4"></staff-player>
 
 <h3>Tonic (home)</h3>
 
@@ -182,39 +159,17 @@ templateEngineOverride: njk
 
 <p>Play C then E (a major third), then A then C (a minor third). Listen for the color change.</p>
 
-<div class="num-row">
-  <span class="num" data-play="C4" role="button" tabindex="0">C</span>
-  <span class="num" data-play="E4" role="button" tabindex="0">E</span>
-  <span class="num" data-play="A3" role="button" tabindex="0">A</span>
-  <span class="num" data-play="C4" role="button" tabindex="0">C</span>
-</div>
+<staff-player notes="C4,E4,A3,C4"></staff-player>
 
-<p><strong>C major</strong> is the white-key list from C to C:</p>
+<p><strong>C major</strong> is the white-key list from C to C. Play it:</p>
 
-<div class="num-row">
-  <span class="num" data-play="C4" role="button" tabindex="0">1<small>C</small></span>
-  <span class="num" data-play="D4" role="button" tabindex="0">2<small>D</small></span>
-  <span class="num" data-play="E4" role="button" tabindex="0">3<small>E</small></span>
-  <span class="num" data-play="F4" role="button" tabindex="0">4<small>F</small></span>
-  <span class="num" data-play="G4" role="button" tabindex="0">5<small>G</small></span>
-  <span class="num" data-play="A4" role="button" tabindex="0">6<small>A</small></span>
-  <span class="num" data-play="B4" role="button" tabindex="0">7<small>B</small></span>
-  <span class="num" data-play="C5" role="button" tabindex="0">1<small>C</small></span>
-</div>
+<staff-player notes="C4,D4,E4,F4,G4,A4,B4,C5"></staff-player>
 
 <p>Every major scale uses the same step pattern: <strong>whole, whole, half, whole, whole, whole, half</strong>.</p>
 
-<p><strong>A natural minor</strong> is the white-key list from A to A. Same letters, but <strong>A</strong> is home, and the third is only 3 semitones:</p>
+<p><strong>A natural minor</strong> is the white-key list from A to A. Same letters, but <strong>A</strong> is home, and the third is only 3 semitones. Play it:</p>
 
-<div class="num-row">
-  <span class="num" data-play="A3" role="button" tabindex="0">1<small>A</small></span>
-  <span class="num" data-play="B3" role="button" tabindex="0">2<small>B</small></span>
-  <span class="num" data-play="C4" role="button" tabindex="0">3<small>C</small></span>
-  <span class="num" data-play="D4" role="button" tabindex="0">4<small>D</small></span>
-  <span class="num" data-play="E4" role="button" tabindex="0">5<small>E</small></span>
-  <span class="num" data-play="F4" role="button" tabindex="0">6<small>F</small></span>
-  <span class="num" data-play="G4" role="button" tabindex="0">7<small>G</small></span>
-</div>
+<staff-player notes="A3,B3,C4,D4,E4,F4,G4"></staff-player>
 
 <p>Same piano keys. Different home. That is why “major” and “minor” sound different.</p>
 
@@ -235,7 +190,9 @@ templateEngineOverride: njk
   </tbody>
 </table>
 
-<p>The sequence <code>1, 4, 1, 5</code> is a <strong>list of degrees</strong>. It is not “a scale.” It is not a list of intervals. It means “play home, the fourth, home, the fifth.”</p>
+<p>The sequence <code>1, 4, 1, 5</code> is a <strong>list of degrees</strong>. It is not “a scale.” It is not a list of intervals. It means “play home, the fourth, home, the fifth.” In C that is C, F, C, G:</p>
+
+<staff-player notes="C4,F4,C4,G4"></staff-player>
 
 <p>Numbers are handy when you move a song: same list, new home.</p>
 
@@ -250,7 +207,16 @@ templateEngineOverride: njk
   <li><strong>Together</strong> (a chord). That is a <strong>harmonic interval</strong>.</li>
 </ol>
 
+<p>Play C and E together — a harmonic third:</p>
+
+<staff-player notes="C4,E4" chord></staff-player>
+
 <p>Direction matters. <strong>C up to A</strong> is a <strong>sixth</strong>. <strong>C down to A</strong> is a <strong>third</strong> downward. Same letter A, two different intervals. The <strong>degree</strong> of A in C major is still <strong>6</strong>.</p>
+
+<p>Up a sixth:</p>
+<staff-player notes="C4,A4"></staff-player>
+<p>Down a third:</p>
+<staff-player notes="C4,A3"></staff-player>
 
 <h3>Perfect, major, minor, augmented</h3>
 
@@ -258,9 +224,16 @@ templateEngineOverride: njk
 
 <div class="def">A <span class="word">perfect</span> interval is one that does not come in a major or minor flavor. The settled ones are the unison, fourth, fifth, and octave. C to F is a <strong>perfect fourth</strong> (5 semitones). C to G is a <strong>perfect fifth</strong> (7 semitones). They sound very stable.</div>
 
+<p>Play a perfect fourth, then a perfect fifth:</p>
+<staff-player notes="C4,F4"></staff-player>
+<staff-player notes="C4,G4"></staff-player>
+
 <div class="def">Seconds, thirds, sixths, and sevenths <em>do</em> come in <span class="word">major</span> and <span class="word">minor</span>. Major is the larger of the pair. C to E is a major third (4 semitones). A to C is a minor third (3 semitones).</div>
 
 <div class="def"><span class="word">Augmented</span> means one semitone <strong>bigger</strong> than the usual interval. C to F is a perfect fourth; raise F to F♯ and you have an <strong>augmented fourth</strong> (6 semitones). <span class="word">Diminished</span> means one semitone <strong>smaller</strong>. C to G♭ is a diminished fifth — the same two keys as C to F♯. That 6-semitone distance is also called a <strong>tritone</strong> (three whole tones).</div>
+
+<p>Play C to F♯ (the tritone):</p>
+<staff-player notes="C4,F#4"></staff-player>
 
 <p>C to F♯ is <strong>not 4.5</strong>. It sits between 4 and 5 on the white-key list, but musicians keep whole step-numbers and then say perfect, major, minor, or augmented.</p>
 
@@ -283,12 +256,8 @@ templateEngineOverride: njk
 
 <p><strong>Degree is more specific than interval.</strong> A degree needs a home note and a scale list. An interval only needs two notes.</p>
 
-<h2>Your turn</h2>
-<ol>
-  <li>Read the word.</li>
-  <li>Tap a card. The staff at the bottom becomes that short sequence.</li>
-  <li>Play it on the keyboard. The same ideas come back more than once on purpose.</li>
-</ol>
+<h2>Longer sequences</h2>
+<p>These cards use the bigger staff and piano below. Tap a card, then play. Wait mode stays on a note until you play the right key. The same ideas come back more than once on purpose.</p>
 
 {% set nav = collections.all | lessonNav(page) %}
 {% if nav.prev or nav.next %}
@@ -358,7 +327,7 @@ templateEngineOverride: njk
         if (!trainer || !TUNES[i]) return;
         active = i;
         var t = TUNES[i];
-        var chart = document.querySelector('note-chart');
+        var chart = window.pageNoteChart ? window.pageNoteChart() : document.querySelector('#note-chart-container note-chart');
         if (chart) {
             if (t.timeSignature) chart.timeSignature = t.timeSignature;
             if (t.keySignature) chart.keySignature = t.keySignature;
@@ -392,7 +361,7 @@ templateEngineOverride: njk
     }
 
     function initTrainer() {
-        var chart = document.querySelector('note-chart');
+        var chart = window.pageNoteChart ? window.pageNoteChart() : document.querySelector('#note-chart-container note-chart');
         if (!window.__midiObservers || !window.createTrainer || !chart || !chart._ctx) {
             setTimeout(initTrainer, 20);
             return;
@@ -632,53 +601,6 @@ templateEngineOverride: njk
         });
         window.addEventListener('resize', function () { drawWaves(hzNow()); });
         label(hzNow());
-    })();
-
-    (function playableChips() {
-        var STEPS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-        function chipMidi(el) {
-            var raw = (el.getAttribute('data-play') || '').trim();
-            var m = raw.match(/^([A-G])([#b]?)(\d)$/i);
-            if (!m) return null;
-            var letter = m[1].toUpperCase();
-            var acc = m[2] === '#' ? 1 : (m[2] === 'b' ? -1 : 0);
-            var oct = parseInt(m[3], 10);
-            return (oct + 1) * 12 + STEPS[letter] + acc;
-        }
-        function startChip(el) {
-            var midi = chipMidi(el);
-            if (midi == null) return;
-            el.classList.add('playing');
-            if (typeof playMidiNote === 'function') playMidiNote(midi, 100);
-            if (typeof keyOn === 'function' && typeof midiToNoteName === 'function') {
-                keyOn(midiToNoteName(midi));
-            }
-        }
-        function stopChip(el) {
-            var midi = chipMidi(el);
-            el.classList.remove('playing');
-            if (typeof keyOff === 'function' && typeof midiToNoteName === 'function' && midi != null) {
-                keyOff(midiToNoteName(midi));
-            }
-        }
-        document.querySelectorAll('#lesson-content .num[data-play]').forEach(function (el) {
-            el.addEventListener('pointerdown', function (ev) {
-                ev.preventDefault();
-                startChip(el);
-            });
-            el.addEventListener('pointerup', function () { stopChip(el); });
-            el.addEventListener('pointerleave', function () { stopChip(el); });
-            el.addEventListener('pointercancel', function () { stopChip(el); });
-            el.addEventListener('keydown', function (ev) {
-                if (ev.key === ' ' || ev.key === 'Enter') {
-                    ev.preventDefault();
-                    startChip(el);
-                }
-            });
-            el.addEventListener('keyup', function (ev) {
-                if (ev.key === ' ' || ev.key === 'Enter') stopChip(el);
-            });
-        });
     })();
 
     setTimeout(initTrainer, 0);

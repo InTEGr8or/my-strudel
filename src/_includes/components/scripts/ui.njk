@@ -22,10 +22,16 @@ function activateTab(id) {
 }
 window.showTab = (id) => activateTab(id);
 
+window.pageNoteChart = function () {
+    return document.querySelector('#note-chart-container > note-chart')
+        || document.querySelector('#note-chart-container note-chart');
+};
+
 window.toggleColorGuide = (show) => {
     document.body.dataset.showColors = show ? 'true' : 'false';
-    const chart = document.querySelector('note-chart');
-    if (chart && chart.setShowColors) chart.setShowColors(show);
+    document.querySelectorAll('note-chart').forEach((chart) => {
+        if (chart && chart.setShowColors) chart.setShowColors(show);
+    });
 };
 
 function setPianoTint(val) {

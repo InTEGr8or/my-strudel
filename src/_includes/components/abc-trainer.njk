@@ -90,7 +90,7 @@
     }
 
     function currentTimeSig() {
-        var chart = document.querySelector('note-chart');
+        var chart = window.pageNoteChart ? window.pageNoteChart() : document.querySelector('#note-chart-container note-chart');
         return (chart && chart.timeSignature) || (DATA.timeSignature) || { top: 4, bottom: 4 };
     }
 
@@ -181,7 +181,7 @@
     };
 
     function init() {
-        var chart = document.querySelector('note-chart');
+        var chart = window.pageNoteChart ? window.pageNoteChart() : document.querySelector('#note-chart-container note-chart');
         if (!window.__midiObservers || !window.createTrainer || !chart || !chart._ctx) {
             setTimeout(init, 20);
             return;

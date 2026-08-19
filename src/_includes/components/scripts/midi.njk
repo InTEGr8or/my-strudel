@@ -2,10 +2,11 @@
 const activeMidi = new Map();
 
 function staffNote(noteName, on) {
-    const chart = document.querySelector('note-chart');
-    if (chart && chart.highlightStaffNote) {
-        chart.highlightStaffNote(noteName, on);
-    }
+    document.querySelectorAll('note-chart').forEach((chart) => {
+        if (chart && chart.highlightStaffNote) {
+            chart.highlightStaffNote(noteName, on);
+        }
+    });
 }
 
 window.__midiObservers = [];

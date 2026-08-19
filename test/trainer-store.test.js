@@ -88,6 +88,15 @@ const layout = computeStaffLayout(1);
 assert.strictEqual(layout.LEFT_MARGIN, 50, '50px left of the staff');
 assert.strictEqual(layout.BOT_EXTRA, 75, '75 extra pixels below the staff');
 assert.ok(layout.BOT_PAD >= 80 + 75, `BOT_PAD is ${layout.BOT_PAD}, expected >= 155`);
+assert.strictEqual(layout.extent, 'full', 'default staff is the full grand staff');
+
+const base = computeStaffLayout(1, { extent: 'base' });
+assert.strictEqual(base.extent, 'base');
+assert.ok(base.TOP_PAD < layout.TOP_PAD, 'base staff drops the extra region above the staff');
+assert.ok(base.BOT_PAD < layout.BOT_PAD, 'base staff drops the extra region below the staff');
+assert.strictEqual(base.BOT_EXTRA, 0);
+assert.ok(base.TOP_PAD <= 24, 'base top pad is about one stem/ledger');
+assert.strictEqual(base.clefX, layout.clefX, 'base staff keeps the same clef column');
 assert.strictEqual(layout.clefX, 65, 'clef stays at original 15px offset after the 50px left margin');
 assert.ok(layout.keyX > layout.clefX, `key column x ${layout.keyX} must be right of clef x ${layout.clefX}`);
 assert.ok(layout.clefX < layout.timeX, `clef x ${layout.clefX} must be left of time x ${layout.timeX}`);

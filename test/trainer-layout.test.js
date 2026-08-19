@@ -45,6 +45,11 @@ assert.strictEqual(noteChartCode.includes('bar-number'), true, 'bar numbers use 
 assert.strictEqual(noteChartCode.includes("'0.14'"), true, 'bar numbers are 14% opacity');
 assert.strictEqual(noteChartCode.includes('grandH * 2 / 3'), true, 'bar numbers are two-thirds the grand staff');
 assert.strictEqual(noteChartCode.includes('staff-brace'), true, 'grand staff has a curly brace');
+assert.strictEqual(noteChartCode.includes('_extent'), true, 'note-chart can render a base (tight) staff');
+assert.strictEqual(noteChartCode.includes("extent !== 'base'"), true, 'base staff omits the tempo mark');
+assert.strictEqual(noteChartCode.includes('this.renderHeadLine()'), true, 'every staff draws the Now line');
+assert.strictEqual(noteChartCode.includes("setAttribute('opacity', '0.5')"), true, 'Now line is 50% opacity');
+assert.strictEqual(noteChartCode.includes('showShouldLabel'), true, 'staff can paint should-note names');
 assert.strictEqual(noteChartCode.includes('staffL - gap'), true, 'brace sits left of the staff');
 assert.strictEqual(noteChartCode.includes('italic S'), true, 'brace is two italic S-curves, one reversed');
 assert.strictEqual(noteChartCode.includes('x1 + 1.1 * width'), true, 'S inflection pulls back toward the staff');

@@ -1,0 +1,61 @@
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+const {
+  parsePlayerNotes,
+  whiteCountForWidth,
+  midisCenteredOnC4,
+  N32_LOW,
+  N32_HIGH,
+  CENTER_MIDI,
+  WHITE_KEY_PX,
+} = require('../src/js/staff-player');
+
+console.log('Testing staff-player helpers...');
+
+const one = parsePlayerNotes('C4');
+assert.strictEqual(one.length, 1);
+assert.strictEqual(one[0].name, 'c4');
+assert.strictEqual(one[0].midi, 60);
+
+const seq = parsePlayerNotes('A3,B3,C4,F#4');
+assert.strictEqual(seq.length, 4);
+assert.strictEqual(seq[0].midi, 57);
+assert.strictEqual(seq[3].name, 'fs4');
+assert.strictEqual(seq[3].midi, 66);
+
+assert.ok(seq.every(function (n) { return n.midi >= N32_LOW && n.midi <= N32_HIGH; }), 'sample notes fit the N32');
+assert.strictEqual(N32_LOW, 41);
+assert.strictEqual(N32_HIGH, 72);
+assert.strictEqual(CENTER_MIDI, 60);
+assert.strictEqual(WHITE_KEY_PX, 22);
+
+function isWhite(m) {
+  var pc = ((m % 12) + 12) % 12;
+  return pc !== 1 && pc !== 3 && pc !== 6 && pc !== 8 && pc !== 10;
+}
+
+assert.strictEqual(whiteCountForWidth(780, 1), Math.floor(780 / 22));
+const fitted = midisCenteredOnC4(whiteCountForWidth(780, 1));
+const whites = fitted.filter(isWhite);
+assert.ok(whites.length > 19, 'wide player adds keys beyond the N32');
+assert.ok(fitted.indexOf(CENTER_MIDI) !== -1, 'C4 is on the keyboard');
+const c4At = whites.indexOf(CENTER_MIDI);
+assert.ok(Math.abs(c4At - (whites.length - 1) / 2) <= 1, 'C4 stays in the middle');
+
+const src = fs.readFileSync(path.join(__dirname, '../src/js/staff-player.js'), 'utf-8');
+assert.strictEqual(src.includes('data-extent="base"'), true, 'inline player uses the base staff');
+assert.strictEqual(src.includes('staff-player-keys'), true, 'inline player has a compact piano');
+assert.strictEqual(src.includes('playMidiNote'), true, 'compact keys share the page synth');
+assert.strictEqual(src.includes('showShouldLabel'), true, 'wrong keys show the should-note');
+assert.strictEqual(src.includes('advance'), true, 'a player can scroll the lesson forward');
+
+const layout = fs.readFileSync(path.join(__dirname, '../src/_includes/layout.njk'), 'utf-8');
+assert.strictEqual(layout.includes('staff-player.js'), true, 'layout loads the inline player');
+
+const chart = fs.readFileSync(path.join(__dirname, '../src/js/note-chart.js'), 'utf-8');
+assert.strictEqual(chart.includes('_extent'), true, 'note-chart has a base/full extent');
+assert.strictEqual(chart.includes("extent !== 'base'"), true, 'base staff hides the tempo mark');
+
+console.log('PASS: staff-player parses notes and uses a compact base staff');
+console.log('\nAll staff-player tests PASSED.');

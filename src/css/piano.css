@@ -33,3 +33,33 @@
 body[data-show-colors="false"] .piano-key::after { display: none; }
 .piano-key.dimmed { opacity: 0.55; }
 .piano-key.dimmed.active { opacity: 1; }
+
+.staff-player-keys {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-x: auto;
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+    padding: 0.3rem 0.15rem 0.1rem;
+    background: var(--piano-bg);
+    border-radius: 0 0 10px 10px;
+}
+.staff-player-keys .piano-key.should {
+    box-shadow: 0 0 0 2px #00e5ff;
+    z-index: 3;
+}
+.staff-player-keys .piano-key {
+    height: calc(72px * var(--ui-scale, 1));
+    width: calc(22px * var(--ui-scale, 1));
+    border-radius: 0 0 6px 6px;
+    touch-action: manipulation;
+    cursor: pointer;
+}
+.staff-player-keys .piano-key.black {
+    height: calc(42px * var(--ui-scale, 1));
+    width: calc(14px * var(--ui-scale, 1));
+    margin-left: calc(-7px * var(--ui-scale, 1));
+    margin-right: calc(-7px * var(--ui-scale, 1));
+}

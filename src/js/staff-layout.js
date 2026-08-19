@@ -5,16 +5,19 @@
    * key-signature column to the RIGHT of the clef. Time, color guide,
    * and notes shift right by that column width.
    */
-  function computeStaffLayout(scale) {
+  function computeStaffLayout(scale, opts) {
     var s = scale || 1;
+    var extent = (opts && opts.extent) || 'full';
     var LEFT_MARGIN = 50 * s;
     var KEY_COL_W = 28 * s;
     var BRACE_W = 12 * s;
     var CLEF_W = 42 * s;
     var TIME_W = 32 * s;
     var COLOR_W = 50 * s;
-    var TOP_PAD = 120 * s;
-    var BOT_PAD = (80 + 75) * s;
+    // full: room above/below the grand staff for tempo, "Now", and extra ledgers.
+    // base: the same G2–F5 lines, tight pads (stems + one ledger).
+    var TOP_PAD = extent === 'base' ? 22 * s : 120 * s;
+    var BOT_PAD = extent === 'base' ? 22 * s : (80 + 75) * s;
     var SVG_W = 1200 * s;
 
     var STAFF_L = LEFT_MARGIN;
@@ -30,12 +33,13 @@
 
     return {
       scale: s,
+      extent: extent,
       LEFT_MARGIN: LEFT_MARGIN,
       KEY_COL_W: KEY_COL_W,
       BRACE_W: BRACE_W,
       TOP_PAD: TOP_PAD,
       BOT_PAD: BOT_PAD,
-      BOT_EXTRA: 75 * s,
+      BOT_EXTRA: extent === 'base' ? 0 : 75 * s,
       SVG_W: SVG_W,
       STAFF_L: STAFF_L,
       STAFF_R: STAFF_R,

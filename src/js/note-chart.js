@@ -33,15 +33,27 @@ class NoteChart extends HTMLElement {
         return oct - 1;
     }
 
+    _extent() {
+        return this.getAttribute('data-extent') || this.dataset.extent || 'full';
+    }
+
+    _chartScale() {
+        const base = parseFloat(this._cssVar('--ui-scale')) || 1;
+        return this._extent() === 'base' ? base * 0.75 : base;
+    }
+
     render() {
-        const scale = parseFloat(this._cssVar('--ui-scale')) || 1;
+        const scale = this._chartScale();
+        const extent = this._extent();
         const layout = (typeof globalThis !== 'undefined' && globalThis.computeStaffLayout)
-            ? globalThis.computeStaffLayout(scale)
+            ? globalThis.computeStaffLayout(scale, { extent: extent })
             : {
                 SVG_W: 1200 * scale, COLOR_X: 85 * scale, COLOR_W: 50 * scale,
                 LEFT_PAD: 145 * scale, STAFF_L: 50 * scale, STAFF_R: 1180 * scale,
-                TOP_PAD: 120 * scale, BOT_PAD: 155 * scale,
+                TOP_PAD: extent === 'base' ? 22 * scale : 120 * scale,
+                BOT_PAD: extent === 'base' ? 22 * scale : 155 * scale,
                 keyX: 76 * scale, clefX: 94 * scale, timeX: 136 * scale,
+                extent: extent,
             };
         const SPACING = 18 * scale;
         const SVG_W = layout.SVG_W;
@@ -199,9 +211,11 @@ class NoteChart extends HTMLElement {
         const grandH = bBot - tTop;
         this._ctx = {
             getY, LEFT_PAD, STAFF_R, STAFF_L, scale, staffColor, SPACING, SVG_H, layout,
+            extent,
             grandMidY: (bBot + tTop) / 2,
             barNumSize: grandH * 2 / 3,
         };
+        this.renderHeadLine();
     }
 
     get timeSignature() { return this._timeSignature; }
@@ -250,9 +264,12 @@ class NoteChart extends HTMLElement {
         html += `<text class="clef-treble" x="${clefX}" y="${tCenter}" font-size="${80 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄞</text>`;
         html += `<text class="clef-bass" x="${clefX}" y="${bassClefY + 5 * scale}" font-size="${70 * scale}" dy="0.35em" font-family="serif" fill="${staffColor}">𝄢</text>`;
 
-        const tempoVal = this._tempo || 80;
-        const tempoY = tTop - SPACING * 1.8;
-        html += `<text x="${clefX}" y="${tempoY}" font-size="${18 * scale}" font-family="sans-serif" font-weight="bold" fill="${staffColor}">♩ = ${tempoVal}</text>`;
+        const extent = (this._ctx && this._ctx.extent) || (layout && layout.extent) || this._extent();
+        if (extent !== 'base') {
+            const tempoVal = this._tempo || 80;
+            const tempoY = tTop - SPACING * 1.8;
+            html += `<text x="${clefX}" y="${tempoY}" font-size="${18 * scale}" font-family="sans-serif" font-weight="bold" fill="${staffColor}">♩ = ${tempoVal}</text>`;
+        }
 
         const ts = this._timeSignature || null;
         if (ts) {
@@ -832,27 +849,26 @@ class NoteChart extends HTMLElement {
         const y1 = getY('G', 2);
         const y2 = getY('F', 5);
         const highlight = this._cssVar('--highlight') || '#ffcc00';
-        const r = parseInt(highlight.slice(1, 3), 16);
-        const gv = parseInt(highlight.slice(3, 5), 16);
-        const b = parseInt(highlight.slice(5, 7), 16);
         const line = document.createElementNS(svgNs, 'line');
         line.setAttribute('x1', this._headX);
         line.setAttribute('y1', y1);
         line.setAttribute('x2', this._headX);
         line.setAttribute('y2', y2);
-        line.setAttribute('stroke', `rgba(${r}, ${gv}, ${b}, 0.3)`);
+        line.setAttribute('stroke', highlight);
         line.setAttribute('stroke-width', 5 * scale);
         line.setAttribute('stroke-linecap', 'round');
+        line.setAttribute('opacity', '0.5');
         g.appendChild(line);
         const label = document.createElementNS(svgNs, 'text');
         label.textContent = 'Now';
+        const labelLift = (this._extent() === 'base') ? 8 * scale : 30 * scale;
         label.setAttribute('x', this._headX);
-        label.setAttribute('y', y2 - 30 * scale);
+        label.setAttribute('y', y2 - labelLift);
         label.setAttribute('text-anchor', 'middle');
         label.setAttribute('dominant-baseline', 'baseline');
-        label.setAttribute('font-size', `${14 * scale}px`);
+        label.setAttribute('font-size', `${this._extent() === 'base' ? 11 * scale : 14 * scale}px`);
         label.setAttribute('font-style', 'italic');
-        label.setAttribute('opacity', '0.4');
+        label.setAttribute('opacity', '0.5');
         label.setAttribute('fill', staffColor);
         g.appendChild(label);
         const sc = this.querySelector('#staff-content') || this.querySelector('svg');
@@ -862,6 +878,56 @@ class NoteChart extends HTMLElement {
     removeHeadLine() {
         const g = this.querySelector('#head-line');
         if (g) g.remove();
+        this._headX = undefined;
+    }
+
+    shouldNoteX() {
+        const ctx = this._ctx;
+        if (!ctx) return 0;
+        const layout = ctx.layout;
+        const headX = this._headX !== undefined
+            ? this._headX
+            : ctx.LEFT_PAD + (ctx.STAFF_R - ctx.LEFT_PAD) * 0.03;
+        if (!layout) return headX;
+        const bandsRight = layout.COLOR_X + layout.COLOR_W;
+        return (bandsRight + headX) / 2 - 30 * (ctx.scale || 1);
+    }
+
+    clearShouldLabels() {
+        const g = this.querySelector('#note-labels');
+        if (g) g.innerHTML = '';
+    }
+
+    showShouldLabel(note, oct, text) {
+        const ctx = this._ctx;
+        if (!ctx || !note) return;
+        const svgNs = 'http://www.w3.org/2000/svg';
+        let labels = this.querySelector('#note-labels');
+        if (!labels) {
+            labels = document.createElementNS(svgNs, 'g');
+            labels.setAttribute('id', 'note-labels');
+            const svgEl = this.querySelector('svg');
+            const content = this.querySelector('#staff-content');
+            if (content && svgEl) svgEl.insertBefore(labels, content);
+            else (content || svgEl).appendChild(labels);
+        }
+        const label = document.createElementNS(svgNs, 'text');
+        label.textContent = text || (note + oct);
+        label.setAttribute('x', this.shouldNoteX());
+        label.setAttribute('y', ctx.getY(note, oct));
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('dominant-baseline', 'central');
+        label.setAttribute('font-size', (22.4 * ctx.scale) + 'px');
+        label.setAttribute('font-weight', 'bold');
+        label.setAttribute('fill', '#00e5ff');
+        label.style.fill = '#00e5ff';
+        label.setAttribute('stroke', 'rgba(0,0,0,0.55)');
+        label.setAttribute('stroke-width', 3 * ctx.scale);
+        label.setAttribute('paint-order', 'stroke');
+        label.setAttribute('class', 'target-note-label');
+        label.style.animation = 'note-label-fade 500ms ease-out 250ms forwards';
+        label.addEventListener('animationend', function () { label.remove(); });
+        labels.appendChild(label);
     }
 
     highlightStaffNote(noteName, on) {

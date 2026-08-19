@@ -47,6 +47,21 @@ note-chart {
     display: block;
 }
 
+staff-player {
+    display: block;
+    margin: 0.85rem 0 1.15rem;
+}
+.staff-player {
+    background: var(--panel-bg);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 0.2rem 0.35rem 0.45rem;
+    max-width: 100%;
+}
+.staff-player note-chart {
+    display: block;
+}
+
 note-chart svg {
     display: block;
     margin: 0 auto;

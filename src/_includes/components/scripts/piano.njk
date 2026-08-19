@@ -39,11 +39,17 @@ function flashKey(note) {
 function keyOn(noteName) {
     const el = document.getElementById(`key-${noteName}`);
     if (el) el.classList.add('active');
+    document.querySelectorAll(`.staff-player-keys .piano-key[data-note="${noteName}"]`).forEach((k) => {
+        k.classList.add('active');
+    });
 }
 
 function keyOff(noteName) {
     const el = document.getElementById(`key-${noteName}`);
     if (el) el.classList.remove('active');
+    document.querySelectorAll(`.staff-player-keys .piano-key[data-note="${noteName}"]`).forEach((k) => {
+        k.classList.remove('active');
+    });
 }
 
 const NOTE_LABELS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
