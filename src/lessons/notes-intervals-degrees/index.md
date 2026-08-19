@@ -5,7 +5,7 @@ type: "lesson"
 lessonType: "foundations"
 difficulty: "beginner"
 order: 0
-description: "The words first: note, pitch, octave, tonic, scale, degree, interval. Then many short things to play on the MIDI keyboard."
+description: "The words first: note, pitch, octave, tonic, scale, major, minor, degree, interval. Then many short things to play on the keyboard."
 layout: layout.njk
 tags: lessons
 templateEngineOverride: njk
@@ -28,7 +28,15 @@ templateEngineOverride: njk
 #freq-lab .freq-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem; }
 #freq-hz { font-size: 1.6rem; font-weight: 800; color: var(--accent); min-width: 5.5rem; }
 #freq-note { font-size: 1.25rem; font-weight: 800; }
-#freq-slider { width: min(100%, 420px); }
+#freq-slider { width: 100%; display: block; }
+#freq-lab .freq-marks { display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.7; }
+#freq-lab .freq-wave-box { margin-top: 0.75rem; width: 100%; }
+#freq-lab .freq-wave-box canvas {
+    display: block; width: 100%; height: 140px;
+    background: #071208; border-radius: 6px; border: 2px solid #1a3d1a;
+}
+#freq-lab .freq-wave-legend { font-size: 0.8rem; opacity: 0.85; margin-top: 0.35rem; line-height: 1.45; }
+#freq-lab .setting-switch { width: auto; min-width: 7.5rem; margin: 0; }
 #trainer-panel { display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 0.5rem 0; flex-wrap: wrap; }
 .score-item { text-align: center; font-size: 0.9rem; color: var(--text); opacity: 0.8; display: flex; flex-direction: column; }
 .score-item strong { font-size: 1.2rem; color: var(--accent); }
@@ -42,21 +50,21 @@ templateEngineOverride: njk
 
 <div id="lesson-content">
 
-<h2>A practice box, not a typing class</h2>
+<h2>How we will practice</h2>
 
-<p>On a computer we <strong>type</strong>. On a piano we <strong>play</strong>. We <strong>press keys</strong>. A line of keys one after another is a <strong>sequence</strong> (a little melody). Two or more keys at the same time make a <strong>chord</strong>.</p>
+<p>On the piano we <strong>play</strong>. We <strong>press keys</strong>. Notes one after another make a <strong>sequence</strong> (a little tune). Two or more keys at the same time make a <strong>chord</strong>.</p>
 
-<p>The big staff under this lesson is our <strong>practice box</strong>. It is like a REPL: each card below is a tiny program. Tap a card, then play those notes on the MIDI keyboard. Wait mode waits for the right key. Same idea many times on purpose, so your fingers and your words get used to each other.</p>
+<p>The staff at the bottom of this page is our <strong>practice box</strong>. Each card below is a short sequence. Tap a card, then play those notes on the keyboard. The box can <strong>wait</strong>: it stays on a note until you play the right key. We repeat the same ideas on purpose, so your fingers and the words get used to each other.</p>
 
-<p>We can only drive <strong>one live staff</strong> at a time (the one at the bottom). The cards are the many examples. Tap or hold a letter chip to hear it.</p>
+<p>Tap or hold a letter chip in the lesson to hear it.</p>
 
 <h2>The words, one at a time</h2>
 
 <h3>Note</h3>
 
-<div class="def">A <span class="word">note</span> is one musical atom: one sound we can name and write.</div>
+<div class="def">A <span class="word">note</span> is one sound we can name and write. It is the smallest piece we will talk about.</div>
 
-<p>The atom on the piano is a <strong>key</strong>. Press middle <strong>C</strong>. That is one note.</p>
+<p>On the piano, one note is one <strong>key</strong>. Press a <strong>C</strong>. That is one note.</p>
 
 <div class="num-row">
   <span class="num" data-play="C4" role="button" tabindex="0">C</span>
@@ -70,19 +78,27 @@ templateEngineOverride: njk
 
 <h3>Letter names</h3>
 
-<p>We recycle seven letters, then start over:</p>
+<p>Music uses seven letters, then starts over. They are the same letters you already know, and they <strong>do start at A</strong>:</p>
 
 <div class="num-row">
+  <span class="num" data-play="A3" role="button" tabindex="0">A</span>
+  <span class="num" data-play="B3" role="button" tabindex="0">B</span>
   <span class="num" data-play="C4" role="button" tabindex="0">C</span>
   <span class="num" data-play="D4" role="button" tabindex="0">D</span>
   <span class="num" data-play="E4" role="button" tabindex="0">E</span>
   <span class="num" data-play="F4" role="button" tabindex="0">F</span>
   <span class="num" data-play="G4" role="button" tabindex="0">G</span>
-  <span class="num" data-play="A4" role="button" tabindex="0">A</span>
-  <span class="num" data-play="B4" role="button" tabindex="0">B</span>
 </div>
 
-<p>After B comes C again — the next <strong>octave</strong>.</p>
+<p>After G comes A again — the next <strong>octave</strong>.</p>
+
+<h3>Why do piano books often start at C?</h3>
+
+<p>We do <strong>not</strong> have to start at C. The letter list still begins at A. About a thousand years ago in Europe, people named the notes A through G, starting at A, just like the alphabet.</p>
+
+<p>If you play only the <strong>white keys from A to A</strong>, the tune has a softer, sadder color. That list is called <strong>A minor</strong>. If you play only the <strong>white keys from C to C</strong>, the tune has a brighter color. That list is called <strong>C major</strong>.</p>
+
+<p>Piano lessons often start at C because <strong>C major uses only white keys</strong> and sounds like many children’s songs. It is a handy door, not the start of the alphabet. Later we will start lists on other letters too.</p>
 
 <h3>Octave</h3>
 
@@ -131,27 +147,49 @@ templateEngineOverride: njk
 
 <p><strong>A4</strong> is often tuned to <strong>440</strong> vibrations per second. The A one octave higher is <strong>880</strong> — twice as many. You do not need that number to play. It is here so you can <em>hear</em> one octave as a smooth slide.</p>
 
-<p>The small Donner keyboard only goes up to <strong>C5</strong> (~523). The slider can go past that, up to A5, so you can hear a full A-to-A octave. Turn the tone on, then slide.</p>
+<p>The small Donner keyboard only goes up to <strong>C5</strong> (~523). The slider can go past that, up to A5, so you can hear a full A-to-A octave. Tap <strong>Tone</strong> for a short sound. Double-tap, or press and slide, to keep it on while you move the slider.</p>
+
+<p><strong>Hertz</strong> means “how many full waves in one second.” The screen below is a <strong>tenth of a second</strong> wide, so 440 Hz draws 44 waves here (440 in a whole second) and 880 Hz draws 88.</p>
 
 <div id="freq-lab">
   <div class="freq-row">
-    <button type="button" id="freq-toggle">Tone off</button>
+    <button type="button" id="freq-toggle" class="setting-switch" role="switch" aria-checked="false" title="Tap for a short tone. Double-tap or press and slide to hold.">
+      <span class="setting-switch-label">Tone</span>
+      <span class="setting-switch-track" aria-hidden="true"><span class="setting-switch-knob"></span></span>
+    </button>
     <span id="freq-hz">440</span>
     <span>Hz</span>
     <span id="freq-note">A4</span>
     <span id="freq-cents" style="opacity:0.7;font-size:0.85rem"></span>
   </div>
   <input id="freq-slider" type="range" min="440" max="880" value="440" step="1">
-  <div style="display:flex;justify-content:space-between;font-size:0.8rem;opacity:0.7;max-width:420px">
+  <div class="freq-marks">
     <span>A4 440</span><span>C5</span><span>E5</span><span>A5 880</span>
+  </div>
+  <div class="freq-wave-box">
+    <canvas id="freq-scope" width="780" height="140" aria-label="One second of the slider frequency"></canvas>
+    <div class="freq-wave-legend" id="freq-wave-legend">This screen is 0.1 seconds wide.</div>
   </div>
 </div>
 
 <h2>Scale</h2>
 
-<div class="def">A <span class="word">scale</span> is an ordered set of notes we treat as “the allowed steps” from a tonic. Think of it as a list, or a type.</div>
+<div class="def">A <span class="word">scale</span> is an ordered <strong>list</strong> of notes we treat as the allowed steps from a home note (the tonic). It is a collection in a fixed order, like a staircase.</div>
 
-<p><strong>C major</strong> is this list (white keys from C to C):</p>
+<h3>Major and minor</h3>
+
+<div class="def"><span class="word">Major</span> and <span class="word">minor</span> are two common flavors of a scale (and of some intervals). Major often sounds brighter or happier. Minor often sounds darker or sadder. The big difference is the <strong>third</strong> step: in major it is 4 semitones above home (C to E); in minor it is 3 (A to C, or C to E♭).</div>
+
+<p>Play C then E (a major third), then A then C (a minor third). Listen for the color change.</p>
+
+<div class="num-row">
+  <span class="num" data-play="C4" role="button" tabindex="0">C</span>
+  <span class="num" data-play="E4" role="button" tabindex="0">E</span>
+  <span class="num" data-play="A3" role="button" tabindex="0">A</span>
+  <span class="num" data-play="C4" role="button" tabindex="0">C</span>
+</div>
+
+<p><strong>C major</strong> is the white-key list from C to C:</p>
 
 <div class="num-row">
   <span class="num" data-play="C4" role="button" tabindex="0">1<small>C</small></span>
@@ -164,9 +202,9 @@ templateEngineOverride: njk
   <span class="num" data-play="C5" role="button" tabindex="0">1<small>C</small></span>
 </div>
 
-<p>Major scales all use the same step pattern: <strong>whole, whole, half, whole, whole, whole, half</strong>.</p>
+<p>Every major scale uses the same step pattern: <strong>whole, whole, half, whole, whole, whole, half</strong>.</p>
 
-<p><strong>A natural minor</strong> (A to A on the white keys) is a different list with the same letters, but <strong>A</strong> is home:</p>
+<p><strong>A natural minor</strong> is the white-key list from A to A. Same letters, but <strong>A</strong> is home, and the third is only 3 semitones:</p>
 
 <div class="num-row">
   <span class="num" data-play="A3" role="button" tabindex="0">1<small>A</small></span>
@@ -182,7 +220,7 @@ templateEngineOverride: njk
 
 <h2>Scale degree</h2>
 
-<div class="def">A <span class="word">scale degree</span> is an index into a scale. We count from the tonic: 1, 2, 3, 4, 5, 6, 7. Each number is a degree, not a whole scale.</div>
+<div class="def">A <span class="word">scale degree</span> is a number that tells you the place of a note in a scale’s list. We count from the tonic: 1, 2, 3, 4, 5, 6, 7. Each number is one degree, not the whole scale.</div>
 
 <table>
   <thead><tr><th>Degree</th><th>In C major</th><th>In A minor</th></tr></thead>
@@ -197,9 +235,9 @@ templateEngineOverride: njk
   </tbody>
 </table>
 
-<p>The sequence <code>[1, 4, 1, 5]</code> is a <strong>program of degrees</strong>. It is not “a scale.” It is not a list of intervals. It is “play home, the fourth, home, the fifth.”</p>
+<p>The sequence <code>1, 4, 1, 5</code> is a <strong>list of degrees</strong>. It is not “a scale.” It is not a list of intervals. It means “play home, the fourth, home, the fifth.”</p>
 
-<p>Numbers are nicer than letters when you move the song: same program, new tonic.</p>
+<p>Numbers are handy when you move a song: same list, new home.</p>
 
 <h2>Interval</h2>
 
@@ -213,6 +251,18 @@ templateEngineOverride: njk
 </ol>
 
 <p>Direction matters. <strong>C up to A</strong> is a <strong>sixth</strong>. <strong>C down to A</strong> is a <strong>third</strong> downward. Same letter A, two different intervals. The <strong>degree</strong> of A in C major is still <strong>6</strong>.</p>
+
+<h3>Perfect, major, minor, augmented</h3>
+
+<p>The number (second, third, fourth…) is how many letter-steps you count, including the start. The extra word tells you the exact size in semitones.</p>
+
+<div class="def">A <span class="word">perfect</span> interval is one that does not come in a major or minor flavor. The settled ones are the unison, fourth, fifth, and octave. C to F is a <strong>perfect fourth</strong> (5 semitones). C to G is a <strong>perfect fifth</strong> (7 semitones). They sound very stable.</div>
+
+<div class="def">Seconds, thirds, sixths, and sevenths <em>do</em> come in <span class="word">major</span> and <span class="word">minor</span>. Major is the larger of the pair. C to E is a major third (4 semitones). A to C is a minor third (3 semitones).</div>
+
+<div class="def"><span class="word">Augmented</span> means one semitone <strong>bigger</strong> than the usual interval. C to F is a perfect fourth; raise F to F♯ and you have an <strong>augmented fourth</strong> (6 semitones). <span class="word">Diminished</span> means one semitone <strong>smaller</strong>. C to G♭ is a diminished fifth — the same two keys as C to F♯. That 6-semitone distance is also called a <strong>tritone</strong> (three whole tones).</div>
+
+<p>C to F♯ is <strong>not 4.5</strong>. It sits between 4 and 5 on the white-key list, but musicians keep whole step-numbers and then say perfect, major, minor, or augmented.</p>
 
 <table>
   <thead><tr><th>From C (up)</th><th>Semitones</th><th>Usual name</th></tr></thead>
@@ -229,15 +279,15 @@ templateEngineOverride: njk
   </tbody>
 </table>
 
-<p>C to F♯ is <strong>not 4.5</strong>. It sits between 4 and 5 on the piano, but musicians say <strong>tritone</strong> or <strong>augmented fourth</strong>. Six semitones. F♯ is <strong>not</strong> a degree of C major; it is a chromatic (in-between) note.</p>
+<p>F♯ is <strong>not</strong> in the C major list. It is an in-between note. You can still name the interval (augmented fourth) because an interval only needs two pitches.</p>
 
-<p><strong>Degree is more specific than interval.</strong> A degree needs a tonic and a scale. An interval only needs two pitches.</p>
+<p><strong>Degree is more specific than interval.</strong> A degree needs a home note and a scale list. An interval only needs two notes.</p>
 
-<h2>How we will practice</h2>
+<h2>Your turn</h2>
 <ol>
   <li>Read the word.</li>
-  <li>Tap a card. The staff at the bottom becomes that tiny program.</li>
-  <li>Play it on the MIDI keyboard. Same cards come back more than once on purpose.</li>
+  <li>Tap a card. The staff at the bottom becomes that short sequence.</li>
+  <li>Play it on the keyboard. The same ideas come back more than once on purpose.</li>
 </ol>
 
 {% set nav = collections.all | lessonNav(page) %}
@@ -370,7 +420,22 @@ templateEngineOverride: njk
         var ctx = null;
         var osc = null;
         var gain = null;
+        var latched = false;
+        var pointerDown = false;
+        var startX = 0;
+        var startY = 0;
+        var slid = false;
+        var downAt = 0;
+        var pulseTimer = 0;
+        var lastTap = 0;
+        var phase = 0;
+        var waveRaf = 0;
+        var lastFrame = 0;
+        var scope = document.getElementById('freq-scope');
         var names = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+        var WINDOW_S = 0.1;
+
+        function hzNow() { return parseInt(slider.value, 10); }
 
         function label(hz) {
             var midi = 69 + 12 * Math.log(hz / 440) / Math.LN2;
@@ -381,6 +446,110 @@ templateEngineOverride: njk
             hzEl.textContent = String(hz);
             noteEl.textContent = names[pc] + oct;
             centsEl.textContent = cents === 0 ? 'in tune' : (cents > 0 ? '+' : '') + cents + ' cents';
+            drawWaves(hz);
+        }
+
+        function sizeScope() {
+            if (!scope) return;
+            var cssW = scope.clientWidth || scope.parentNode.clientWidth || 780;
+            var dpr = window.devicePixelRatio || 1;
+            var w = Math.max(320, Math.round(cssW * dpr));
+            var h = Math.round(140 * dpr);
+            if (scope.width !== w || scope.height !== h) {
+                scope.width = w;
+                scope.height = h;
+            }
+        }
+
+        function drawWaves(hz) {
+            if (!scope || !scope.getContext) return;
+            sizeScope();
+            var g = scope.getContext('2d');
+            var w = scope.width;
+            var h = scope.height;
+            g.fillStyle = '#071208';
+            g.fillRect(0, 0, w, h);
+
+            var steps = Math.max(w * 4, Math.ceil(hz * 8));
+            var mid = h / 2;
+            var amp = h * 0.36;
+            var i;
+            g.beginPath();
+            g.strokeStyle = '#7CFF9A';
+            g.lineWidth = 0.1;
+            g.lineJoin = 'round';
+            for (i = 0; i <= steps; i++) {
+                var t = (i / steps) * WINDOW_S;
+                var x = (i / steps) * w;
+                var y = mid - amp * Math.sin(2 * Math.PI * hz * t + phase);
+                if (i === 0) g.moveTo(x, y);
+                else g.lineTo(x, y);
+            }
+            g.stroke();
+        }
+
+        function waveTick(ts) {
+            waveRaf = 0;
+            if (!osc) {
+                drawWaves(hzNow());
+                return;
+            }
+            var dt = lastFrame ? Math.min(0.05, (ts - lastFrame) / 1000) : 0.016;
+            lastFrame = ts;
+            phase += 2 * Math.PI * hzNow() * dt;
+            drawWaves(hzNow());
+            waveRaf = requestAnimationFrame(waveTick);
+        }
+
+        function startWaveMotion() {
+            lastFrame = 0;
+            if (!waveRaf) waveRaf = requestAnimationFrame(waveTick);
+        }
+
+        function stopWaveMotion() {
+            if (waveRaf) cancelAnimationFrame(waveRaf);
+            waveRaf = 0;
+            drawWaves(hzNow());
+        }
+
+        function setLatchUi(on) {
+            toggle.setAttribute('aria-checked', on ? 'true' : 'false');
+        }
+
+        function startTone() {
+            try {
+                ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+                if (ctx.state === 'suspended') ctx.resume();
+            } catch (_) { return; }
+            if (osc) {
+                osc.frequency.setTargetAtTime(hzNow(), ctx.currentTime, 0.01);
+                return;
+            }
+            osc = ctx.createOscillator();
+            gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = hzNow();
+            gain.gain.value = 0.08;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            startWaveMotion();
+        }
+
+        function stopTone() {
+            if (!osc) return;
+            try { osc.stop(); } catch (_) {}
+            try { osc.disconnect(); gain.disconnect(); } catch (_) {}
+            osc = null;
+            gain = null;
+            stopWaveMotion();
+        }
+
+        function clearPulse() {
+            if (pulseTimer) {
+                clearTimeout(pulseTimer);
+                pulseTimer = 0;
+            }
         }
 
         function setFreq(hz) {
@@ -388,31 +557,81 @@ templateEngineOverride: njk
             if (osc) osc.frequency.setTargetAtTime(hz, ctx.currentTime, 0.01);
         }
 
-        toggle.addEventListener('click', function () {
-            if (osc) {
-                osc.stop();
-                osc.disconnect();
-                gain.disconnect();
-                osc = null;
-                toggle.textContent = 'Tone off';
+        function unlatch() {
+            latched = false;
+            setLatchUi(false);
+            clearPulse();
+            stopTone();
+        }
+
+        function latchOn() {
+            latched = true;
+            setLatchUi(true);
+            clearPulse();
+            startTone();
+        }
+
+        toggle.addEventListener('pointerdown', function (ev) {
+            ev.preventDefault();
+            pointerDown = true;
+            slid = false;
+            startX = ev.clientX;
+            startY = ev.clientY;
+            downAt = Date.now();
+            try { toggle.setPointerCapture(ev.pointerId); } catch (_) {}
+            if (latched) return;
+            startTone();
+        });
+
+        toggle.addEventListener('pointermove', function (ev) {
+            if (!pointerDown || slid) return;
+            var dx = ev.clientX - startX;
+            var dy = ev.clientY - startY;
+            if (Math.sqrt(dx * dx + dy * dy) > 12) {
+                slid = true;
+                latchOn();
+            }
+        });
+
+        toggle.addEventListener('pointerup', function () {
+            if (!pointerDown) return;
+            pointerDown = false;
+            var now = Date.now();
+            if (slid) return;
+            if (latched) {
+                unlatch();
+                lastTap = 0;
                 return;
             }
-            ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-            if (ctx.state === 'suspended') ctx.resume();
-            osc = ctx.createOscillator();
-            gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.value = parseInt(slider.value, 10);
-            gain.gain.value = 0.08;
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-            toggle.textContent = 'Tone on';
+            if (now - lastTap < 400) {
+                lastTap = 0;
+                latchOn();
+                return;
+            }
+            lastTap = now;
+            var remain = Math.max(0, 500 - (now - downAt));
+            clearPulse();
+            pulseTimer = setTimeout(function () {
+                pulseTimer = 0;
+                if (!latched) stopTone();
+            }, remain);
         });
+
+        toggle.addEventListener('pointercancel', function () {
+            pointerDown = false;
+            if (!latched) stopTone();
+        });
+
+        toggle.addEventListener('dblclick', function (ev) {
+            ev.preventDefault();
+            latchOn();
+        });
+
         slider.addEventListener('input', function () {
-            setFreq(parseInt(slider.value, 10));
+            setFreq(hzNow());
         });
-        label(parseInt(slider.value, 10));
+        window.addEventListener('resize', function () { drawWaves(hzNow()); });
+        label(hzNow());
     })();
 
     (function playableChips() {

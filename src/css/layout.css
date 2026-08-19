@@ -19,26 +19,8 @@ button {
 button:hover { border-color: var(--accent); }
 button.primary { background: #28a745; color: white; border-color: #1e7e34; }
 
-.app-container {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 250px;
-    grid-template-rows: minmax(0, 1fr);
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    position: relative;
-}
-main {
-    grid-column: 1;
-    grid-row: 1;
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 0 10px;
-    overflow-y: auto;
-    position: relative;
-}
+.app-container { display: flex; flex: 1; overflow: hidden; position: relative; }
+main { flex: 1; display: flex; flex-direction: column; padding: 0 10px; overflow-y: auto; position: relative; min-width: 0; }
 
 .doc-container { background: var(--panel-bg); padding: 1.5rem; border-bottom: 2px solid var(--border); line-height: 1.6; flex-shrink: 0; }
 .doc-container h1, .doc-container h2 { margin-top: 0; color: var(--highlight); }
@@ -114,12 +96,7 @@ note-chart svg #staff-bands text.staff-band-label {
 @media (max-width: 768px) {
     body { height: auto; overflow: auto; }
     header { position: sticky; top: 0; z-index: 100; }
-    .app-container {
-        display: flex;
-        flex-direction: column;
-        overflow: visible;
-        grid-template-columns: none;
-    }
+    .app-container { flex-direction: column; overflow: visible; }
     main { overflow: visible; }
     .editor-container { min-height: 500px; }
     aside { width: 100%; border-left: none; }

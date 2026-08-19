@@ -1,9 +1,11 @@
 <script>
 const sidebar = document.getElementById('sidebar');
 const toggleBtn = document.getElementById('sidebar-toggle');
-toggleBtn.onclick = () => {
-    sidebar.classList.toggle('collapsed');
-};
+if (toggleBtn && sidebar) {
+    toggleBtn.onclick = () => {
+        sidebar.classList.toggle('collapsed');
+    };
+}
 
 window.previewSound = (sound) => {
     const previewRepl = document.getElementById('preview-repl');

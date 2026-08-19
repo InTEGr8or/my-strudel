@@ -18,6 +18,9 @@ assert.strictEqual(page.includes('order: 0'), true, 'foundations lesson is first
 assert.strictEqual(page.includes('templateEngineOverride: njk'), true, 'lesson skips markdown so it cannot close main early');
 assert.strictEqual(page.includes('data-play="C4"'), true, 'letter chips are playable');
 assert.strictEqual(page.includes('freq-slider'), true, '440–880 Hz lab is on the page');
+assert.strictEqual(page.includes('id="freq-scope"'), true, 'freq lab uses an oscilloscope canvas');
+assert.strictEqual(page.includes('id="freq-toggle"') && page.includes('role="switch"'), true, 'tone control is a switch');
+assert.ok(page.includes('press and slide'), 'tone can latch for sliding the slider');
 assert.strictEqual(page.includes("osc.type = 'sine'"), true);
 assert.strictEqual(page.includes("mode: 'tape-head'"), true, 'practice box is a wait-mode tape');
 assert.strictEqual(page.includes('lessonTunes'), true);
@@ -25,6 +28,14 @@ assert.strictEqual(page.includes('scale degree'), true);
 assert.strictEqual(page.includes('tonic'), true);
 assert.ok(page.toLowerCase().includes('interval'), 'interval is defined');
 assert.ok(page.includes('octave'), 'octave is defined');
+assert.ok(page.includes('Why do piano books often start at C'), 'explains C vs A');
+assert.ok(page.includes('span class="word">Major</span>'), 'defines major');
+assert.ok(page.includes('span class="word">minor</span>'), 'defines minor');
+assert.ok(page.includes('span class="word">perfect</span>'), 'defines perfect');
+assert.ok(page.includes('span class="word">Augmented</span>'), 'defines augmented');
+assert.strictEqual(page.includes('typing class'), false, 'no typing-class title');
+assert.strictEqual(page.includes('REPL'), false, 'no computer-REPL language');
+assert.strictEqual(/Think of it as a list, or a type/.test(page), false, 'scale is not called a computer type');
 
 const abc = fs.readFileSync(path.join(lessonDir, 'exercises.abc'), 'utf-8');
 const tunes = splitAbcTunes(abc);
@@ -47,7 +58,9 @@ assert.ok(layout.includes("type != 'lesson'"), 'lesson pages do not load ABCJS f
 const trainerCss = fs.readFileSync(path.join(root, 'src/css/trainer.css'), 'utf-8');
 assert.strictEqual(trainerCss.includes('column-count: 2'), false, 'lesson prose is not split into newspaper columns');
 const layoutCss = fs.readFileSync(path.join(root, 'src/css/layout.css'), 'utf-8');
-assert.ok(layoutCss.includes('grid-template-columns: minmax(0, 1fr) 250px'), 'sidebar is a right-hand grid column, not under the piano');
+assert.strictEqual(layoutCss.includes('grid-template-columns: minmax(0, 1fr) 250px'), false, 'no reserved empty sidebar rail');
+const sidebarCss = fs.readFileSync(path.join(root, 'src/css/sidebar.css'), 'utf-8');
+assert.ok(sidebarCss.includes('aside.collapsed'), 'hamburger still slides the sidebar away');
 
 console.log('PASS: foundations lesson has ' + tunes.length + ' N32-safe try-its and a sine lab');
 console.log('\nAll foundations lesson tests PASSED.');

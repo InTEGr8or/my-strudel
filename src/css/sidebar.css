@@ -1,16 +1,7 @@
 aside {
-    grid-column: 2;
-    grid-row: 1;
-    width: 250px;
-    min-width: 250px;
-    display: flex;
-    flex-direction: column;
-    background: var(--sidebar-bg);
-    flex-shrink: 0;
-    border-left: 2px solid var(--border);
+    width: 250px; display: flex; flex-direction: column; background: var(--sidebar-bg);
+    flex-shrink: 0; border-left: 2px solid var(--border);
     transition: transform 0.3s ease, margin-right 0.3s ease;
-    z-index: 2;
-    min-height: 0;
 }
 aside.collapsed { margin-right: -250px; transform: translateX(100%); }
 .tabs { display: flex; background: var(--header-bg); border-bottom: 2px solid var(--border); }
