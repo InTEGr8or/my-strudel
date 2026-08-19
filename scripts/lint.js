@@ -21,6 +21,7 @@ const filesToLint = [
   'src/js/abc-highlight.js',
   'src/js/abc-source.js',
   'src/shared/parse-abc.js',
+  'src/shared/lesson-order.js',
   'scripts/build-musescore.js',
   'scripts/musicxml-to-abc.js',
   'scripts/verify-midi-abc.js',
@@ -34,6 +35,7 @@ const filesToLint = [
   'test/baby-steps.test.js',
   'test/abc-source.test.js',
   'test/lesson-foundations.test.js',
+  'test/lesson-order.test.js',
   'test/staff-player.test.js',
   'test/freq-lab.test.js',
 ];

@@ -202,7 +202,7 @@
     {%- if hasLessons -%}
     <h2 class="section-heading">Lessons</h2>
     <div class="card-grid">
-    {%- for item in collections.all | sort(false, false, 'data.order') -%}
+    {%- for item in collections.all | lessonPages -%}
       {%- if item.data.type === 'lesson' -%}
         <div class="lesson-card">
             <div class="badge-row">

@@ -22,6 +22,7 @@ const suites = [
   { name: 'abc-source', cmd: ['node', 'test/abc-source.test.js'] },
   { name: 'baby-steps', cmd: ['node', 'test/baby-steps.test.js'] },
   { name: 'foundations', cmd: ['node', 'test/lesson-foundations.test.js'] },
+  { name: 'lesson-order', cmd: ['node', 'test/lesson-order.test.js'] },
   { name: 'staff-player', cmd: ['node', 'test/staff-player.test.js'] },
   { name: 'freq-lab', cmd: ['node', 'test/freq-lab.test.js'] },
 ];

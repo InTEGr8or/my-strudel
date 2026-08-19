@@ -2,6 +2,7 @@ const { getMetadata } = require('./metadata-parser.js');
 const path = require('path');
 const fs = require('fs');
 const { parseAbc, splitAbcTunes } = require('./src/shared/parse-abc');
+const { sortLessons } = require('./src/shared/lesson-order');
 const { convertMuseScoreIncremental } = require('./scripts/build-musescore');
 
 module.exports = function (eleventyConfig) {
@@ -42,10 +43,13 @@ module.exports = function (eleventyConfig) {
     return JSON.stringify(splitAbcTunes(text));
   });
 
+  eleventyConfig.addFilter('lessonPages', function (allPages) {
+    return sortLessons(allPages);
+  });
+
   eleventyConfig.addFilter('lessonNav', function (allPages, currentPage) {
     const currentUrl = currentPage && currentPage.url;
-    const lessons = allPages.filter(p => p.data && p.data.type === 'lesson')
-      .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
+    const lessons = sortLessons(allPages);
     const idx = lessons.findIndex(p => p.url === currentUrl);
     const prev = idx > 0 ? lessons[idx - 1] : null;
     const next = idx < lessons.length - 1 ? lessons[idx + 1] : null;

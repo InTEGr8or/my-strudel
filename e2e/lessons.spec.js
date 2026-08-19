@@ -9,7 +9,7 @@ test('dashboard shows lessons section with cards', async ({ page }) => {
   expect(count).toBeGreaterThanOrEqual(7);
 
   const firstTitle = await cards.first().locator('.title').textContent();
-  expect(firstTitle).toContain('C Major');
+  expect(firstTitle).toContain('Notes, intervals, and scale degrees');
 });
 
 test('lesson page renders theory content and trainer', async ({ page }) => {
