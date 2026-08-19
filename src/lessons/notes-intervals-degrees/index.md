@@ -35,13 +35,17 @@ templateEngineOverride: njk
 
 <h2>Play this C</h2>
 
-<p>On the piano we <strong>play</strong>. We <strong>press keys</strong>. Notes one after another make a <strong>sequence</strong> (a little tune). Two or more keys at the same time make a <strong>chord</strong>.</p>
+<p>This is the <strong>grand staff</strong>, and this is our <strong>staff player</strong>. The two sets of five lines are how we write piano music. The little piano under them is for you to press.</p>
 
-<p>Each staff on this page is a little practice box. Play what you see, then keep reading. Near the end there are longer sequences: those wait on a note until you play the right key.</p>
+<p>Play the note that sits on the <strong>Now</strong> line. When you play it, the staff moves the next note to that line.</p>
 
-<p>This is a <strong>C</strong>. Press the C key on your keyboard, or tap it on the small piano under the staff. The <strong>Now</strong> line is where the note is waiting. A wrong key shows the name you want.</p>
+<p>The easiest key to find is <strong>D</strong>. It is the only white key with a black key on each side, and those two black keys do not have other black keys next to them. The <strong>C</strong> key is the white key just before that D.</p>
 
-<staff-player notes="C4" advance="#the-words"></staff-player>
+<p>If you press the wrong key, the correct key is surrounded by light blue (cyan).</p>
+
+<p>Again: when you hit the right key, the staff moves the next note to the Now line. Play this C eight times.</p>
+
+<staff-player notes="C4,C4,C4,C4,C4,C4,C4,C4" advance="#the-words"></staff-player>
 
 <h2 id="the-words">The words, one at a time</h2>
 
@@ -49,7 +53,7 @@ templateEngineOverride: njk
 
 <div class="def">A <span class="word">note</span> is one sound we can name and write. It is the smallest piece we will talk about.</div>
 
-<p>You just played one note. On the piano, one note is one <strong>key</strong>.</p>
+<p>You just played one note, several times. On the piano, one note is one <strong>key</strong>.</p>
 
 <h3>Pitch</h3>
 
