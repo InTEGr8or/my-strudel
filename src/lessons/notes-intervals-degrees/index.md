@@ -35,25 +35,25 @@ templateEngineOverride: njk
 
 <h2>Play this C</h2>
 
-<p>This is the <strong>grand staff</strong>, and this is our <strong>staff player</strong>. The two sets of five lines are how we write piano music. The little piano under them is for you to press.</p>
+<p>On the piano we <strong>play</strong>. We <strong>press keys</strong>. That is how music starts: one sound, then another, until it feels like a tune.</p>
 
-<p>Play the note that sits on the <strong>Now</strong> line. When you play it, the staff moves the next note to that line.</p>
+<p>The easiest key to find on the piano is <strong>D</strong>. It is the only white key with a black key on each side, and those two black keys do not have other black keys next to them. The <strong>C</strong> key is the white key just before that D.</p>
 
-<p>The easiest key to find is <strong>D</strong>. It is the only white key with a black key on each side, and those two black keys do not have other black keys next to them. The <strong>C</strong> key is the white key just before that D.</p>
+<p>The picture with the two sets of five lines is the <strong>grand staff</strong>. It is just a way to write the sounds. Play the note that sits on the <strong>Now</strong> line. When you play it, the next note moves to that line.</p>
 
 <p>If you press the wrong key, the correct key is surrounded by light blue (cyan).</p>
 
-<p>Again: when you hit the right key, the staff moves the next note to the Now line. Play this C eight times.</p>
+<p>Pressing the correct key moves the next note to the Now line. Play this C eight times.</p>
 
-<staff-player notes="C4,C4,C4,C4,C4,C4,C4,C4" advance="#the-words"></staff-player>
+<staff-player notes="C4,C4,C4,C4,C4,C4,C4,C4" advance="#music-parts"></staff-player>
 
-<h2 id="the-words">The words, one at a time</h2>
+<h2 id="music-parts">The names of the parts of music</h2>
 
 <h3>Note</h3>
 
-<div class="def">A <span class="word">note</span> is one sound we can name and write. It is the smallest piece we will talk about.</div>
+<div class="def">A <span class="word">note</span> is one sound we can name and write. It is the smallest part we will talk about.</div>
 
-<p>You just played one note, several times. On the piano, one note is one <strong>key</strong>.</p>
+<p>You just played one note, several times. On the piano, each <strong>key</strong> plays only one note.</p>
 
 <h3>Pitch</h3>
 
