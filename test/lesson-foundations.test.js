@@ -72,6 +72,7 @@ assert.ok(page.includes('span class="word">Major</span>'), 'defines major');
 assert.ok(page.includes('span class="word">minor</span>'), 'defines minor');
 assert.ok(page.includes('W W H W W W H'), 'major scale is a whole/half pattern');
 assert.ok(page.includes('2 2 1 2 2 2 1'), 'major pattern is also counted in half-steps');
+assert.ok(page.includes('W W H W W W H (2 2 1 2 2 2 1)'), 'prose repeats the half-step count next to W/H');
 assert.ok(page.includes('W H W W H W W'), 'natural minor is a whole/half pattern');
 assert.ok(page.includes('2 1 2 2 1 2 2'), 'minor pattern is also counted in half-steps');
 assert.ok(page.includes('<th>Half-steps</th>'), 'W/H tables include a half-step count');

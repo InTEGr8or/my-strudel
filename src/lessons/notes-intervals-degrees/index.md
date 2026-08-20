@@ -177,11 +177,11 @@ templateEngineOverride: njk
 <p>Play A minor up and down, twice:</p>
 <staff-player notes="A3,B3,C4,D4,E4,F4,G4,A4,G4,F4,E4,D4,C4,B3,A3,B3,C4,D4,E4,F4,G4,A4,G4,F4,E4,D4,C4,B3,A3"></staff-player>
 
-<p><strong>G major</strong> uses the same W W H W W W H pattern, starting on G. One black key (F♯) appears because the pattern needs it:</p>
+<p><strong>G major</strong> uses the same W W H W W W H (2 2 1 2 2 2 1) pattern, starting on G. One black key (F♯) appears because the pattern needs it:</p>
 <p>Play G major up and down, twice:</p>
 <staff-player notes="G3,A3,B3,C4,D4,E4,F#4,G4,F#4,E4,D4,C4,B3,A3,G3,A3,B3,C4,D4,E4,F#4,G4,F#4,E4,D4,C4,B3,A3,G3"></staff-player>
 
-<p><strong>C natural minor</strong> is W H W W H W W starting on C (same home as C major, darker third):</p>
+<p><strong>C natural minor</strong> is W H W W H W W (2 1 2 2 1 2 2) starting on C (same home as C major, darker third):</p>
 <p>Play C minor up and down, twice:</p>
 <staff-player notes="C4,D4,Eb4,F4,G4,Ab4,Bb4,C5,Bb4,Ab4,G4,F4,Eb4,D4,C4,D4,Eb4,F4,G4,Ab4,Bb4,C5,Bb4,Ab4,G4,F4,Eb4,D4,C4"></staff-player>
 
