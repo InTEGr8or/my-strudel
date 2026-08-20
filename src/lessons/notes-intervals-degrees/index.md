@@ -63,7 +63,13 @@ templateEngineOverride: njk
 
 <h3>Letter names</h3>
 
-<p>Music uses seven letters, then starts over. They are the same letters you already know, and they <strong>do start at A</strong>. Play them in order:</p>
+<p>Music uses seven letters, then starts over. They are the same letters you already know, and they <strong>do start at A</strong>.</p>
+
+<p>Some singers use another set of names called <span class="word">solfège</span> (do, re, mi, fa, sol, la, ti, do). In the list people learn first, <strong>do is C</strong>, not A. That is one reason piano books often start at C. We will use the letters.</p>
+
+<p>Seven letters is not the whole piano. From one letter up to the same letter again, there are <strong>12 keys</strong>. Seven are white (A through G). Five are black. Look at the keyboard: there is <strong>no black key between B and C</strong>, and none between <strong>E and F</strong>. Those neighbors sit close. The other letter neighbors have a black key between them.</p>
+
+<p>Play the seven letters in order:</p>
 
 <staff-player notes="A3,B3,C4,D4,E4,F4,G4"></staff-player>
 
@@ -103,9 +109,15 @@ templateEngineOverride: njk
 
 <h3 id="semitone">Semitone and whole step</h3>
 
-<div class="def">A <span class="word">semitone</span> (half step) is the distance to the very next key, black or white. A <span class="word">whole step</span> is two semitones (skip one key).</div>
+<div class="def">A <span class="word">semitone</span> (half step) is the distance to the very next key, black or white. A <span class="word">whole step</span> is two semitones (skip one key). An octave is 12 semitones.</div>
 
-<p>C to C♯ is a semitone. C to D is a whole step. Play all three:</p>
+<p><strong>B to C</strong> is already a semitone. <strong>E to F</strong> is already a semitone. That is why those pairs have no black key. In solfège those close pairs are <strong>ti–do</strong> and <strong>mi–fa</strong>. The in-between notes (the black keys) get a slightly changed syllable. We will keep using letters, with ♯ and ♭.</p>
+
+<p>Play B then C, then E then F:</p>
+
+<staff-player notes="B3,C4,E4,F4"></staff-player>
+
+<p>C to C♯ is a semitone. C to D skips that black key, so it is a whole step. Play all three:</p>
 
 <staff-player notes="C4,C#4,D4"></staff-player>
 
@@ -205,20 +217,33 @@ templateEngineOverride: njk
 
 <p>C to F♯ is <strong>not 4.5</strong>. It sits between 4 and 5 on the white-key list, but musicians keep whole step-numbers and then say perfect, major, minor, or augmented.</p>
 
+<p>An interval is <strong>not</strong> always a whole step. A whole step is one small interval (C to D). A half step is one smaller interval (C to C♯, or B to C). A fifth is a bigger interval (C to G). Same idea — two notes, a distance — just different sizes.</p>
+
+<p>The last column <strong>is</strong> the interval name. “Count” is how many letters you walk, including the start (C to E is a third: C, D, E). Semitones are how many keys you walk. A <strong>second</strong> (count 2) is not always a whole step: C to C♯ is a minor second (half step); C to D is a major second (whole step).</p>
+
 <table>
-  <thead><tr><th>From C (up)</th><th>Semitones</th><th>Usual name</th></tr></thead>
+  <thead><tr><th>From C up to</th><th>Semitones</th><th>Count</th><th>Interval</th></tr></thead>
   <tbody>
-    <tr><td>C</td><td>0</td><td>unison</td></tr>
-    <tr><td>D</td><td>2</td><td>major second</td></tr>
-    <tr><td>E</td><td>4</td><td>major third</td></tr>
-    <tr><td>F</td><td>5</td><td>perfect fourth</td></tr>
-    <tr><td>F♯</td><td><strong>6</strong></td><td>tritone (augmented fourth)</td></tr>
-    <tr><td>G</td><td>7</td><td>perfect fifth</td></tr>
-    <tr><td>A</td><td>9</td><td>major sixth</td></tr>
-    <tr><td>B</td><td>11</td><td>major seventh</td></tr>
-    <tr><td>C</td><td>12</td><td>octave</td></tr>
+    <tr><td>C</td><td>0</td><td>1</td><td>perfect unison</td></tr>
+    <tr><td>C♯</td><td>1</td><td>2</td><td>minor second (half step)</td></tr>
+    <tr><td>D</td><td>2</td><td>2</td><td>major second (whole step)</td></tr>
+    <tr><td>E♭</td><td>3</td><td>3</td><td>minor third</td></tr>
+    <tr><td>E</td><td>4</td><td>3</td><td>major third</td></tr>
+    <tr><td>F</td><td>5</td><td>4</td><td>perfect fourth</td></tr>
+    <tr><td>F♯</td><td><strong>6</strong></td><td>4</td><td>tritone (augmented fourth)</td></tr>
+    <tr><td>G</td><td>7</td><td>5</td><td>perfect fifth</td></tr>
+    <tr><td>A♭</td><td>8</td><td>6</td><td>minor sixth</td></tr>
+    <tr><td>A</td><td>9</td><td>6</td><td>major sixth</td></tr>
+    <tr><td>B♭</td><td>10</td><td>7</td><td>minor seventh</td></tr>
+    <tr><td>B</td><td>11</td><td>7</td><td>major seventh</td></tr>
+    <tr><td>C</td><td>12</td><td>8</td><td>perfect octave</td></tr>
   </tbody>
 </table>
+
+<p>Every size from 0 to 12 is in that list. The old table only showed white keys (and F♯), so 1, 3, 8, and 10 looked like holes. They are not holes. They are the minor intervals.</p>
+
+<p>Hear a half step, a whole step, and a fifth — three intervals, only one of them a whole step:</p>
+<staff-player notes="C4,C#4,C4,D4,C4,G4"></staff-player>
 
 <p>F♯ is <strong>not</strong> in the C major list. It is an in-between note. You can still name the interval (augmented fourth) because an interval only needs two pitches.</p>
 
