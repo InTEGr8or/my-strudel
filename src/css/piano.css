@@ -18,8 +18,10 @@
 }
 .piano-key::after {
     content: ''; position: absolute; inset: 0; pointer-events: none;
-    border-radius: 0 0 8px 8px; opacity: var(--piano-tint-opacity, 0.3);
+    border-radius: 0 0 8px 8px; opacity: var(--piano-tint-opacity, 0.22);
 }
+.piano-key.black::after,
+.piano-key.black.dimmed::after { display: none; }
 .piano-key[data-band="0"]::after { background: rgb(var(--octave-0)); }
 .piano-key[data-band="1"]::after { background: rgb(var(--octave-1)); }
 .piano-key[data-band="2"]::after { background: rgb(var(--octave-2)); }
@@ -32,6 +34,7 @@
 .piano-key.active::after { display: none; }
 body[data-show-colors="false"] .piano-key::after { display: none; }
 .piano-key.dimmed { opacity: 0.55; }
+.piano-key.black.dimmed { opacity: 1; background: #2a2a2a; }
 .piano-key.dimmed.active { opacity: 1; }
 
 .staff-player-keys {

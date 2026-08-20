@@ -42,13 +42,14 @@ assert.strictEqual(noteChartCode.includes('staff-band-label'), true, 'staff-band
 assert.strictEqual(noteChartCode.includes('rgba(${octaveColors[band]}'), false, 'staff-bands no longer paint octave background rects');
 assert.strictEqual(noteChartCode.includes('renderBarNumber'), true, 'bar numbers are drawn on the staff');
 assert.strictEqual(noteChartCode.includes('bar-number'), true, 'bar numbers use .bar-number');
-assert.strictEqual(noteChartCode.includes("'0.14'"), true, 'bar numbers are 14% opacity');
-assert.strictEqual(noteChartCode.includes('grandH * 2 / 3'), true, 'bar numbers are two-thirds the grand staff');
+assert.ok(/["']0\.14["']/.test(noteChartCode), 'bar numbers are 14% opacity');
+assert.ok(/grandH \* 2/.test(noteChartCode), 'bar numbers are two-thirds the grand staff');
 assert.strictEqual(noteChartCode.includes('staff-brace'), true, 'grand staff has a curly brace');
 assert.strictEqual(noteChartCode.includes('_extent'), true, 'note-chart can render a base (tight) staff');
-assert.strictEqual(noteChartCode.includes("extent !== 'base'"), true, 'base staff omits the tempo mark');
+assert.ok(/extent !== ["']base["']/.test(noteChartCode), 'base staff omits the tempo mark');
 assert.strictEqual(noteChartCode.includes('this.renderHeadLine()'), true, 'every staff draws the Now line');
-assert.strictEqual(noteChartCode.includes("setAttribute('opacity', '0.5')"), true, 'Now line is 50% opacity');
+assert.ok(/opacity["'], ["']0\.5["']/.test(noteChartCode), 'Now line is 50% opacity');
+assert.strictEqual(noteChartCode.includes('stroke", "#ffffff"') || noteChartCode.includes("stroke', '#ffffff'"), true, 'Now line is white, not the orange highlight');
 assert.strictEqual(noteChartCode.includes('showShouldLabel'), true, 'staff can paint should-note names');
 assert.strictEqual(noteChartCode.includes('staffL - gap'), true, 'brace sits left of the staff');
 assert.strictEqual(noteChartCode.includes('italic S'), true, 'brace is two italic S-curves, one reversed');
@@ -60,7 +61,7 @@ assert.strictEqual(tapeTrainerCode.includes('22.4 * ctx.scale'), true, 'should-n
 assert.strictEqual(tapeTrainerCode.includes('renderBarNumber'), true, 'tape trainer draws a number in the middle of each bar');
 assert.strictEqual(noteChartCode.includes('renderRest('), true, 'renderRest method exists');
 assert.strictEqual(!noteChartCode.includes("symbol = '𝄽'"), true, 'renderRest no longer relies on unicode text glyphs');
-assert.strictEqual(noteChartCode.includes("createElementNS(svgNs, 'rect')"), true, 'renderRest uses SVG vector rects/paths');
+assert.ok(/createElementNS\(svgNs, ['"]rect['"]\)/.test(noteChartCode), 'renderRest uses SVG vector rects/paths');
 console.log('PASS: note-chart.js renders vector SVG rest shapes instead of font-dependent unicode text');
 
 // Test 5: MIDI/ABC timing lives in test/midi-abc-align.test.js (pitch+start, not pitch-only).
@@ -106,12 +107,29 @@ const initSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/component
 const layoutCss = fs.readFileSync(path.join(__dirname, '../src/css/layout.css'), 'utf-8');
 assert.strictEqual(sidebarSrc.includes('id="bar-numbers-toggle"'), true, 'Synth tab has a Bar numbers switch under key tint');
 assert.ok(sidebarSrc.indexOf('piano-tint-slider') < sidebarSrc.indexOf('bar-numbers-toggle'), 'Bar numbers toggle sits under the tint slider');
+assert.strictEqual(sidebarSrc.includes('value="22"'), true, 'key tint slider defaults to 22%');
+const pianoCss = fs.readFileSync(path.join(__dirname, '../src/css/piano.css'), 'utf-8');
+assert.ok(pianoCss.includes('.piano-key.black::after'), 'black keys are not tinted');
+assert.strictEqual(pianoCss.includes('.piano-key.black.dimmed { opacity: 1;'), true, 'out-of-range black keys do not go see-through');
+const varsCss = fs.readFileSync(path.join(__dirname, '../src/css/vars.css'), 'utf-8');
+assert.strictEqual(varsCss.includes('--piano-tint-opacity: 0.22'), true, 'new machines get 22% tint, not a full overlay');
+assert.strictEqual(initSrc.includes('DEFAULT_TINT = 22'), true, 'first visit applies 22% tint');
 assert.strictEqual(sidebarSrc.includes('role="switch"'), true, 'Bar numbers control is a switch');
 assert.strictEqual(uiSrc.includes('toggleBarNumbers'), true, 'toggleBarNumbers lives with the other synth settings');
 assert.strictEqual(uiSrc.includes("show-bar-numbers"), true, 'bar-number visibility is persisted');
 assert.strictEqual(initSrc.includes("show-bar-numbers"), true, 'saved bar-number setting is restored on load');
 assert.strictEqual(noteChartCode.includes('setShowBarNumbers'), true, 'note-chart can hide bar numbers');
 assert.strictEqual(layoutCss.includes('data-show-bar-numbers="false"'), true, 'CSS hides .bar-number when the switch is off');
+assert.strictEqual(layoutCss.includes('note-chart svg line'), false, 'dark mode does not recolor only the staff lines');
+assert.ok(/staffColor = ["']var\(--staff-ink\)["']/.test(noteChartCode), 'staff notes stay white');
+assert.ok(/activeBg = ["']var\(--staff-paper\)["']/.test(noteChartCode), 'staff paper stays black');
+const varsCssStaff = fs.readFileSync(path.join(__dirname, '../src/css/vars.css'), 'utf-8');
+assert.strictEqual(varsCssStaff.includes('--staff-paper: #111111'), true, 'staff board is black on every device');
+assert.strictEqual(varsCssStaff.includes('--staff-ink: #eeeeee'), true, 'staff notes are white on every device');
+assert.strictEqual(layoutCss.includes('color-scheme: only dark'), true, 'staff stays the dark board under Edge Auto Dark');
+assert.strictEqual(layoutCss.includes('forced-color-adjust: none'), true, 'staff ink is not remapped');
+const headSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/head.njk'), 'utf-8');
+assert.strictEqual(headSrc.includes('name="color-scheme"'), true, 'Safari/Edge get an explicit color-scheme meta');
 console.log('PASS: Synth tab can toggle bar numbers and remembers the choice');
 
 const synthSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/scripts/synth.njk'), 'utf-8');

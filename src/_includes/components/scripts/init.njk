@@ -16,12 +16,12 @@ tintSlider.addEventListener('input', () => {
     setPianoTint(parseInt(tintSlider.value));
     tintValue.textContent = tintSlider.value + '%';
 });
+const DEFAULT_TINT = 22;
 const savedTint = localStorage.getItem('piano-tint-opacity');
-if (savedTint !== null) {
-    tintSlider.value = savedTint;
-    tintValue.textContent = savedTint + '%';
-    setPianoTint(parseInt(savedTint));
-}
+const tint = savedTint !== null ? parseInt(savedTint, 10) : DEFAULT_TINT;
+tintSlider.value = tint;
+tintValue.textContent = tint + '%';
+setPianoTint(tint);
 const guideCheckbox = document.getElementById('color-guide-toggle');
 if (localStorage.getItem('show-color-guide') === 'false') {
     guideCheckbox.checked = false;

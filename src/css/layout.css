@@ -33,7 +33,7 @@ strudel-editor { display: block; height: 0; }
 a { color: var(--accent); text-decoration: none; }
 
 #note-chart-container {
-    background: transparent;
+    background: var(--staff-paper, #111);
     border: none;
     border-radius: 0;
     margin: calc(0.5rem * var(--ui-scale, 1)) 0;
@@ -41,10 +41,16 @@ a { color: var(--accent); text-decoration: none; }
     overflow: hidden;
     max-width: 100%;
     flex-shrink: 0;
+    color-scheme: only dark;
+    forced-color-adjust: none;
 }
 
 note-chart {
     display: block;
+    background: var(--staff-paper, #111);
+    color: var(--staff-ink, #eee);
+    color-scheme: only dark;
+    forced-color-adjust: none;
 }
 
 staff-player {
@@ -67,6 +73,9 @@ note-chart svg {
     margin: 0 auto;
     max-width: 100%;
     height: auto;
+    background: var(--staff-paper, #111);
+    color-scheme: only dark;
+    forced-color-adjust: none;
 }
 
 /* Should-note names (F5, B♭4, …). Must beat the dark-mode svg text fill. */
@@ -75,7 +84,7 @@ note-chart svg text.target-note-label {
 }
 
 note-chart svg text.bar-number {
-    fill: var(--abc-text, #666);
+    fill: var(--staff-ink, #eee);
     opacity: 0.14;
     font-weight: 700;
     pointer-events: none;
@@ -91,20 +100,8 @@ note-chart svg #staff-bands text.staff-band-label {
 }
 
 @media (prefers-color-scheme: dark) {
-    #note-chart-container {
-        background: var(--abc-bg, #111);
-    }
-    note-chart svg text:not(.target-note-label):not(.staff-band-label):not(.bar-number) {
-        fill: var(--abc-text, #eee);
-    }
     note-chart svg text.target-note-label {
         fill: #00e5ff;
-    }
-    note-chart svg text.bar-number {
-        fill: var(--abc-text, #eee);
-    }
-    note-chart svg line {
-        stroke: var(--abc-text, #eee);
     }
 }
 

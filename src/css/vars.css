@@ -1,3 +1,7 @@
+html {
+    color-scheme: light dark;
+}
+
 :root {
     --bg: #fdfdfd;
     --text: #222;
@@ -9,10 +13,15 @@
     --piano-bg: #333;
     --abc-bg: #fff;
     --abc-text: #000;
+    /* Staff is always the desktop dark board: black paper, white notes.
+       Edge Android Auto Dark must not invert this pair. */
+    --staff-paper: #111111;
+    --staff-ink: #eeeeee;
     --code-bg: #f0f0f0;
     --sidebar-bg: #f8f8f8;
 
     --ui-scale: 1.25;
+    --piano-tint-opacity: 0.22;
 
     --note-alpha: 0.2;
     --note-d-alpha: 0.4;

@@ -51,7 +51,7 @@ templateEngineOverride: njk
 
 <h3>Note</h3>
 
-<div class="def">A <span class="word">note</span> is one sound we can name and write. It is the smallest part we will talk about.</div>
+<div class="def">A <span class="word">note</span> is one sound we can name and write. It is the smallest part of music we will talk about.</div>
 
 <p>You just played one note, several times. On the piano, each <strong>key</strong> plays only one note.</p>
 

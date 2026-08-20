@@ -67,7 +67,7 @@ assert.strictEqual(layout.includes('staff-player.js'), true, 'layout loads the i
 
 const chart = fs.readFileSync(path.join(__dirname, '../src/js/note-chart.js'), 'utf-8');
 assert.strictEqual(chart.includes('_extent'), true, 'note-chart has a base/full extent');
-assert.strictEqual(chart.includes("extent !== 'base'"), true, 'base staff hides the tempo mark');
+assert.ok(/extent !== ["']base["']/.test(chart), 'base staff hides the tempo mark');
 
 console.log('PASS: staff-player parses notes and uses a compact base staff');
 console.log('\nAll staff-player tests PASSED.');
