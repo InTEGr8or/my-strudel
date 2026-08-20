@@ -117,6 +117,8 @@ templateEngineOverride: njk
 
 <staff-player notes="B3,C4,E4,F4"></staff-player>
 
+<p>A whole step is always two half steps. <strong>B to C is a half step.</strong> E to F is a half step. C to D is a whole step because it is two half steps: C to C♯, then C♯ to D.</p>
+
 <p>C to C♯ is a semitone. C to D skips that black key, so it is a whole step. Play all three:</p>
 
 <staff-player notes="C4,C#4,D4"></staff-player>
@@ -141,17 +143,75 @@ templateEngineOverride: njk
 
 <staff-player notes="C4,E4,A3,C4"></staff-player>
 
-<p><strong>C major</strong> is the white-key list from C to C. Play it:</p>
+<p>Every major scale uses the same step pattern. Natural minor uses a different one. W means whole step (two half steps). H means half step. The extra column writes that as <strong>2</strong> or <strong>1</strong> half steps, so you can count on the keys.</p>
 
-<staff-player notes="C4,D4,E4,F4,G4,A4,B4,C5"></staff-player>
+<table>
+  <thead><tr><th>Scale</th><th>Steps</th><th>Half-steps</th></tr></thead>
+  <tbody>
+    <tr><td>Major (any home)</td><td>W W H W W W H</td><td>2 2 1 2 2 2 1</td></tr>
+    <tr><td>Natural minor (any home)</td><td>W H W W H W W</td><td>2 1 2 2 1 2 2</td></tr>
+  </tbody>
+</table>
 
-<p>Every major scale uses the same step pattern: <strong>whole, whole, half, whole, whole, whole, half</strong>.</p>
+<p><strong>C major</strong> on the keys:</p>
+<table>
+  <thead><tr><th>C</th><th></th><th>D</th><th></th><th>E</th><th></th><th>F</th><th></th><th>G</th><th></th><th>A</th><th></th><th>B</th><th></th><th>C</th></tr></thead>
+  <tbody>
+    <tr><td></td><td>W</td><td></td><td>W</td><td></td><td>H</td><td></td><td>W</td><td></td><td>W</td><td></td><td>W</td><td></td><td>H</td><td></td></tr>
+    <tr><td></td><td>2</td><td></td><td>2</td><td></td><td>1</td><td></td><td>2</td><td></td><td>2</td><td></td><td>2</td><td></td><td>1</td><td></td></tr>
+  </tbody>
+</table>
 
-<p><strong>A natural minor</strong> is the white-key list from A to A. Same letters, but <strong>A</strong> is home, and the third is only 3 semitones. Play it:</p>
+<p>Play C major up and down, twice:</p>
+<staff-player notes="C4,D4,E4,F4,G4,A4,B4,C5,B4,A4,G4,F4,E4,D4,C4,D4,E4,F4,G4,A4,B4,C5,B4,A4,G4,F4,E4,D4,C4"></staff-player>
 
-<staff-player notes="A3,B3,C4,D4,E4,F4,G4"></staff-player>
+<p><strong>A natural minor</strong> is the white-key list from A to A. Same letters as C major, but <strong>A</strong> is home. The third is only 3 semitones (W then H):</p>
+<table>
+  <thead><tr><th>A</th><th></th><th>B</th><th></th><th>C</th><th></th><th>D</th><th></th><th>E</th><th></th><th>F</th><th></th><th>G</th><th></th><th>A</th></tr></thead>
+  <tbody>
+    <tr><td></td><td>W</td><td></td><td>H</td><td></td><td>W</td><td></td><td>W</td><td></td><td>H</td><td></td><td>W</td><td></td><td>W</td><td></td></tr>
+    <tr><td></td><td>2</td><td></td><td>1</td><td></td><td>2</td><td></td><td>2</td><td></td><td>1</td><td></td><td>2</td><td></td><td>2</td><td></td></tr>
+  </tbody>
+</table>
 
-<p>Same piano keys. Different home. That is why “major” and “minor” sound different.</p>
+<p>Play A minor up and down, twice:</p>
+<staff-player notes="A3,B3,C4,D4,E4,F4,G4,A4,G4,F4,E4,D4,C4,B3,A3,B3,C4,D4,E4,F4,G4,A4,G4,F4,E4,D4,C4,B3,A3"></staff-player>
+
+<p><strong>G major</strong> uses the same W W H W W W H pattern, starting on G. One black key (F♯) appears because the pattern needs it:</p>
+<p>Play G major up and down, twice:</p>
+<staff-player notes="G3,A3,B3,C4,D4,E4,F#4,G4,F#4,E4,D4,C4,B3,A3,G3,A3,B3,C4,D4,E4,F#4,G4,F#4,E4,D4,C4,B3,A3,G3"></staff-player>
+
+<p><strong>C natural minor</strong> is W H W W H W W starting on C (same home as C major, darker third):</p>
+<p>Play C minor up and down, twice:</p>
+<staff-player notes="C4,D4,Eb4,F4,G4,Ab4,Bb4,C5,Bb4,Ab4,G4,F4,Eb4,D4,C4,D4,Eb4,F4,G4,Ab4,Bb4,C5,Bb4,Ab4,G4,F4,Eb4,D4,C4"></staff-player>
+
+<p>Same piano can hold more than one list. C major and A minor share the white keys. C major and C minor share the home C, not all the letters.</p>
+
+<h3>Why not 12 letters, or 6 black and 6 white?</h3>
+
+<p>The 12 keys are real. The seven letters came first: that is the staircase that sounds like a scale with a <strong>home</strong>. The five black keys fill the leftover half steps. We did not start from 12 equal names (A through L) because the music this writing grew around is that 7-note list, with the extra notes marked ♯ or ♭.</p>
+
+<p>There are 7 white keys and 5 black keys, not 6 and 6, because <strong>B–C and E–F are already half steps</strong>. There is no room for a black key there. If every neighbor were a whole step, you would have 6 + 6 — a whole-tone list with no half steps. That sound does not lean toward home the way major and minor do. It is not mainly “dissonance.” It is where the two half steps sit in the 7-note pattern.</p>
+
+<h3>Chords as stacked steps</h3>
+
+<p>A <span class="word">chord</span> is two or more notes at the same time. A three-note chord (a triad) is home, a third, and a fifth. The steps between those members are just wholes and halves stacked:</p>
+
+<table>
+  <thead><tr><th>Chord</th><th>Notes</th><th>Steps</th><th>Half-steps</th></tr></thead>
+  <tbody>
+    <tr><td>C major</td><td>C–E–G</td><td>W W, then W H</td><td>2 2, then 2 1</td></tr>
+    <tr><td>C minor</td><td>C–E♭–G</td><td>W H, then W W</td><td>2 1, then 2 2</td></tr>
+    <tr><td>A minor</td><td>A–C–E</td><td>W H, then W W</td><td>2 1, then 2 2</td></tr>
+    <tr><td>G major</td><td>G–B–D</td><td>W W, then W H</td><td>2 2, then 2 1</td></tr>
+  </tbody>
+</table>
+
+<p>Play each as a chord (all keys together):</p>
+<staff-player notes="C4,E4,G4" chord></staff-player>
+<staff-player notes="C4,Eb4,G4" chord></staff-player>
+<staff-player notes="A3,C4,E4" chord></staff-player>
+<staff-player notes="G3,B3,D4" chord></staff-player>
 
 <h2>Scale degree</h2>
 
