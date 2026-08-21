@@ -32,6 +32,11 @@ assert.strictEqual(/this is our <strong>staff player<\/strong>/.test(page), fals
 assert.ok(page.includes('Now'), 'first section teaches the Now line');
 assert.ok(page.includes('cyan') || page.includes('light blue'), 'wrong keys are marked in cyan');
 assert.ok(/D<\/strong>/.test(page) && page.includes('two black'), 'D is the landmark for finding C');
+assert.ok(page.includes('piano-d-key.png'), 'finding D uses the piano picture');
+assert.ok(page.includes('72px * var(--ui-scale'), 'D-key picture is sized like the compact keyboard');
+assert.ok(page.includes('whole, half, whole'), 'D is midway in steps from A and from G');
+const eleventyCfg = fs.readFileSync(path.join(root, 'eleventy.config.js'), 'utf-8');
+assert.ok(eleventyCfg.includes('piano-d-key.png'), 'the D-key picture is copied into the site');
 const playIdx = page.indexOf('<h2>Play this C</h2>');
 const playerIdx = page.indexOf('<staff-player notes="C4,C4,C4,C4,C4,C4,C4,C4"');
 const wordsIdx = page.indexOf('id="music-parts"');
@@ -45,9 +50,9 @@ assert.strictEqual(page.includes('Octave in D'), true, 'a second octave starts o
 assert.strictEqual(page.includes('notes="D3,D4,D3,D4,D3,D4,D3,D4"'), true, 'D octave is also drilled four times');
 assert.strictEqual(page.includes('12th fret'), false, 'guitar octave detour is gone');
 assert.strictEqual(page.includes('freq-lab-heading'), false, 'freq lab is not its own late chapter');
-assert.strictEqual(page.includes("mode: 'tape-head'"), true, 'practice box is a wait-mode tape');
-assert.strictEqual(page.includes('pageNoteChart'), true, 'end trainer binds the page staff, not the first inline player');
-assert.strictEqual(page.includes('lessonTunes'), true);
+assert.strictEqual(page.includes('id="tune-list"'), false, 'ABC tune cards are gone; practice is inline');
+assert.strictEqual(page.includes('hidePageStaff'), true, 'foundations does not mount an empty page staff');
+assert.strictEqual(page.includes('Longer sequences'), false, 'no leftover your-turn card grid');
 assert.strictEqual(page.includes('scale degree'), true);
 assert.strictEqual(page.includes('tonic'), true);
 assert.ok(page.toLowerCase().includes('interval'), 'interval is defined');
@@ -56,7 +61,9 @@ assert.ok(page.includes('second</strong> (count 2) is not always a whole step') 
 assert.ok(page.includes('<th>Interval</th>'), 'the table names the interval in its own column');
 assert.ok(page.includes('minor second'), 'the 12-semitone table includes the half step');
 assert.ok(page.includes('minor third'), 'the table includes the missing odd sizes');
-assert.strictEqual(page.includes('notes="C4,C#4,C4,D4,C4,G4"'), true, 'half step, whole step, and fifth are played as three intervals');
+assert.strictEqual(page.includes('notes="C4,E4,C4,E4,C4,E4,C4,E4"'), true, 'major third is played four times');
+assert.strictEqual(page.includes('notes="A3,C4,A3,C4,A3,C4,A3,C4"'), true, 'minor third is played four times');
+assert.strictEqual(page.includes('notes="C4,C#4,C4,C#4,C4,C#4,C4,C#4"'), true, 'half step is played four times');
 assert.ok(page.includes('octave'), 'octave is defined');
 assert.ok(page.includes('solfège') || page.includes('solfege'), 'letter names mention solfège');
 assert.ok(page.includes('do is C'), 'solfège do is taught as C');
@@ -71,7 +78,6 @@ assert.ok(page.includes('C major</strong> — C–E–G') || page.includes('C ma
 assert.ok(page.includes('Why do piano books often start at C'), 'explains C vs A');
 assert.ok(page.indexOf('span class="word">Major</span>') < page.indexOf('Why do piano books often start at C'), 'C-vs-A comes after major and minor are named');
 assert.ok(page.indexOf('Why do piano books often start at C') > page.indexOf('<h2>Interval</h2>'), 'C-vs-A sits near the end, not in the first words');
-assert.ok(page.indexOf('Why do piano books often start at C') < page.indexOf('<h2>Longer sequences</h2>'), 'C-vs-A is just before the long try-its');
 assert.ok(page.includes('span class="word">Major</span>'), 'defines major');
 assert.ok(page.includes('span class="word">minor</span>'), 'defines minor');
 assert.ok(page.includes('W W H W W W H'), 'major scale is a whole/half pattern');
@@ -94,6 +100,15 @@ assert.ok(page.includes('span class="word">Augmented</span>'), 'defines augmente
 assert.strictEqual(page.includes('typing class'), false, 'no typing-class title');
 assert.strictEqual(page.includes('REPL'), false, 'no computer-REPL language');
 assert.strictEqual(/Think of it as a list, or a type/.test(page), false, 'scale is not called a computer type');
+
+(page.match(/<staff-player notes="([^"]+)"/g) || []).forEach(function (tag) {
+  const notes = tag.match(/notes="([^"]+)"/)[1];
+  if (notes.indexOf(';') !== -1) {
+    assert.ok(notes.split(';').length >= 4, tag + ' should repeat the chord');
+  } else {
+    assert.ok(notes.split(',').length >= 8, tag + ' should be an exercise, not a single pass');
+  }
+});
 
 const abc = fs.readFileSync(path.join(lessonDir, 'exercises.abc'), 'utf-8');
 const tunes = splitAbcTunes(abc);

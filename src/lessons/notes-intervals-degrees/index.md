@@ -8,6 +8,7 @@ order: 0
 description: "Play each idea as you read it: note, pitch, octave, tonic, scale, major, minor, degree, interval."
 layout: layout.njk
 tags: lessons
+hidePageStaff: true
 templateEngineOverride: njk
 ---
 
@@ -20,15 +21,12 @@ templateEngineOverride: njk
 #lesson-content .def { background: var(--panel-bg); border-left: 4px solid var(--accent); padding: 0.7rem 1rem; border-radius: 0 10px 10px 0; margin: 0.8rem 0 1.1rem; }
 #lesson-content table { width: 100%; border-collapse: collapse; margin: 0.8rem 0 1.2rem; font-size: 0.95rem; }
 #lesson-content th, #lesson-content td { border-bottom: 1px solid var(--border); padding: 0.35rem 0.45rem; text-align: left; }
-#trainer-panel { display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 0.5rem 0; flex-wrap: wrap; }
-.score-item { text-align: center; font-size: 0.9rem; color: var(--text); opacity: 0.8; display: flex; flex-direction: column; }
-.score-item strong { font-size: 1.2rem; color: var(--accent); }
-#tune-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.6rem; margin: 1rem 0 0.5rem; }
-.tune-card { text-align: left; background: var(--panel-bg); border: 2px solid var(--border); border-radius: 12px; padding: 0.55rem 0.7rem; cursor: pointer; font-family: inherit; color: var(--text); }
-.tune-card:hover { border-color: var(--accent); }
-.tune-card.active { border-color: var(--accent); background: var(--accent); color: #fff; }
-.tune-card .tune-n { font-size: 0.7rem; font-weight: 800; opacity: 0.7; }
-.tune-card .tune-title { font-weight: 800; font-size: 0.92rem; }
+#lesson-content .piano-d-key {
+    display: block;
+    height: calc(72px * var(--ui-scale, 1));
+    width: auto;
+    margin: 0.5rem 0 0.9rem;
+}
 </style>
 
 <div id="lesson-content">
@@ -37,7 +35,11 @@ templateEngineOverride: njk
 
 <p>On the piano we <strong>play</strong>. We <strong>press keys</strong>. That is how music starts: one sound, then another, until it feels like a tune.</p>
 
-<p>The easiest key to find on the piano is <strong>D</strong>. It is the only white key with a black key on each side, and those two black keys do not have other black keys next to them. The <strong>C</strong> key is the white key just before that D.</p>
+<p>The easiest key to find on the piano is <strong>D</strong>. It is the only white key with a black key on each side, and those two black keys do not have other black keys next to them.</p>
+
+<img class="piano-d-key" src="{{ '/piano-d-key.png' | htmlBaseUrl }}" width="127" height="133" alt="A piano: D is the white key with a black key on each side, and those two black keys stand alone.">
+
+<p>D also sits in the middle of the letter list: A B C <strong>D</strong> E F G. From A up to D is whole, half, whole. From D up to G is the same: whole, half, whole. Same number of half steps and whole steps above it and below it. The <strong>C</strong> key is the white key just before that D.</p>
 
 <p>The picture with the two sets of five lines is the <strong>grand staff</strong>. It is just a way to write the sounds. Play the note that sits on the <strong>Now</strong> line. When you play it, the next note moves to that line.</p>
 
@@ -69,9 +71,9 @@ templateEngineOverride: njk
 
 <p>Seven letters is not the whole piano. From one letter up to the same letter again, there are <strong>12 keys</strong>. Seven are white (A through G). Five are black. Look at the keyboard: there is <strong>no black key between B and C</strong>, and none between <strong>E and F</strong>. Those neighbors sit close. The other letter neighbors have a black key between them.</p>
 
-<p>Play the seven letters in order:</p>
+<p>Play the seven letters in order, twice:</p>
 
-<staff-player notes="A3,B3,C4,D4,E4,F4,G4"></staff-player>
+<staff-player notes="A3,B3,C4,D4,E4,F4,G4,A3,B3,C4,D4,E4,F4,G4"></staff-player>
 
 <h3 id="octave">Octave</h3>
 
@@ -149,9 +151,13 @@ templateEngineOverride: njk
 
 <div class="def"><span class="word">Major</span> and <span class="word">minor</span> are two common flavors of a scale (and of some intervals). Major often sounds brighter or happier. Minor often sounds darker or sadder. The big difference is the <strong>third</strong> step: in major it is 4 semitones above home (C to E); in minor it is 3 (A to C, or C to E♭).</div>
 
-<p>Play C then E (a major third), then A then C (a minor third). Listen for the color change.</p>
+<p>Play C then E (a major third), four times. Listen for the brighter jump:</p>
 
-<staff-player notes="C4,E4,A3,C4"></staff-player>
+<staff-player notes="C4,E4,C4,E4,C4,E4,C4,E4"></staff-player>
+
+<p>Now play A then C (a minor third), four times. Listen for the softer jump:</p>
+
+<staff-player notes="A3,C4,A3,C4,A3,C4,A3,C4"></staff-player>
 
 <p>Every major scale uses the same step pattern. Natural minor uses a different one. W means whole step (two half steps). H means half step. The extra column writes that as <strong>2</strong> or <strong>1</strong> half steps, so you can count on the keys.</p>
 
@@ -246,9 +252,9 @@ templateEngineOverride: njk
   </tbody>
 </table>
 
-<p>The sequence <code>1, 4, 1, 5</code> is a <strong>list of degrees</strong>. It is not “a scale.” It is not a list of intervals. It means “play home, the fourth, home, the fifth.” In C that is C, F, C, G:</p>
+<p>The sequence <code>1, 4, 1, 5</code> is a <strong>list of degrees</strong>. It is not “a scale.” It is not a list of intervals. It means “play home, the fourth, home, the fifth.” In C that is C, F, C, G. Play it four times:</p>
 
-<staff-player notes="C4,F4,C4,G4"></staff-player>
+<staff-player notes="C4,F4,C4,G4,C4,F4,C4,G4,C4,F4,C4,G4,C4,F4,C4,G4"></staff-player>
 
 <p>Numbers are handy when you move a song: same list, new home.</p>
 
@@ -263,16 +269,16 @@ templateEngineOverride: njk
   <li><strong>Together</strong> (a chord). That is a <strong>harmonic interval</strong>.</li>
 </ol>
 
-<p>Play C and E together — a harmonic third:</p>
+<p>Play C and E together — a harmonic third. Four times:</p>
 
-<staff-player notes="C4,E4" chord></staff-player>
+<staff-player notes="C4,E4;C4,E4;C4,E4;C4,E4" chord></staff-player>
 
 <p>Direction matters. <strong>C up to A</strong> is a <strong>sixth</strong>. <strong>C down to A</strong> is a <strong>third</strong> downward. Same letter A, two different intervals. The <strong>degree</strong> of A in C major is still <strong>6</strong>.</p>
 
-<p>Up a sixth:</p>
-<staff-player notes="C4,A4"></staff-player>
-<p>Down a third:</p>
-<staff-player notes="C4,A3"></staff-player>
+<p>Up a sixth, four times:</p>
+<staff-player notes="C4,A4,C4,A4,C4,A4,C4,A4"></staff-player>
+<p>Down a third, four times:</p>
+<staff-player notes="C4,A3,C4,A3,C4,A3,C4,A3"></staff-player>
 
 <h3>Perfect, major, minor, augmented</h3>
 
@@ -280,16 +286,17 @@ templateEngineOverride: njk
 
 <div class="def">A <span class="word">perfect</span> interval is one that does not come in a major or minor flavor. The settled ones are the unison, fourth, fifth, and octave. C to F is a <strong>perfect fourth</strong> (5 semitones). C to G is a <strong>perfect fifth</strong> (7 semitones). They sound very stable.</div>
 
-<p>Play a perfect fourth, then a perfect fifth:</p>
-<staff-player notes="C4,F4"></staff-player>
-<staff-player notes="C4,G4"></staff-player>
+<p>Play a perfect fourth, four times:</p>
+<staff-player notes="C4,F4,C4,F4,C4,F4,C4,F4"></staff-player>
+<p>Play a perfect fifth, four times:</p>
+<staff-player notes="C4,G4,C4,G4,C4,G4,C4,G4"></staff-player>
 
 <div class="def">Seconds, thirds, sixths, and sevenths <em>do</em> come in <span class="word">major</span> and <span class="word">minor</span>. Major is the larger of the pair. C to E is a major third (4 semitones). A to C is a minor third (3 semitones).</div>
 
 <div class="def"><span class="word">Augmented</span> means one semitone <strong>bigger</strong> than the usual interval. C to F is a perfect fourth; raise F to F♯ and you have an <strong>augmented fourth</strong> (6 semitones). <span class="word">Diminished</span> means one semitone <strong>smaller</strong>. C to G♭ is a diminished fifth — the same two keys as C to F♯. That 6-semitone distance is also called a <strong>tritone</strong> (three whole tones).</div>
 
-<p>Play C to F♯ (the tritone):</p>
-<staff-player notes="C4,F#4"></staff-player>
+<p>Play C to F♯ (the tritone), four times:</p>
+<staff-player notes="C4,F#4,C4,F#4,C4,F#4,C4,F#4"></staff-player>
 
 <p>C to F♯ is <strong>not 4.5</strong>. It sits between 4 and 5 on the white-key list, but musicians keep whole step-numbers and then say perfect, major, minor, or augmented.</p>
 
@@ -318,8 +325,12 @@ templateEngineOverride: njk
 
 <p>Every size from 0 to 12 is in that list. The old table only showed white keys (and F♯), so 1, 3, 8, and 10 looked like holes. They are not holes. They are the minor intervals.</p>
 
-<p>Hear a half step, a whole step, and a fifth — three intervals, only one of them a whole step:</p>
-<staff-player notes="C4,C#4,C4,D4,C4,G4"></staff-player>
+<p>Hear a half step, four times:</p>
+<staff-player notes="C4,C#4,C4,C#4,C4,C#4,C4,C#4"></staff-player>
+<p>A whole step, four times:</p>
+<staff-player notes="C4,D4,C4,D4,C4,D4,C4,D4"></staff-player>
+<p>A fifth, four times — three intervals, only one of them a whole step:</p>
+<staff-player notes="C4,G4,C4,G4,C4,G4,C4,G4"></staff-player>
 
 <p>F♯ is <strong>not</strong> in the C major list. It is an in-between note. You can still name the interval (augmented fourth) because an interval only needs two pitches.</p>
 
@@ -332,9 +343,6 @@ templateEngineOverride: njk
 <p>If you play only the <strong>white keys from A to A</strong>, the tune has a softer, sadder color. That list is called <strong>A minor</strong>. If you play only the <strong>white keys from C to C</strong>, the tune has a brighter color. That list is called <strong>C major</strong>.</p>
 
 <p>Piano lessons often start at C because <strong>C major uses only white keys</strong> and sounds like many children’s songs. It is a handy door, not the start of the alphabet. Later we will start lists on other letters too.</p>
-
-<h2>Longer sequences</h2>
-<p>These cards use the bigger staff and piano below. Tap a card, then play. Wait mode stays on a note until you play the right key. The same ideas come back more than once on purpose.</p>
 
 {% set nav = collections.all | lessonNav(page) %}
 {% if nav.prev or nav.next %}
@@ -352,110 +360,3 @@ templateEngineOverride: njk
 </div>
 {% endif %}
 </div>
-
-<div id="trainer-panel">
-    <div class="score-item">Correct<br><strong id="score-correct">0</strong></div>
-    <div class="score-item">Wrong<br><strong id="score-wrong">0</strong></div>
-    <button id="play-btn" type="button" onclick="togglePlayTrainer()" style="font-size:0.9rem;padding:0.3rem 0.9rem;border-radius:8px;border:2px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-weight:bold">
-        <span id="play-btn-icon">▶</span> <span id="play-btn-label">Play</span>
-    </button>
-    <button id="wait-btn" type="button" onclick="toggleWaitTrainer()" style="font-size:0.9rem;padding:0.3rem 0.9rem;border-radius:8px;border:2px solid var(--border);background:var(--panel-bg);color:var(--text);cursor:pointer;font-weight:bold">Wait</button>
-    <button type="button" onclick="refreshTrainer()" style="font-size:0.9rem;padding:0.3rem 0.8rem;border-radius:8px;border:2px solid var(--border);background:var(--panel-bg);cursor:pointer">↻</button>
-</div>
-
-<p id="active-tune-title" style="text-align:center;font-weight:800;margin:0.3rem 0 0.6rem"></p>
-<div id="tune-list"></div>
-
-<script>
-(function () {
-    var TUNES = {% lessonTunes 'notes-intervals-degrees' %};
-    var trainer = null;
-    var active = 0;
-
-    function syncWait(on) {
-        var btn = document.getElementById('wait-btn');
-        if (!btn) return;
-        btn.style.background = on ? 'var(--accent)' : 'var(--panel-bg)';
-        btn.style.color = on ? '#fff' : 'var(--text)';
-        btn.style.borderColor = on ? 'var(--accent)' : 'var(--border)';
-    }
-    function syncPlay(playing) {
-        var icon = document.getElementById('play-btn-icon');
-        var label = document.getElementById('play-btn-label');
-        if (icon) icon.textContent = playing ? '⏸' : '▶';
-        if (label) label.textContent = playing ? 'Pause' : 'Play';
-    }
-
-    window.toggleWaitTrainer = function () {
-        var next = !(trainer && trainer.getWait && trainer.getWait());
-        if (trainer && trainer.setWait) trainer.setWait(next);
-        syncWait(next);
-    };
-    window.togglePlayTrainer = function () {
-        if (!trainer || !trainer.togglePlay) return;
-        syncPlay(trainer.togglePlay());
-    };
-    window.refreshTrainer = function () {
-        if (trainer) trainer.start();
-        syncPlay(false);
-    };
-
-    function loadTune(i) {
-        if (!trainer || !TUNES[i]) return;
-        active = i;
-        var t = TUNES[i];
-        var chart = window.pageNoteChart ? window.pageNoteChart() : document.querySelector('#note-chart-container note-chart');
-        if (chart) {
-            if (t.timeSignature) chart.timeSignature = t.timeSignature;
-            if (t.keySignature) chart.keySignature = t.keySignature;
-            if (t.tempo) chart.tempo = t.tempo;
-        }
-        trainer.setNotes(t.notes || [], t.rests || []);
-        if (trainer.setWait) trainer.setWait(true);
-        syncWait(true);
-        trainer.start();
-        var title = document.getElementById('active-tune-title');
-        if (title) title.textContent = t.title;
-        if (window.setAbcSource) window.setAbcSource(t.abc || '');
-        document.querySelectorAll('.tune-card').forEach(function (el, idx) {
-            el.classList.toggle('active', idx === i);
-        });
-    }
-
-    function renderList() {
-        var list = document.getElementById('tune-list');
-        if (!list) return;
-        list.innerHTML = '';
-        TUNES.forEach(function (t, i) {
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'tune-card';
-            btn.innerHTML = '<div class="tune-n">Try ' + t.id + '</div><div class="tune-title"></div>';
-            btn.querySelector('.tune-title').textContent = t.title;
-            btn.addEventListener('click', function () { loadTune(i); });
-            list.appendChild(btn);
-        });
-    }
-
-    function initTrainer() {
-        var chart = window.pageNoteChart ? window.pageNoteChart() : document.querySelector('#note-chart-container note-chart');
-        if (!window.__midiObservers || !window.createTrainer || !chart || !chart._ctx) {
-            setTimeout(initTrainer, 20);
-            return;
-        }
-        trainer = window.createTrainer({
-            chartEl: chart,
-            mode: 'tape-head',
-            scoreCorrectEl: document.getElementById('score-correct'),
-            scoreWrongEl: document.getElementById('score-wrong'),
-        });
-        window.__midiObservers.push(function (midiNote, isNoteOn, isNoteOff) {
-            trainer.onMidi(midiNote, isNoteOn, isNoteOff);
-        });
-        renderList();
-        loadTune(0);
-    }
-
-    setTimeout(initTrainer, 0);
-})();
-</script>

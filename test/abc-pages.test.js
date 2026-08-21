@@ -17,6 +17,7 @@ const headInc = fs.readFileSync(path.join(root, 'src/_includes/components/head.n
 assert.strictEqual(headInc.includes('{% if showStrudel %}'), true, 'Strudel CDN loads only on Strudel pages');
 assert.strictEqual(layout.includes("type == 'abc'"), true, 'ABC pages show the staff');
 assert.strictEqual(layout.includes('{% if showStaff %}'), true, 'staff is gated');
+assert.strictEqual(layout.includes('hidePageStaff'), true, 'a lesson can skip the leftover page staff');
 assert.strictEqual(layout.includes("{% if showStrudel %}"), true, 'strudel editor is gated');
 assert.strictEqual(layout.includes('abc-trainer.njk'), true, 'ABC pages include the tape trainer');
 assert.strictEqual(layout.includes('abc-source.njk'), true, 'ABC pages include the ABC source viewer');
