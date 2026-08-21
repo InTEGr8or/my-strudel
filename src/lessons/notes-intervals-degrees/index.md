@@ -103,9 +103,13 @@ templateEngineOverride: njk
 
 <div class="def">A <span class="word">sharp</span> (♯) is one key to the <strong>right</strong> (a little higher). A <span class="word">flat</span> (♭) is one key to the <strong>left</strong> (a little lower). The same black key can be F♯ or G♭.</div>
 
-<p>Play F, the black key F♯, then G:</p>
+<p>Play F, the black key F♯, then G. That is two half steps in a row. Do it in two places, a few times:</p>
 
-<staff-player notes="F4,F#4,G4"></staff-player>
+<staff-player notes="F3,F#3,G3,F#3,F3,F#3,G3,F4,F#4,G4,F#4,F4,F#4,G4"></staff-player>
+
+<p>Now play <strong>every</strong> half step from A up to the next A, then back down, twice. We go all the way to A (not only to G) so the G♯ is not left out — that is all 12 keys in the octave.</p>
+
+<staff-player notes="A3,A#3,B3,C4,C#4,D4,D#4,E4,F4,F#4,G4,G#4,A4,G#4,G4,F#4,F4,E4,D#4,D4,C#4,C4,B3,A#3,A3,A#3,B3,C4,C#4,D4,D#4,E4,F4,F#4,G4,G#4,A4,G#4,G4,F#4,F4,E4,D#4,D4,C#4,C4,B3,A#3,A3"></staff-player>
 
 <h3 id="semitone">Semitone and whole step</h3>
 
@@ -113,23 +117,29 @@ templateEngineOverride: njk
 
 <p><strong>B to C</strong> is already a semitone. <strong>E to F</strong> is already a semitone. That is why those pairs have no black key. In solfège those close pairs are <strong>ti–do</strong> and <strong>mi–fa</strong>. The in-between notes (the black keys) get a slightly changed syllable. We will keep using letters, with ♯ and ♭.</p>
 
-<p>Play B then C, then E then F:</p>
+<p>Play B then C, in two octaves, a few times. That half step has no black key:</p>
 
-<staff-player notes="B3,C4,E4,F4"></staff-player>
+<staff-player notes="B2,C3,B2,C3,B2,C3,B3,C4,B3,C4,B3,C4"></staff-player>
+
+<p>Play E then F, in two octaves, a few times:</p>
+
+<staff-player notes="E3,F3,E3,F3,E3,F3,E4,F4,E4,F4,E4,F4"></staff-player>
 
 <p>A whole step is always two half steps. <strong>B to C is a half step.</strong> E to F is a half step. C to D is a whole step because it is two half steps: C to C♯, then C♯ to D.</p>
 
-<p>C to C♯ is a semitone. C to D skips that black key, so it is a whole step. Play all three:</p>
+<p>C to C♯ is a semitone. C to D skips that black key, so it is a whole step. Walk C, C♯, D up and down a few times:</p>
 
-<staff-player notes="C4,C#4,D4"></staff-player>
+<staff-player notes="C4,C#4,D4,C#4,C4,C#4,D4,C#4,C4,C#4,D4"></staff-player>
 
 <h3 id="tonic">Tonic (home)</h3>
 
 <div class="def">The <span class="word">tonic</span> is the home note of a piece or a scale. It is also called degree <strong>1</strong>, and sometimes the <strong>root</strong> when we build a chord.</div>
 
-<p>In this lesson home is <strong>C</strong>, unless we say otherwise. Play home:</p>
+<p>Home is a letter, not one key. A C in a lower octave and a C in a higher octave are both still the tonic if home is C. On this small keyboard that is a left-hand C (C3), middle C (C4), and a right-hand C (C5).</p>
 
-<staff-player notes="C4"></staff-player>
+<p>Play those three C’s up and down, three times:</p>
+
+<staff-player notes="C3,C4,C5,C4,C3,C4,C5,C4,C3,C4,C5,C4,C3"></staff-player>
 
 <h2>Scale</h2>
 
@@ -195,23 +205,29 @@ templateEngineOverride: njk
 
 <h3>Chords as stacked steps</h3>
 
-<p>A <span class="word">chord</span> is two or more notes at the same time. A three-note chord (a triad) is home, a third, and a fifth. The steps between those members are just wholes and halves stacked:</p>
+<p>A <span class="word">chord</span> is two or more notes at the same time. A three-note chord (a triad) is home, a third, and a fifth. You do <strong>not</strong> play the notes in between. The numbers below are how far it is from one chord note to the next: C to E is <strong>4</strong> half-steps (that is W+W), E to G is <strong>3</strong> (W+H).</p>
 
 <table>
-  <thead><tr><th>Chord</th><th>Notes</th><th>Steps</th><th>Half-steps</th></tr></thead>
+  <thead><tr><th>Chord</th><th>Notes</th><th>Half-steps</th><th>As W and H</th></tr></thead>
   <tbody>
-    <tr><td>C major</td><td>C–E–G</td><td>W W, then W H</td><td>2 2, then 2 1</td></tr>
-    <tr><td>C minor</td><td>C–E♭–G</td><td>W H, then W W</td><td>2 1, then 2 2</td></tr>
-    <tr><td>A minor</td><td>A–C–E</td><td>W H, then W W</td><td>2 1, then 2 2</td></tr>
-    <tr><td>G major</td><td>G–B–D</td><td>W W, then W H</td><td>2 2, then 2 1</td></tr>
+    <tr><td>C major</td><td>C–E–G</td><td>4, then 3</td><td>W+W, then W+H</td></tr>
+    <tr><td>C minor</td><td>C–E♭–G</td><td>3, then 4</td><td>W+H, then W+W</td></tr>
+    <tr><td>A minor</td><td>A–C–E</td><td>3, then 4</td><td>W+H, then W+W</td></tr>
+    <tr><td>G major</td><td>G–B–D</td><td>4, then 3</td><td>W+W, then W+H</td></tr>
   </tbody>
 </table>
 
-<p>Play each as a chord (all keys together):</p>
-<staff-player notes="C4,E4,G4" chord></staff-player>
-<staff-player notes="C4,Eb4,G4" chord></staff-player>
-<staff-player notes="A3,C4,E4" chord></staff-player>
-<staff-player notes="G3,B3,D4" chord></staff-player>
+<p><strong>C major</strong> — C–E–G. Half-steps 4, then 3 (W+W, then W+H). Play it low, then higher, twice. All three keys together each time:</p>
+<staff-player notes="C3,E3,G3;C4,E4,G4;C3,E3,G3;C4,E4,G4" chord></staff-player>
+
+<p><strong>C minor</strong> — C–E♭–G. Half-steps 3, then 4 (W+H, then W+W). Same home C, darker third. Low, then higher, twice:</p>
+<staff-player notes="C3,Eb3,G3;C4,Eb4,G4;C3,Eb3,G3;C4,Eb4,G4" chord></staff-player>
+
+<p><strong>A minor</strong> — A–C–E. Half-steps 3, then 4 (W+H, then W+W). Low, then higher, twice:</p>
+<staff-player notes="A2,C3,E3;A3,C4,E4;A2,C3,E3;A3,C4,E4" chord></staff-player>
+
+<p><strong>G major</strong> — G–B–D. Half-steps 4, then 3 (W+W, then W+H). Low, then higher, twice:</p>
+<staff-player notes="G2,B2,D3;G3,B3,D4;G2,B2,D3;G3,B3,D4" chord></staff-player>
 
 <h2>Scale degree</h2>
 

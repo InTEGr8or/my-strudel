@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const {
   parsePlayerNotes,
+  parseChordGroups,
   whiteCountForWidth,
   midisCenteredOnC4,
   nextScrollTarget,
@@ -18,6 +19,15 @@ const one = parsePlayerNotes('C4');
 assert.strictEqual(one.length, 1);
 assert.strictEqual(one[0].name, 'c4');
 assert.strictEqual(one[0].midi, 60);
+
+const chords = parseChordGroups('C3,E3,G3;C4,E4,G4');
+assert.strictEqual(chords.length, 2);
+assert.strictEqual(chords[0].length, 3);
+assert.strictEqual(chords[0][0].midi, 48);
+assert.strictEqual(chords[1][2].name, 'g4');
+assert.ok(chords.every(function (g) {
+  return g.every(function (n) { return n.midi >= N32_LOW && n.midi <= N32_HIGH; });
+}), 'sample chord voicings fit the N32');
 
 const seq = parsePlayerNotes('A3,B3,C4,F#4');
 assert.strictEqual(seq.length, 4);

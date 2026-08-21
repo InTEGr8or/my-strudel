@@ -31,6 +31,17 @@
     return out;
   }
 
+  function parseChordGroups(str) {
+    if (!str) return [];
+    var chunks = String(str).split(';');
+    var groups = [];
+    for (var i = 0; i < chunks.length; i++) {
+      var notes = parsePlayerNotes(chunks[i]);
+      if (notes.length) groups.push(notes);
+    }
+    return groups;
+  }
+
   function isWhiteMidi(midi) {
     var pc = ((midi % 12) + 12) % 12;
     return pc !== 1 && pc !== 3 && pc !== 6 && pc !== 8 && pc !== 10;
@@ -130,6 +141,7 @@
   }
 
   root.parsePlayerNotes = parsePlayerNotes;
+  root.parseChordGroups = parseChordGroups;
   root.whiteCountForWidth = whiteCountForWidth;
   root.midisCenteredOnC4 = midisCenteredOnC4;
   root.nextScrollTarget = nextScrollTarget;
@@ -139,6 +151,7 @@
     if (typeof module !== 'undefined' && module.exports) {
       module.exports = {
         parsePlayerNotes: parsePlayerNotes,
+        parseChordGroups: parseChordGroups,
         whiteCountForWidth: whiteCountForWidth,
         midisCenteredOnC4: midisCenteredOnC4,
         nextScrollTarget: nextScrollTarget,
@@ -193,9 +206,12 @@
     }
 
     _targets() {
+      if (this._groups && this._groups.length) {
+        if (this._pos >= this._groups.length) return [];
+        return this._groups[this._pos];
+      }
       var notes = this._notes || [];
       if (notes.length === 0) return [];
-      if (this.hasAttribute('chord')) return notes;
       if (this._pos >= notes.length) return [];
       return [notes[this._pos]];
     }
@@ -210,8 +226,14 @@
         return;
       }
       this._tries = 0;
-      var notes = parsePlayerNotes(this.getAttribute('notes'));
-      this._notes = notes;
+      var raw = this.getAttribute('notes');
+      if (this.hasAttribute('chord')) {
+        this._groups = parseChordGroups(raw);
+        this._notes = [];
+      } else {
+        this._groups = null;
+        this._notes = parsePlayerNotes(raw);
+      }
       this._paintNotes();
       this._buildKeys();
     }
@@ -226,10 +248,15 @@
         ? chart._headX
         : ctx.LEFT_PAD + (ctx.STAFF_R - ctx.LEFT_PAD) * 0.03;
       var spacing = ctx.SPACING * 3.2;
-      var chord = this.hasAttribute('chord');
-      if (chord) {
-        for (var i = 0; i < notes.length; i++) {
-          chart.renderNoteHead(notes[i].name, 'pending', headX, false, 1);
+      var groups = this._groups;
+      if (groups && groups.length) {
+        var gi;
+        var ni;
+        for (gi = this._pos; gi < groups.length; gi++) {
+          var x = headX + (gi - this._pos) * spacing;
+          for (ni = 0; ni < groups[gi].length; ni++) {
+            chart.renderNoteHead(groups[gi][ni].name, 'pending', x, false, 1);
+          }
         }
       } else {
         for (var j = this._pos; j < notes.length; j++) {
@@ -306,12 +333,16 @@
         this._showShould(targets);
         return;
       }
-      if (this.hasAttribute('chord')) {
+      if (this._groups && this._groups.length) {
         var all = true;
         for (var j = 0; j < targets.length; j++) {
           if (!this._held.has(targets[j].midi)) all = false;
         }
-        if (all) this._complete();
+        if (all) {
+          this._pos += 1;
+          this._paintNotes();
+          if (this._pos >= this._groups.length) this._complete();
+        }
       } else {
         this._pos += 1;
         this._paintNotes();
@@ -434,6 +465,7 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
       parsePlayerNotes: parsePlayerNotes,
+      parseChordGroups: parseChordGroups,
       whiteCountForWidth: whiteCountForWidth,
       midisCenteredOnC4: midisCenteredOnC4,
       nextScrollTarget: nextScrollTarget,
