@@ -28,10 +28,18 @@ const header = fs.readFileSync(path.join(root, 'src/_includes/components/header.
 assert.strictEqual(header.includes('showStrudel'), true, 'header Play/Stop only on Strudel pages');
 const head = fs.readFileSync(path.join(root, 'src/_includes/components/head.njk'), 'utf-8');
 const home = fs.readFileSync(path.join(root, 'src/index.njk'), 'utf-8');
-assert.strictEqual(head.includes("'/favicon.svg' | htmlBaseUrl"), true, 'layout pages link the favicon with the Pages prefix');
-assert.strictEqual(home.includes("'/favicon.svg' | htmlBaseUrl"), true, 'dashboard links the favicon with the Pages prefix');
+assert.strictEqual(head.includes('href="/favicon.svg"'), true, 'layout pages link the favicon');
+assert.strictEqual(home.includes('href="/favicon.svg"'), true, 'dashboard links the favicon');
 assert.ok(fs.existsSync(path.join(root, 'src/favicon.svg')), 'favicon.svg is in src/');
+const attrPrefixed = /\b(?:src|href)="\{\{[^}]*htmlBaseUrl/;
+assert.strictEqual(attrPrefixed.test(head), false, 'head href/src must not use htmlBaseUrl (HtmlBase plugin already prefixes Pages)');
+assert.strictEqual(attrPrefixed.test(home), false, 'dashboard href/src must not use htmlBaseUrl');
+assert.strictEqual(attrPrefixed.test(header), false, 'Home href must not use htmlBaseUrl');
+const lessonFoundations = fs.readFileSync(path.join(root, 'src/lessons/notes-intervals-degrees/index.md'), 'utf-8');
+assert.strictEqual(attrPrefixed.test(lessonFoundations), false, 'lesson images must not use htmlBaseUrl on src');
+assert.strictEqual(head.includes('src="/js/baby-steps.js"'), true, 'baby-steps.js is a root-absolute script the HtmlBase plugin can prefix once');
 console.log('PASS: favicon is on the dashboard and every layout page');
+console.log('PASS: HTML src/href are not double-prefixed with htmlBaseUrl');
 
 const eleventy = fs.readFileSync(path.join(root, 'eleventy.config.js'), 'utf-8');
 assert.strictEqual(eleventy.includes("addTemplateFormats('strudel,tidal,abc')"), true, 'Eleventy registers .abc pages');

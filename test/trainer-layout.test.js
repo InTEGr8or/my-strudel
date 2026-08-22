@@ -130,6 +130,21 @@ assert.strictEqual(layoutCss.includes('color-scheme: only dark'), true, 'staff s
 assert.strictEqual(layoutCss.includes('forced-color-adjust: none'), true, 'staff ink is not remapped');
 const headSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/head.njk'), 'utf-8');
 assert.strictEqual(headSrc.includes('name="color-scheme"'), true, 'Safari/Edge get an explicit color-scheme meta');
+assert.strictEqual(sidebarSrc.includes('id="keyboard-range"'), true, 'Synth tab has a keyboard-range picker');
+assert.ok(sidebarSrc.indexOf('keyboard-range') < sidebarSrc.indexOf('piano-tint-slider'), 'keyboard picker sits above the staff-guide controls');
+assert.strictEqual(initSrc.includes('KeyboardRange.mount'), true, 'saved keyboard range is restored on load');
+const pianoSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/scripts/piano.njk'), 'utf-8');
+assert.strictEqual(pianoSrc.includes('deviceCfg'), false, 'main piano does not read a hardcoded device-config blob');
+assert.ok(pianoSrc.includes('KeyboardRange.apply'), 'main piano dims from the shared keyboard range');
+const layoutSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/layout.njk'), 'utf-8');
+assert.strictEqual(layoutSrc.includes('device-config.njk'), false, 'layout no longer injects a single-device config');
+assert.ok(headSrc.includes('keyboard-range.js'), 'keyboard-range.js loads before the piano is built');
+const headerSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/header.njk'), 'utf-8');
+assert.strictEqual(headerSrc.includes('id="calibrate-btn"'), true, 'header has a Calibrate button');
+assert.ok(layoutSrc.includes('class="chrome-top"'), 'header and calibrate row share a top chrome wrap');
+assert.ok(layoutSrc.includes('id="calibrate-row"'), 'a calibrate prompt row sits under the header');
+assert.ok(layoutSrc.includes('id="calibrate-prompt"'), 'the row tells the player which key to hit');
+assert.ok(layoutCss.includes('.calibrate-row'), 'the calibrate row has layout styles');
 console.log('PASS: Synth tab can toggle bar numbers and remembers the choice');
 
 const synthSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/scripts/synth.njk'), 'utf-8');

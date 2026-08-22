@@ -8,7 +8,17 @@
     {% include 'components/head.njk' %}
 </head>
 <body{% if type %} data-type="{{ type }}"{% endif %}>
-    {% include 'components/header.njk' %}
+    <div class="chrome-top">
+        {% include 'components/header.njk' %}
+        <div id="calibrate-row" class="calibrate-row" hidden>
+            <p id="calibrate-prompt" class="calibrate-prompt">Press the lowest key on your keyboard.</p>
+            <div class="calibrate-ends">
+                <span>Lowest: <strong id="calibrate-low">—</strong></span>
+                <span>Highest: <strong id="calibrate-high">—</strong></span>
+            </div>
+            <button type="button" id="calibrate-cancel">Cancel</button>
+        </div>
+    </div>
 
     <div class="app-container">
         <main>
@@ -44,7 +54,6 @@
     <strudel-editor id="preview-repl" style="position: absolute; visibility: hidden; width: 0; height: 0;"></strudel-editor>
     {% endif %}
 
-    {% include 'components/device-config.njk' %}
     {% include 'components/scripts/piano.njk' %}
     {% include 'components/scripts/ui.njk' %}
     {% include 'components/scripts/synth.njk' %}

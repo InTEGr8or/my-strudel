@@ -315,6 +315,12 @@
     }
 
     _onPitch(midi, opts) {
+      if (root.KeyboardRange && root.KeyboardRange.isCalibrating()) {
+        if (opts && opts.play && typeof playMidiNote === 'function') playMidiNote(midi, 100);
+        if (opts && opts.play && typeof keyOn === 'function') keyOn(midiToNoteName(midi));
+        root.KeyboardRange.hear(midi);
+        return;
+      }
       if (opts && opts.play) this._arm();
       if (StaffPlayer.active !== this) return;
       if (this._done) return;
@@ -422,12 +428,12 @@
         key.dataset.note = fullName;
         key.dataset.midi = String(midi);
         key.dataset.band = String(octaveBand(noteName, oct));
-        if (midi < N32_LOW || midi > N32_HIGH) key.classList.add('dimmed');
         key.setAttribute('role', 'button');
         key.setAttribute('aria-label', midiDisplay(midi));
         this._bindKey(key, midi);
         host.appendChild(key);
       }
+      if (root.KeyboardRange && root.KeyboardRange.apply) root.KeyboardRange.apply(host);
     }
 
     _bindKey(el, midi) {

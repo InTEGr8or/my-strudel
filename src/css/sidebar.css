@@ -23,6 +23,23 @@ aside.collapsed { margin-right: -250px; transform: translateX(100%); }
 .tint-slider { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #888; margin: 0.3rem 0 0.3rem 0; }
 .tint-slider input[type="range"] { flex: 1; max-width: 100px; }
 
+.keyboard-range-select {
+    width: 100%;
+    padding: 6px 8px;
+    background: var(--header-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+.keyboard-range-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: #888;
+    margin: 0 0 0.4rem;
+}
+
 .setting-switch {
     display: flex;
     align-items: center;

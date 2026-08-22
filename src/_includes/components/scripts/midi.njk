@@ -24,6 +24,10 @@ window.handleMidiMessage = function handleMidiMessage(event) {
             staffNote(noteName, true);
             try { playMidiNote(midiNote, velocity); } catch (_) {}
         }
+        if (window.KeyboardRange && KeyboardRange.isCalibrating()) {
+            KeyboardRange.hear(midiNote);
+            return;
+        }
     } else if (isNoteOff) {
         const noteName = activeMidi.get(midiNote);
         if (noteName) {
@@ -31,6 +35,7 @@ window.handleMidiMessage = function handleMidiMessage(event) {
             keyOff(noteName);
             staffNote(noteName, false);
         }
+        if (window.KeyboardRange && KeyboardRange.isCalibrating()) return;
     }
     __midiObservers.forEach(fn => fn(midiNote, isNoteOn, isNoteOff));
 }
@@ -42,6 +47,9 @@ if (navigator.requestMIDIAccess) {
             const status = document.getElementById('midi-status');
             if (inputs.length > 0) {
                 status.textContent = `MIDI: ${inputs[0].name}`;
+                if (window.KeyboardRange && KeyboardRange.suggestFromMidiName) {
+                    KeyboardRange.suggestFromMidiName(inputs[0].name);
+                }
                 inputs.forEach(input => {
                     input.onmidimessage = handleMidiMessage;
                 });

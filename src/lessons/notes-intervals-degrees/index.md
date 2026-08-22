@@ -38,11 +38,11 @@ templateEngineOverride: njk
 
 <p>The easiest key to find on the piano is <strong>D</strong>. It is the only white key with a black key on each side, and those two black keys do not have other black keys next to them.</p>
 
-<img class="piano-d-key" src="{{ '/piano-d-key.svg' | htmlBaseUrl }}" width="66" height="72" alt="A piano: D is the white key with a black key on each side, and those two black keys stand alone.">
+<img class="piano-d-key" src="/piano-d-key.svg" width="66" height="72" alt="A piano: D is the white key with a black key on each side, and those two black keys stand alone.">
 
 <p>D also sits in the middle of the letter list: A B C <strong>D</strong> E F G. From A up to D is whole, half, whole. From D up to G is the same: whole, half, whole. Same number of half steps and whole steps above it and below it. The <strong>C</strong> key is the white key just before that D.</p>
 
-<img class="piano-a-to-g" src="{{ '/piano-a-to-g.svg' | htmlBaseUrl }}" width="154" height="72" alt="White keys A through G. Half of a G-sharp black key shows at each end of the octave.">
+<img class="piano-a-to-g" src="/piano-a-to-g.svg" width="154" height="72" alt="White keys A through G. Half of a G-sharp black key shows at each end of the octave.">
 
 <p>The picture with the two sets of five lines is the <strong>grand staff</strong>. It is just a way to write the sounds. Play the note that sits on the <strong>Now</strong> line. When you play it, the next note moves to that line.</p>
 

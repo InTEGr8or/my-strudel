@@ -5,12 +5,46 @@ body {
     margin: 0;
     display: flex; flex-direction: column; height: 100vh; overflow: hidden;
 }
+.chrome-top { flex-shrink: 0; }
 header {
     padding: 0.5rem 1rem; background: var(--header-bg); border-bottom: 3px solid var(--accent);
     display: flex; justify-content: space-between; align-items: center; height: 60px;
     box-sizing: border-box; flex-shrink: 0;
 }
 .controls { display: flex; gap: 0.5rem; align-items: center; }
+.calibrate-btn {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.7rem;
+    flex-shrink: 0;
+}
+.calibrate-btn[aria-expanded="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.calibrate-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    padding: 0.55rem 1rem;
+    background: var(--header-bg);
+    border-bottom: 2px solid var(--accent);
+    flex-shrink: 0;
+}
+.calibrate-row[hidden] { display: none; }
+.calibrate-prompt {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text);
+}
+.calibrate-ends {
+    display: flex;
+    gap: 1.1rem;
+    font-size: 0.9rem;
+    color: #888;
+}
+.calibrate-ends strong { color: var(--accent); font-size: 1rem; }
 button {
     background: var(--header-bg); color: var(--text); border: 2px solid var(--border);
     padding: 0.4rem 1rem; border-radius: 12px; cursor: pointer;
@@ -107,7 +141,9 @@ note-chart svg #staff-bands text.staff-band-label {
 
 @media (max-width: 768px) {
     body { height: auto; overflow: auto; }
-    header { position: sticky; top: 0; z-index: 100; }
+    .chrome-top { position: sticky; top: 0; z-index: 100; }
+    header { position: static; height: auto; min-height: 60px; }
+    #midi-status { display: none; }
     .app-container { flex-direction: column; overflow: visible; }
     main { overflow: visible; }
     .editor-container { min-height: 500px; }

@@ -2,7 +2,6 @@
 const piano = document.getElementById('piano-container');
 const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const keys = {};
-const deviceCfg = JSON.parse(document.getElementById('device-config').textContent);
 
 for (let midi = 21; midi <= 108; midi++) {
     const oct = Math.floor(midi / 12) - 1;
@@ -14,12 +13,10 @@ for (let midi = 21; midi <= 108; midi++) {
     key.id = `key-${fullName}`;
     key.dataset.midi = midi;
     key.dataset.band = (noteName[0] === 'A' || noteName[0] === 'B') ? oct : oct - 1;
-    if (midi < deviceCfg.range.low || midi > deviceCfg.range.high) {
-        key.classList.add('dimmed');
-    }
     piano.appendChild(key);
     keys[fullName] = key;
 }
+if (window.KeyboardRange && KeyboardRange.apply) KeyboardRange.apply(piano);
 
 const activeKeys = new Set();
 

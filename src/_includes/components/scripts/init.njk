@@ -16,6 +16,7 @@ tintSlider.addEventListener('input', () => {
     setPianoTint(parseInt(tintSlider.value));
     tintValue.textContent = tintSlider.value + '%';
 });
+if (window.KeyboardRange && KeyboardRange.mount) KeyboardRange.mount();
 const DEFAULT_TINT = 22;
 const savedTint = localStorage.getItem('piano-tint-opacity');
 const tint = savedTint !== null ? parseInt(savedTint, 10) : DEFAULT_TINT;

@@ -61,6 +61,9 @@ assert.strictEqual(src.includes('playMidiNote'), true, 'compact keys share the p
 assert.strictEqual(src.includes('showShouldLabel'), true, 'wrong keys show the should-note');
 assert.strictEqual(src.includes('nextScrollTarget'), true, 'finishing a player finds the next section');
 assert.strictEqual(src.includes('nextStaffPlayer'), true, 'MIDI hands off to the next player');
+assert.ok(src.includes('KeyboardRange.apply'), 'compact keys dim from the shared keyboard range, not a hardcoded N32');
+assert.ok(src.includes('isCalibrating'), 'compact players do not eat keys while calibrating');
+assert.strictEqual(src.includes('midi < N32_LOW'), false, 'compact player does not hardcode N32 dimming');
 
 function fake(tag, next) {
   return { tagName: tag, nextElementSibling: next || null, getAttribute: function () { return null; } };

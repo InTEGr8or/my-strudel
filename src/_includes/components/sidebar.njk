@@ -23,7 +23,10 @@
         <code class="synth-voice" data-voice="sawtooth" onclick="selectVoice('sawtooth')">Sawtooth</code>
         <code class="synth-voice" data-voice="square" onclick="selectVoice('square')">Square</code>
         <hr style="border: none; border-top: 1px solid var(--border); margin: 1rem 0;">
-        <p style="font-size: 0.9rem; color: #888; margin: 0 0 0.3rem 0;">Staff guide:</p>
+        <p style="font-size: 0.9rem; color: #888; margin: 0 0 0.3rem 0;">Your keyboard:</p>
+        <select id="keyboard-range" class="keyboard-range-select" aria-label="Your keyboard"></select>
+        <span id="keyboard-range-hint" class="keyboard-range-hint"></span>
+        <p style="font-size: 0.9rem; color: #888; margin: 0.8rem 0 0.3rem 0;">Staff guide:</p>
         <label class="color-toggle"><input type="checkbox" id="color-guide-toggle" checked onchange="toggleColorGuide(this.checked)"> Show color guide</label>
         <label class="tint-slider">Key tint: <input type="range" id="piano-tint-slider" min="0" max="100" value="22"> <span id="piano-tint-value">22%</span></label>
         <button type="button" id="bar-numbers-toggle" class="setting-switch" role="switch" aria-checked="true" onclick="toggleBarNumbers()">
