@@ -32,11 +32,13 @@ assert.strictEqual(/this is our <strong>staff player<\/strong>/.test(page), fals
 assert.ok(page.includes('Now'), 'first section teaches the Now line');
 assert.ok(page.includes('cyan') || page.includes('light blue'), 'wrong keys are marked in cyan');
 assert.ok(/D<\/strong>/.test(page) && page.includes('two black'), 'D is the landmark for finding C');
-assert.ok(page.includes('piano-d-key.png'), 'finding D uses the piano picture');
-assert.ok(page.includes('72px * var(--ui-scale'), 'D-key picture is sized like the compact keyboard');
+assert.ok(page.includes('piano-d-key.svg'), 'finding D uses an SVG of the compact keys');
+assert.ok(page.includes('piano-a-to-g.svg'), 'A through G is shown after the midway explanation');
+assert.ok(page.includes('72px * var(--ui-scale'), 'key diagrams are sized like the compact keyboard');
 assert.ok(page.includes('whole, half, whole'), 'D is midway in steps from A and from G');
 const eleventyCfg = fs.readFileSync(path.join(root, 'eleventy.config.js'), 'utf-8');
-assert.ok(eleventyCfg.includes('piano-d-key.png'), 'the D-key picture is copied into the site');
+assert.ok(eleventyCfg.includes('piano-d-key.svg'), 'the D-key SVG is copied into the site');
+assert.ok(eleventyCfg.includes('piano-a-to-g.svg'), 'the A-to-G SVG is copied into the site');
 const playIdx = page.indexOf('<h2>Play this C</h2>');
 const playerIdx = page.indexOf('<staff-player notes="C4,C4,C4,C4,C4,C4,C4,C4"');
 const wordsIdx = page.indexOf('id="music-parts"');

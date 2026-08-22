@@ -23,7 +23,8 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'src/soundfonts': 'soundfonts' });
   eleventyConfig.addPassthroughCopy({ 'src/favicon.svg': 'favicon.svg' });
   eleventyConfig.addPassthroughCopy({ 'src/favicon.png': 'favicon.png' });
-  eleventyConfig.addPassthroughCopy({ 'src/piano-d-key.png': 'piano-d-key.png' });
+  eleventyConfig.addPassthroughCopy({ 'src/piano-d-key.svg': 'piano-d-key.svg' });
+  eleventyConfig.addPassthroughCopy({ 'src/piano-a-to-g.svg': 'piano-a-to-g.svg' });
 
   eleventyConfig.addWatchTarget('./data/musescore/');
   eleventyConfig.addWatchTarget('./src/lessons/');

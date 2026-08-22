@@ -21,7 +21,8 @@ templateEngineOverride: njk
 #lesson-content .def { background: var(--panel-bg); border-left: 4px solid var(--accent); padding: 0.7rem 1rem; border-radius: 0 10px 10px 0; margin: 0.8rem 0 1.1rem; }
 #lesson-content table { width: 100%; border-collapse: collapse; margin: 0.8rem 0 1.2rem; font-size: 0.95rem; }
 #lesson-content th, #lesson-content td { border-bottom: 1px solid var(--border); padding: 0.35rem 0.45rem; text-align: left; }
-#lesson-content .piano-d-key {
+#lesson-content .piano-d-key,
+#lesson-content .piano-a-to-g {
     display: block;
     height: calc(72px * var(--ui-scale, 1));
     width: auto;
@@ -37,9 +38,11 @@ templateEngineOverride: njk
 
 <p>The easiest key to find on the piano is <strong>D</strong>. It is the only white key with a black key on each side, and those two black keys do not have other black keys next to them.</p>
 
-<img class="piano-d-key" src="{{ '/piano-d-key.png' | htmlBaseUrl }}" width="127" height="133" alt="A piano: D is the white key with a black key on each side, and those two black keys stand alone.">
+<img class="piano-d-key" src="{{ '/piano-d-key.svg' | htmlBaseUrl }}" width="66" height="72" alt="A piano: D is the white key with a black key on each side, and those two black keys stand alone.">
 
 <p>D also sits in the middle of the letter list: A B C <strong>D</strong> E F G. From A up to D is whole, half, whole. From D up to G is the same: whole, half, whole. Same number of half steps and whole steps above it and below it. The <strong>C</strong> key is the white key just before that D.</p>
+
+<img class="piano-a-to-g" src="{{ '/piano-a-to-g.svg' | htmlBaseUrl }}" width="154" height="72" alt="White keys A through G. Half of a G-sharp black key shows at each end of the octave.">
 
 <p>The picture with the two sets of five lines is the <strong>grand staff</strong>. It is just a way to write the sounds. Play the note that sits on the <strong>Now</strong> line. When you play it, the next note moves to that line.</p>
 
