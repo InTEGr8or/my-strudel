@@ -1,5 +1,29 @@
 const { test, expect } = require('@playwright/test');
 
+test('foundations piano diagrams play the labeled keys', async ({ page }) => {
+  await page.goto('/lessons/notes-intervals-degrees/');
+  await page.waitForSelector('.piano-d-key [data-midi="62"]');
+  await page.waitForSelector('.piano-a-to-g [data-midi="57"]');
+
+  const played = await page.evaluate(() => {
+    const orig = window.playMidiNote;
+    const notes = [];
+    window.playMidiNote = (midi) => { notes.push(midi); };
+    function tap(sel) {
+      const el = document.querySelector(sel);
+      el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    }
+    tap('.piano-d-key [data-midi="62"]');
+    tap('.piano-a-to-g [data-midi="57"]');
+    tap('.piano-a-to-g [data-midi="68"]');
+    window.playMidiNote = orig;
+    return notes;
+  });
+
+  expect(played).toEqual([62, 57, 68]);
+});
+
 test('dashboard shows lessons section with cards', async ({ page }) => {
   await page.goto('/');
   await page.waitForSelector('.lesson-card');

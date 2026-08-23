@@ -42,6 +42,19 @@ body[data-show-colors="false"] .piano-key::after { display: none; }
     opacity: 1;
 }
 
+.piano-diagram {
+    overflow: visible;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.piano-diagram .diagram-key {
+    cursor: pointer;
+    touch-action: manipulation;
+}
+.piano-diagram text { pointer-events: none; }
+.piano-diagram .diagram-key.white.active path { fill: #f3e5ab; }
+.piano-diagram .diagram-key.black.active rect { fill: #3a3a3a; }
+
 .staff-player-keys {
     display: flex;
     justify-content: center;

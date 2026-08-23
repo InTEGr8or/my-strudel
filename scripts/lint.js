@@ -18,6 +18,7 @@ const filesToLint = [
   'src/js/freq-lab.js',
   'src/js/trainer-store.js',
   'src/js/keyboard-range.js',
+  'src/js/piano-diagram.js',
   'src/js/baby-steps.js',
   'src/js/abc-highlight.js',
   'src/js/abc-source.js',
@@ -39,6 +40,7 @@ const filesToLint = [
   'test/lesson-order.test.js',
   'test/staff-player.test.js',
   'test/keyboard-range.test.js',
+  'test/piano-diagram.test.js',
   'test/freq-lab.test.js',
 ];
 

@@ -12,13 +12,34 @@ header {
     box-sizing: border-box; flex-shrink: 0;
 }
 .controls { display: flex; gap: 0.5rem; align-items: center; }
-.calibrate-btn {
-    font-size: 0.85rem;
-    padding: 0.3rem 0.7rem;
+.midi-calibrate {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.05rem;
+    padding: 0.2rem 0.65rem;
     flex-shrink: 0;
+    line-height: 1.15;
+    text-align: right;
 }
-.calibrate-btn[aria-expanded="true"] {
+.midi-calibrate-midi {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #888;
+    max-width: 11rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.midi-calibrate-span {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--text);
+}
+.midi-calibrate[aria-expanded="true"] {
     border-color: var(--accent);
+}
+.midi-calibrate[aria-expanded="true"] .midi-calibrate-span {
     color: var(--accent);
 }
 .calibrate-row {
@@ -143,7 +164,6 @@ note-chart svg #staff-bands text.staff-band-label {
     body { height: auto; overflow: auto; }
     .chrome-top { position: sticky; top: 0; z-index: 100; }
     header { position: static; height: auto; min-height: 60px; }
-    #midi-status { display: none; }
     .app-container { flex-direction: column; overflow: visible; }
     main { overflow: visible; }
     .editor-container { min-height: 500px; }

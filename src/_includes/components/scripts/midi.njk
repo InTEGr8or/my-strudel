@@ -46,15 +46,15 @@ if (navigator.requestMIDIAccess) {
             const inputs = Array.from(access.inputs.values());
             const status = document.getElementById('midi-status');
             if (inputs.length > 0) {
-                status.textContent = `MIDI: ${inputs[0].name}`;
+                if (status) status.textContent = inputs[0].name;
                 if (window.KeyboardRange && KeyboardRange.suggestFromMidiName) {
                     KeyboardRange.suggestFromMidiName(inputs[0].name);
                 }
                 inputs.forEach(input => {
                     input.onmidimessage = handleMidiMessage;
                 });
-            } else {
-                status.textContent = "MIDI: Disconnected";
+            } else if (status) {
+                status.textContent = 'No MIDI';
             }
         }
         updateMidi();

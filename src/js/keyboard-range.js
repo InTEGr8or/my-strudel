@@ -182,6 +182,8 @@
     fillSelect(sel);
     var hint = document.getElementById('keyboard-range-hint');
     if (hint) hint.textContent = hintText(current);
+    var spanEl = document.getElementById('keyboard-span');
+    if (spanEl && current) spanEl.textContent = current.span;
   }
 
   function emit() {
@@ -276,8 +278,16 @@
       btn.setAttribute('aria-expanded', cal.on ? 'true' : 'false');
     }
     if (prompt) prompt.textContent = cal.step === 'high' ? PROMPT_HIGH : PROMPT_LOW;
-    if (lowEl) lowEl.textContent = cal.low == null ? '—' : midiDisplay(cal.low);
-    if (highEl) highEl.textContent = cal.high == null ? '—' : midiDisplay(cal.high);
+    if (lowEl) {
+      lowEl.textContent = cal.low != null
+        ? midiDisplay(cal.low)
+        : (current ? midiDisplay(current.low) : '—');
+    }
+    if (highEl) {
+      highEl.textContent = cal.high != null
+        ? midiDisplay(cal.high)
+        : (current ? midiDisplay(current.high) : '—');
+    }
     markCalibrateKeys();
   }
 

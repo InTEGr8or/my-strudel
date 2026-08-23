@@ -21,8 +21,7 @@ templateEngineOverride: njk
 #lesson-content .def { background: var(--panel-bg); border-left: 4px solid var(--accent); padding: 0.7rem 1rem; border-radius: 0 10px 10px 0; margin: 0.8rem 0 1.1rem; }
 #lesson-content table { width: 100%; border-collapse: collapse; margin: 0.8rem 0 1.2rem; font-size: 0.95rem; }
 #lesson-content th, #lesson-content td { border-bottom: 1px solid var(--border); padding: 0.35rem 0.45rem; text-align: left; }
-#lesson-content .piano-d-key,
-#lesson-content .piano-a-to-g {
+#lesson-content .piano-diagram {
     display: block;
     height: calc(72px * var(--ui-scale, 1));
     width: auto;
@@ -38,11 +37,11 @@ templateEngineOverride: njk
 
 <p>The easiest key to find on the piano is <strong>D</strong>. It is the only white key with a black key on each side, and those two black keys do not have other black keys next to them.</p>
 
-<img class="piano-d-key" src="/piano-d-key.svg" width="66" height="72" alt="A piano: D is the white key with a black key on each side, and those two black keys stand alone.">
+{% pianoDiagram 'piano-d-key.svg' %}
 
 <p>D also sits in the middle of the letter list: A B C <strong>D</strong> E F G. From A up to D is whole, half, whole. From D up to G is the same: whole, half, whole. Same number of half steps and whole steps above it and below it. The <strong>C</strong> key is the white key just before that D.</p>
 
-<img class="piano-a-to-g" src="/piano-a-to-g.svg" width="154" height="72" alt="White keys A through G. Half of a G-sharp black key shows at each end of the octave.">
+{% pianoDiagram 'piano-a-to-g.svg' %}
 
 <p>The picture with the two sets of five lines is the <strong>grand staff</strong>. It is just a way to write the sounds. Play the note that sits on the <strong>Now</strong> line. When you play it, the next note moves to that line.</p>
 
@@ -206,11 +205,11 @@ templateEngineOverride: njk
 
 <p>Same piano can hold more than one list. C major and A minor share the white keys. C major and C minor share the home C, not all the letters.</p>
 
-<h3>Why not 12 letters, or 6 black and 6 white?</h3>
+<h3>Why not 12 letters, or 6 and 6?</h3>
 
-<p>The 12 keys are real. The seven letters came first: that is the staircase that sounds like a scale with a <strong>home</strong>. The five black keys fill the leftover half steps. We did not start from 12 equal names (A through L) because the music this writing grew around is that 7-note list, with the extra notes marked ♯ or ♭.</p>
+<p>The seven letters came first. Written music named a 7-note staircase with a home — A B C D E F G — long before anyone treated the octave as 12 equal steps. When the in-between pitches were needed, they were marked ♯ or ♭ of those seven letters, not given new letters of their own. The 12 equal half-steps came later still. We kept the old names and added the extras onto them. That is why there are 7 everyday names and 5 altered ones, not A through L, and not six letters with a sharp after each.</p>
 
-<p>There are 7 white keys and 5 black keys, not 6 and 6, because <strong>B–C and E–F are already half steps</strong>. There is no room for a black key there. If every neighbor were a whole step, you would have 6 + 6 — a whole-tone list with no half steps. That sound does not lean toward home the way major and minor do. It is not mainly “dissonance.” It is where the two half steps sit in the 7-note pattern.</p>
+<p>B♯ and E♯ do exist. In the 12 equal steps, B♯ sounds like C, and E♯ sounds like F: other names for notes we already have, used when a scale must give each degree its own letter. A 6+6 list would make every letter a whole step from the next, and would drop the two half steps (E–F and B–C) that major and minor lean on. The 7-note list was already there; the extra five notes were added later.</p>
 
 <h3>Chords as stacked steps</h3>
 

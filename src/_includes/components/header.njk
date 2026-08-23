@@ -6,8 +6,10 @@
     </div>
     <h1 style="font-size: 1.3rem; margin: 0; color: var(--highlight); text-transform: uppercase;">{{ title }}</h1>
     <div class="controls">
-        <div id="midi-status" style="font-size: 0.8rem; color: #888; margin-right: 0.4rem;">MIDI: checking...</div>
-        <button type="button" id="calibrate-btn" class="calibrate-btn" aria-expanded="false" aria-controls="calibrate-row" title="Measure the lowest and highest keys on your keyboard">Calibrate</button>
+        <button type="button" id="calibrate-btn" class="midi-calibrate" aria-expanded="false" aria-controls="calibrate-row" title="MIDI keyboard range. Click to measure the lowest and highest keys.">
+            <span id="midi-status" class="midi-calibrate-midi">MIDI</span>
+            <span id="keyboard-span" class="midi-calibrate-span">F2–C5</span>
+        </button>
         <button id="sidebar-toggle" title="Toggle Sidebar">☰</button>
     </div>
 </header>

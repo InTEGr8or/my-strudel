@@ -39,10 +39,13 @@ test('Calibrate learns the range from the lowest then highest key', async ({ pag
   });
   await page.goto('/lessons/notes-intervals-degrees/');
   await page.waitForSelector('#piano-container .piano-key[data-midi]');
+  await expect(page.locator('#calibrate-btn')).toBeVisible();
+  await expect(page.locator('#keyboard-span')).toHaveText('F2–C5');
   await page.locator('#calibrate-btn').click();
   await expect(page.locator('#calibrate-row')).toBeVisible();
   await expect(page.locator('#calibrate-prompt')).toContainText('lowest');
-  await expect(page.locator('#calibrate-low')).toHaveText('—');
+  await expect(page.locator('#calibrate-low')).toHaveText('F2');
+  await expect(page.locator('#calibrate-high')).toHaveText('C5');
 
   await page.evaluate(() => {
     window.handleMidiMessage({ data: [0x90, 41, 100] });
@@ -67,6 +70,7 @@ test('Calibrate learns the range from the lowest then highest key', async ({ pag
   await page.locator('.tab[data-tab="synth"]').click();
   await expect(page.locator('#keyboard-range')).toHaveValue('custom');
   await expect(page.locator('#keyboard-range-hint')).toContainText('F2');
+  await expect(page.locator('#keyboard-span')).toHaveText('F2–C5');
 });
 
 test('Calibrate can be cancelled, and the on-screen piano can set the ends', async ({ page }) => {
@@ -77,9 +81,13 @@ test('Calibrate can be cancelled, and the on-screen piano can set the ends', asy
   const tap = (midi) =>
     page.locator(`#piano-container .piano-key[data-midi="${midi}"]`).dispatchEvent('pointerdown');
 
+  await expect(page.locator('#keyboard-span')).toHaveText('A0–C8');
   await page.locator('#calibrate-btn').click();
+  await expect(page.locator('#calibrate-low')).toHaveText('A0');
+  await expect(page.locator('#calibrate-high')).toHaveText('C8');
   await tap(48);
   await expect(page.locator('#calibrate-low')).toHaveText('C3');
+  await expect(page.locator('#calibrate-high')).toHaveText('C8');
   await page.locator('#calibrate-cancel').click();
   await expect(page.locator('#calibrate-row')).toBeHidden();
   const stillFull = await page.locator('#piano-container .piano-key[data-midi="21"]').evaluate((el) =>

@@ -140,10 +140,13 @@ const layoutSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/layout.
 assert.strictEqual(layoutSrc.includes('device-config.njk'), false, 'layout no longer injects a single-device config');
 assert.ok(headSrc.includes('keyboard-range.js'), 'keyboard-range.js loads before the piano is built');
 const headerSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/header.njk'), 'utf-8');
-assert.strictEqual(headerSrc.includes('id="calibrate-btn"'), true, 'header has a Calibrate button');
+assert.strictEqual(headerSrc.includes('id="calibrate-btn"'), true, 'header has a Calibrate control');
+assert.ok(headerSrc.indexOf('id="midi-status"') > headerSrc.indexOf('id="calibrate-btn"') || headerSrc.includes('midi-calibrate'), 'MIDI status lives on the calibrate control');
+assert.ok(headerSrc.includes('id="keyboard-span"'), 'the header control shows the current keyboard span');
 assert.ok(layoutSrc.includes('class="chrome-top"'), 'header and calibrate row share a top chrome wrap');
 assert.ok(layoutSrc.includes('id="calibrate-row"'), 'a calibrate prompt row sits under the header');
 assert.ok(layoutSrc.includes('id="calibrate-prompt"'), 'the row tells the player which key to hit');
+assert.ok(layoutCss.includes('.midi-calibrate') || layoutCss.includes('.calibrate-btn'), 'the MIDI+calibrate control is styled');
 assert.ok(layoutCss.includes('.calibrate-row'), 'the calibrate row has layout styles');
 console.log('PASS: Synth tab can toggle bar numbers and remembers the choice');
 

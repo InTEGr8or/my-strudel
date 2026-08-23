@@ -26,6 +26,10 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ 'src/piano-d-key.svg': 'piano-d-key.svg' });
   eleventyConfig.addPassthroughCopy({ 'src/piano-a-to-g.svg': 'piano-a-to-g.svg' });
 
+  eleventyConfig.addShortcode('pianoDiagram', function (file) {
+    return fs.readFileSync(path.join(__dirname, 'src', file), 'utf8');
+  });
+
   eleventyConfig.addWatchTarget('./data/musescore/');
   eleventyConfig.addWatchTarget('./src/lessons/');
   eleventyConfig.addWatchTarget('./src/songs/sketches/');

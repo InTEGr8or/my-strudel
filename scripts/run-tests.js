@@ -25,6 +25,7 @@ const suites = [
   { name: 'lesson-order', cmd: ['node', 'test/lesson-order.test.js'] },
   { name: 'staff-player', cmd: ['node', 'test/staff-player.test.js'] },
   { name: 'keyboard-range', cmd: ['node', 'test/keyboard-range.test.js'] },
+  { name: 'piano-diagram', cmd: ['node', 'test/piano-diagram.test.js'] },
   { name: 'freq-lab', cmd: ['node', 'test/freq-lab.test.js'] },
 ];
 
