@@ -22,15 +22,52 @@ freq-lab .freq-note {
     font-size: 1.25rem;
     font-weight: 800;
 }
-freq-lab .freq-slider {
-    width: 100%;
-    display: block;
+freq-lab .freq-track {
+    padding: 0 8px;
+    margin: 0.35rem 0 0;
 }
-freq-lab .freq-marks {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    opacity: 0.7;
+freq-lab .freq-slider {
+    display: block;
+    width: calc(100% + 16px);
+    margin: 0 -8px;
+    height: 1.15rem;
+}
+freq-lab .freq-ruler {
+    position: relative;
+    height: 2.35rem;
+    margin-top: 0.05rem;
+}
+freq-lab .freq-tick {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    transform: translateX(-50%);
+    background: var(--text);
+    pointer-events: none;
+}
+freq-lab .freq-tick.half {
+    height: 0.4rem;
+    width: 1px;
+    opacity: 0.38;
+}
+freq-lab .freq-tick.letter {
+    height: 0.85rem;
+    opacity: 0.72;
+}
+freq-lab .freq-mark {
+    position: absolute;
+    top: 0.95rem;
+    transform: translateX(-50%);
+    font-size: 0.72rem;
+    opacity: 0.8;
+    white-space: nowrap;
+    pointer-events: none;
+}
+freq-lab .freq-mark.start { transform: translateX(0); }
+freq-lab .freq-mark.end { transform: translateX(-100%); }
+@media (max-width: 640px) {
+    freq-lab .freq-hz-hint { display: none; }
+    freq-lab .freq-mark { font-size: 0.68rem; }
 }
 freq-lab .freq-wave-box {
     margin-top: 0.75rem;

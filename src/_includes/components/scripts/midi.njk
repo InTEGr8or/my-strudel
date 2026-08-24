@@ -40,25 +40,44 @@ window.handleMidiMessage = function handleMidiMessage(event) {
     __midiObservers.forEach(fn => fn(midiNote, isNoteOn, isNoteOff));
 }
 
-if (navigator.requestMIDIAccess) {
-    navigator.requestMIDIAccess().then(access => {
-        const updateMidi = () => {
-            const inputs = Array.from(access.inputs.values());
-            const status = document.getElementById('midi-status');
-            if (inputs.length > 0) {
-                if (status) status.textContent = inputs[0].name;
-                if (window.KeyboardRange && KeyboardRange.suggestFromMidiName) {
-                    KeyboardRange.suggestFromMidiName(inputs[0].name);
-                }
-                inputs.forEach(input => {
-                    input.onmidimessage = handleMidiMessage;
-                });
-            } else if (status) {
-                status.textContent = 'No MIDI';
+function setMidiStatus(text) {
+    const status = document.getElementById('midi-status');
+    if (status) status.textContent = text;
+}
+
+function attachMidiAccess(access) {
+    const updateMidi = () => {
+        const inputs = Array.from(access.inputs.values());
+        if (inputs.length > 0) {
+            setMidiStatus(inputs[0].name);
+            if (window.KeyboardRange && KeyboardRange.suggestFromMidiName) {
+                KeyboardRange.suggestFromMidiName(inputs[0].name);
             }
+            inputs.forEach((input) => {
+                input.onmidimessage = handleMidiMessage;
+            });
+        } else {
+            setMidiStatus('No MIDI');
         }
-        updateMidi();
-        access.onstatechange = updateMidi;
+    };
+    updateMidi();
+    access.onstatechange = updateMidi;
+}
+
+if (!window.isSecureContext) {
+    setMidiStatus('Use localhost');
+    console.warn('Web MIDI needs a secure context. Open http://localhost:8080/ not a LAN IP.');
+} else if (!navigator.requestMIDIAccess) {
+    setMidiStatus('Need Chrome');
+} else {
+    navigator.requestMIDIAccess().then(attachMidiAccess).catch((err) => {
+        const name = err && err.name;
+        if (name === 'NotAllowedError' || name === 'SecurityError') {
+            setMidiStatus('MIDI blocked');
+        } else {
+            setMidiStatus('MIDI failed');
+        }
+        console.warn('MIDI access failed', err);
     });
 }
 </script>

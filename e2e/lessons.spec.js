@@ -17,11 +17,13 @@ test('foundations piano diagrams play the labeled keys', async ({ page }) => {
     tap('.piano-d-key [data-midi="62"]');
     tap('.piano-a-to-g [data-midi="57"]');
     tap('.piano-a-to-g [data-midi="68"]');
+    tap('button.play-note[data-midi="64"]');
+    tap('button.play-note[data-midi="65"]');
     window.playMidiNote = orig;
     return notes;
   });
 
-  expect(played).toEqual([62, 57, 68]);
+  expect(played).toEqual([62, 57, 68, 64, 65]);
 });
 
 test('dashboard shows lessons section with cards', async ({ page }) => {

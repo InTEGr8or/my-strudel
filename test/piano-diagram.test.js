@@ -30,6 +30,7 @@ assert.strictEqual((ag.match(/data-midi="/g) || []).length, 13, 'seven whites pl
 const src = fs.readFileSync(path.join(__dirname, '../src/js/piano-diagram.js'), 'utf-8');
 assert.ok(src.includes('playMidiNote'), 'diagram keys share the page synth');
 assert.ok(src.includes('keyOn'), 'diagram keys light the bottom piano');
+assert.ok(src.includes('button.play-note'), 'scale-table letters use the same tap-to-play binding');
 
 const layout = fs.readFileSync(path.join(__dirname, '../src/_includes/layout.njk'), 'utf-8');
 assert.ok(layout.includes('piano-diagram.js'), 'layout loads the diagram player');

@@ -39,7 +39,7 @@
   function mount(rootEl) {
     var scope = rootEl || (typeof document !== 'undefined' ? document : null);
     if (!scope || !scope.querySelectorAll) return;
-    var keys = scope.querySelectorAll('.piano-diagram [data-midi]');
+    var keys = scope.querySelectorAll('.piano-diagram [data-midi], button.play-note[data-midi]');
     for (var i = 0; i < keys.length; i++) bindKey(keys[i]);
   }
 

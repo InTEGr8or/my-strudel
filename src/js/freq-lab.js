@@ -2,13 +2,59 @@
   var WINDOW_S = 0.1;
   var LINE_WIDTH = 0.2;
   var NOTE_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+  var A4_MIDI = 69;
+  var A4_HZ = 440;
+
+  function hzOfMidi(midi) {
+    return A4_HZ * Math.pow(2, (midi - A4_MIDI) / 12);
+  }
+
+  function midiOfHz(hz) {
+    return A4_MIDI + 12 * Math.log(hz / A4_HZ) / Math.LN2;
+  }
+
+  function isLetterMidi(midi) {
+    var pc = ((midi % 12) + 12) % 12;
+    return pc !== 1 && pc !== 3 && pc !== 6 && pc !== 8 && pc !== 10;
+  }
+
+  function sliderPercent(hz, min, max) {
+    if (max === min) return 0;
+    return ((hz - min) / (max - min)) * 100;
+  }
+
+  function ticksInRange(min, max) {
+    var start = Math.ceil(midiOfHz(min) - 1e-6);
+    var end = Math.floor(midiOfHz(max) + 1e-6);
+    var out = [];
+    var m;
+    for (m = start; m <= end; m++) {
+      var hz = hzOfMidi(m);
+      if (hz < min - 0.05 || hz > max + 0.05) continue;
+      out.push({
+        midi: m,
+        hz: hz,
+        percent: sliderPercent(hz, min, max),
+        letter: isLetterMidi(m),
+        name: NOTE_NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1),
+      });
+    }
+    return out;
+  }
 
   root.FREQ_LAB_WINDOW_S = WINDOW_S;
   root.FREQ_LAB_LINE_WIDTH = LINE_WIDTH;
 
   if (typeof customElements === 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
-      module.exports = { WINDOW_S: WINDOW_S, LINE_WIDTH: LINE_WIDTH };
+      module.exports = {
+        WINDOW_S: WINDOW_S,
+        LINE_WIDTH: LINE_WIDTH,
+        hzOfMidi: hzOfMidi,
+        ticksInRange: ticksInRange,
+        isLetterMidi: isLetterMidi,
+        sliderPercent: sliderPercent,
+      };
     }
     return;
   }
@@ -39,8 +85,10 @@
           '<span class="freq-note"></span>' +
           '<span class="freq-cents" style="opacity:0.7;font-size:0.85rem"></span>' +
         '</div>' +
-        '<input class="freq-slider" type="range" min="' + min + '" max="' + max + '" value="' + value + '" step="1">' +
-        '<div class="freq-marks">' + this._marksHtml(min, max) + '</div>' +
+        '<div class="freq-track">' +
+          '<input class="freq-slider" type="range" min="' + min + '" max="' + max + '" value="' + value + '" step="1">' +
+          '<div class="freq-ruler" aria-hidden="true">' + this._rulerHtml(min, max) + '</div>' +
+        '</div>' +
         '<div class="freq-wave-box">' +
           '<canvas class="freq-scope" width="780" height="140" aria-label="A tenth of a second of the slider frequency"></canvas>' +
           '<div class="freq-wave-legend">This screen is 0.1 seconds wide.</div>' +
@@ -48,11 +96,27 @@
       this._bind();
     }
 
-    _marksHtml(min, max) {
-      if (min === 440 && max === 880) {
-        return '<span>A4 440</span><span>C5</span><span>E5</span><span>A5 880</span>';
+    _rulerHtml(min, max) {
+      var ticks = ticksInRange(min, max);
+      var i;
+      var html = '';
+      for (i = 0; i < ticks.length; i++) {
+        var t = ticks[i];
+        html += '<span class="freq-tick ' + (t.letter ? 'letter' : 'half') + '" style="left:' + t.percent.toFixed(3) + '%"></span>';
       }
-      return '<span>' + min + '</span><span>' + max + '</span>';
+      var letterTicks = [];
+      for (i = 0; i < ticks.length; i++) {
+        if (ticks[i].letter) letterTicks.push(ticks[i]);
+      }
+      for (i = 0; i < letterTicks.length; i++) {
+        var lab = letterTicks[i];
+        var text = lab.name;
+        if (Math.abs(lab.hz - 440) < 0.05) text = 'A4<span class="freq-hz-hint"> 440</span>';
+        else if (Math.abs(lab.hz - 880) < 0.05) text = 'A5<span class="freq-hz-hint"> 880</span>';
+        var edge = i === 0 ? ' start' : (i === letterTicks.length - 1 ? ' end' : '');
+        html += '<span class="freq-mark' + edge + '" style="left:' + lab.percent.toFixed(3) + '%">' + text + '</span>';
+      }
+      return html;
     }
 
     _bind() {
@@ -284,6 +348,13 @@
   customElements.define('freq-lab', FreqLab);
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { WINDOW_S: WINDOW_S, LINE_WIDTH: LINE_WIDTH };
+    module.exports = {
+      WINDOW_S: WINDOW_S,
+      LINE_WIDTH: LINE_WIDTH,
+      hzOfMidi: hzOfMidi,
+      ticksInRange: ticksInRange,
+      isLetterMidi: isLetterMidi,
+      sliderPercent: sliderPercent,
+    };
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this);

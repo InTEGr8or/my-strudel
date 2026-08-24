@@ -21,6 +21,25 @@ templateEngineOverride: njk
 #lesson-content .def { background: var(--panel-bg); border-left: 4px solid var(--accent); padding: 0.7rem 1rem; border-radius: 0 10px 10px 0; margin: 0.8rem 0 1.1rem; }
 #lesson-content table { width: 100%; border-collapse: collapse; margin: 0.8rem 0 1.2rem; font-size: 0.95rem; }
 #lesson-content th, #lesson-content td { border-bottom: 1px solid var(--border); padding: 0.35rem 0.45rem; text-align: left; }
+#lesson-content button.play-note {
+    display: inline-block;
+    min-width: 1.7rem;
+    margin: 0;
+    padding: 0.12rem 0.3rem;
+    font: inherit;
+    font-weight: 800;
+    color: var(--accent);
+    background: var(--panel-bg);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+#lesson-content button.play-note.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
 #lesson-content .piano-diagram {
     display: block;
     height: calc(72px * var(--ui-scale, 1));
@@ -173,9 +192,18 @@ templateEngineOverride: njk
   </tbody>
 </table>
 
-<p><strong>C major</strong> on the keys:</p>
+<p><strong>C major</strong> on the keys. Tap a letter to hear it. E to F and B to C are the half steps:</p>
 <table>
-  <thead><tr><th>C</th><th></th><th>D</th><th></th><th>E</th><th></th><th>F</th><th></th><th>G</th><th></th><th>A</th><th></th><th>B</th><th></th><th>C</th></tr></thead>
+  <thead><tr>
+    <th><button type="button" class="play-note" data-midi="60" data-note="c4" aria-label="C4">C</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="62" data-note="d4" aria-label="D4">D</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="64" data-note="e4" aria-label="E4">E</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="65" data-note="f4" aria-label="F4">F</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="67" data-note="g4" aria-label="G4">G</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="69" data-note="a4" aria-label="A4">A</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="71" data-note="b4" aria-label="B4">B</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="72" data-note="c5" aria-label="C5">C</button></th>
+  </tr></thead>
   <tbody>
     <tr><td></td><td>W</td><td></td><td>W</td><td></td><td>H</td><td></td><td>W</td><td></td><td>W</td><td></td><td>W</td><td></td><td>H</td><td></td></tr>
     <tr><td></td><td>2</td><td></td><td>2</td><td></td><td>1</td><td></td><td>2</td><td></td><td>2</td><td></td><td>2</td><td></td><td>1</td><td></td></tr>
@@ -187,7 +215,16 @@ templateEngineOverride: njk
 
 <p><strong>A natural minor</strong> is the white-key list from A to A. Same letters as C major, but <strong>A</strong> is home. The third is only 3 semitones (W then H):</p>
 <table>
-  <thead><tr><th>A</th><th></th><th>B</th><th></th><th>C</th><th></th><th>D</th><th></th><th>E</th><th></th><th>F</th><th></th><th>G</th><th></th><th>A</th></tr></thead>
+  <thead><tr>
+    <th><button type="button" class="play-note" data-midi="57" data-note="a3" aria-label="A3">A</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="59" data-note="b3" aria-label="B3">B</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="60" data-note="c4" aria-label="C4">C</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="62" data-note="d4" aria-label="D4">D</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="64" data-note="e4" aria-label="E4">E</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="65" data-note="f4" aria-label="F4">F</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="67" data-note="g4" aria-label="G4">G</button></th><th></th>
+    <th><button type="button" class="play-note" data-midi="69" data-note="a4" aria-label="A4">A</button></th>
+  </tr></thead>
   <tbody>
     <tr><td></td><td>W</td><td></td><td>H</td><td></td><td>W</td><td></td><td>W</td><td></td><td>H</td><td></td><td>W</td><td></td><td>W</td><td></td></tr>
     <tr><td></td><td>2</td><td></td><td>1</td><td></td><td>2</td><td></td><td>2</td><td></td><td>1</td><td></td><td>2</td><td></td><td>2</td><td></td></tr>
