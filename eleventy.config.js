@@ -33,6 +33,8 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addWatchTarget('./data/musescore/');
   eleventyConfig.addWatchTarget('./src/lessons/');
   eleventyConfig.addWatchTarget('./src/songs/sketches/');
+  eleventyConfig.addWatchTarget('./src/piano-d-key.svg');
+  eleventyConfig.addWatchTarget('./src/piano-a-to-g.svg');
 
   eleventyConfig.addShortcode('lessonNotes', function (lessonId) {
     const abcPath = path.join(__dirname, 'src', 'lessons', lessonId, 'exercises.abc');

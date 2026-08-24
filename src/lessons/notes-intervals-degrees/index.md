@@ -31,7 +31,7 @@ templateEngineOverride: njk
 
 <div id="lesson-content">
 
-<h2>Play this C</h2>
+<h2>Play the C note</h2>
 
 <p>On the piano we <strong>play</strong>. We <strong>press keys</strong>. That is how music starts: one sound, then another, until it feels like a tune.</p>
 
@@ -205,11 +205,11 @@ templateEngineOverride: njk
 
 <p>Same piano can hold more than one list. C major and A minor share the white keys. C major and C minor share the home C, not all the letters.</p>
 
-<h3>Why not 12 letters, or 6 and 6?</h3>
+<h3>Why not 12 letters, or 6 whole and 6 half steps?</h3>
 
-<p>The seven letters came first. Written music named a 7-note staircase with a home — A B C D E F G — long before anyone treated the octave as 12 equal steps. When the in-between pitches were needed, they were marked ♯ or ♭ of those seven letters, not given new letters of their own. The 12 equal half-steps came later still. We kept the old names and added the extras onto them. That is why there are 7 everyday names and 5 altered ones, not A through L, and not six letters with a sharp after each.</p>
+<p>The seven whole-notes, A through G, were invented by people who wrote church songs called Gregorian chants. They named a 7-note staircase with a home: A B C D E F G. When later music needed the pitches in between, those were marked ♯ or ♭ of the same seven letters, not given new letters. The 12 equal half-steps were agreed on later still. That is why there are 7 everyday names and 5 altered ones, not A through L, and not six letters with a sharp after each.</p>
 
-<p>B♯ and E♯ do exist. In the 12 equal steps, B♯ sounds like C, and E♯ sounds like F: other names for notes we already have, used when a scale must give each degree its own letter. A 6+6 list would make every letter a whole step from the next, and would drop the two half steps (E–F and B–C) that major and minor lean on. The 7-note list was already there; the extra five notes were added later.</p>
+<p>B♯ and E♯ do exist. In the 12 equal steps, B♯ sounds like C, and E♯ sounds like F: other names for notes we already have, used when a scale must give each degree its own letter. A 6+6 list would make every letter a whole step from the next, and would drop the two half steps (E–F and B–C) that major and minor lean on.</p>
 
 <h3>Chords as stacked steps</h3>
 

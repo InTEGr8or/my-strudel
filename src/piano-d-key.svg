@@ -3,6 +3,7 @@
   <!-- C4 D4 E4, same sizes as the compact staff-player keys -->
   <g class="diagram-key white" data-midi="60" data-note="c4" role="button" aria-label="C4" fill="#fff" stroke="#444" stroke-width="1">
     <path d="M0.5 0.5 H21.5 V66 A6 6 0 0 1 15.5 71.5 H6.5 A6 6 0 0 1 0.5 66 Z"/>
+    <text x="11" y="62" text-anchor="middle" font-size="9" font-family="sans-serif" font-weight="700" fill="#222">C</text>
   </g>
   <g class="diagram-key white" data-midi="62" data-note="d4" role="button" aria-label="D4" fill="#fff" stroke="#444" stroke-width="1">
     <path d="M22.5 0.5 H43.5 V66 A6 6 0 0 1 37.5 71.5 H28.5 A6 6 0 0 1 22.5 66 Z"/>
