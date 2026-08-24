@@ -79,15 +79,17 @@ templateEngineOverride: njk
 
 <h3 id="octave">Octave</h3>
 
-<div class="def">An <span class="word">octave</span> is the same letter, one “same-but-higher” (or lower) away. After G the letters start over at A. Count 1 on the first C and 8 on the next C. <em>Octo</em> means eight.</div>
+<div class="def">An <span class="word">octave</span> is the same letter, one “same-but-higher” (or lower) away. After G the letters start over at A. If you start at 1 and any key and then count up 8 white keys, that will be the same note, but one octave higher. <em>Octo</em> means eight, for the number of whole notes to the next octave.</div>
 
 <p>We write the octave with a number: <strong>C4</strong> is middle C, <strong>C5</strong> is the C above it.</p>
 
 <p><strong>A4</strong> is often tuned to <strong>440</strong> vibrations per second. The A one octave higher is <strong>880</strong> — twice as many. You do not need that number to play. Slide it so you can <em>hear</em> one octave.</p>
 
-<p>The small Donner keyboard only goes up to <strong>C5</strong> (~523). The slider can go past that, up to A5, so you can hear a full A-to-A octave. Tap <strong>Tone</strong> for a short sound. Double-tap, or press and slide, to keep it on while you move the slider.</p>
+<p>The small Donner keyboard only goes up to <strong>C5</strong> (~523). The slider can go past that, up to A5, so you can hear a full A-to-A octave.</p>
 
 <p><strong>Hertz</strong> means “how many full waves in one second.” The screen below is a <strong>tenth of a second</strong> wide, so 440 Hz draws 44 waves here (440 in a whole second) and 880 Hz draws 88.</p>
+
+<p>Tap <strong>Tone</strong> for a short sound. Double-tap, or press and slide, to keep it on while you move the slider.</p>
 
 <freq-lab></freq-lab>
 
