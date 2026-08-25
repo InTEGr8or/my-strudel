@@ -33,6 +33,7 @@ if (localStorage.getItem('show-bar-numbers') === 'false') {
 } else {
     applyBarNumbers(true);
 }
+applySidebarCollapsed(localStorage.getItem('sidebar-collapsed') !== 'false');
 const savedTab = localStorage.getItem('selected-tab');
 if (savedTab && document.querySelector(`.tab[data-tab="${savedTab}"]`)) {
     activateTab(savedTab);

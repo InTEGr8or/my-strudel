@@ -20,6 +20,7 @@ test('soundfont files are served', async ({ page }) => {
 
 test('synth voice selection works', async ({ page }) => {
   await page.goto('/songs/sketches/mary-had-a-little-lamb/');
+  await page.locator('#sidebar-toggle').click();
   await page.locator('.tab[data-tab="synth"]').click();
   await page.waitForSelector('#grand-piano-status', { state: 'attached' });
 

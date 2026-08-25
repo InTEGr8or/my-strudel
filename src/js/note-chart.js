@@ -47,23 +47,13 @@ class NoteChart extends HTMLElement {
   render() {
     const scale = this._chartScale();
     const extent = this._extent();
-    const layout =
-      typeof globalThis !== "undefined" && globalThis.computeStaffLayout
-        ? globalThis.computeStaffLayout(scale, { extent: extent })
-        : {
-            SVG_W: 1200 * scale,
-            COLOR_X: 85 * scale,
-            COLOR_W: 50 * scale,
-            LEFT_PAD: 145 * scale,
-            STAFF_L: 50 * scale,
-            STAFF_R: 1180 * scale,
-            TOP_PAD: extent === "base" ? 22 * scale : 120 * scale,
-            BOT_PAD: extent === "base" ? 22 * scale : 155 * scale,
-            keyX: 76 * scale,
-            clefX: 94 * scale,
-            timeX: 136 * scale,
-            extent: extent,
-          };
+    const layoutFn =
+      (typeof globalThis !== "undefined" && globalThis.computeStaffLayout) ||
+      (typeof computeStaffLayout === "function" ? computeStaffLayout : null);
+    if (!layoutFn) {
+      throw new Error("staff-layout.js must load before note-chart.js");
+    }
+    const layout = layoutFn(scale, { extent: extent });
     const SPACING = 18 * scale;
     const SVG_W = layout.SVG_W;
     const COLOR_X = layout.COLOR_X;
@@ -274,6 +264,7 @@ class NoteChart extends HTMLElement {
     const ann = this.querySelector("#staff-annotations");
     if (!ann || !this._ctx) return;
     const { getY, scale, staffColor, SPACING, STAFF_L, layout } = this._ctx;
+    if (!layout) return;
     const bBot = getY("G", 2);
     const bTop = getY("A", 3);
     const tBot = getY("E", 4);
@@ -281,9 +272,9 @@ class NoteChart extends HTMLElement {
     const tCenter = (tBot + tTop) / 2;
     const bassClefY = getY("F", 3);
     const braceMid = (bTop + tBot) / 2;
-    const keyX = layout ? layout.keyX : 40 * scale;
-    const clefX = layout ? layout.clefX : 15 * scale;
-    const timeX = layout ? layout.timeX : 75 * scale;
+    const keyX = layout.keyX;
+    const clefX = layout.clefX;
+    const timeX = layout.timeX;
 
     let html = this._staffBraceMarkup(
       STAFF_L,

@@ -1,9 +1,18 @@
 <script>
+function applySidebarCollapsed(collapsed) {
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle');
+    const hide = !!collapsed;
+    if (sidebar) sidebar.classList.toggle('collapsed', hide);
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', hide ? 'false' : 'true');
+    try { localStorage.setItem('sidebar-collapsed', hide ? 'true' : 'false'); } catch (_) {}
+}
+
 const sidebar = document.getElementById('sidebar');
 const toggleBtn = document.getElementById('sidebar-toggle');
 if (toggleBtn && sidebar) {
     toggleBtn.onclick = () => {
-        sidebar.classList.toggle('collapsed');
+        applySidebarCollapsed(!sidebar.classList.contains('collapsed'));
     };
 }
 

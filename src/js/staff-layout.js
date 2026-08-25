@@ -1,14 +1,14 @@
 (function (root) {
   /**
    * Horizontal/vertical staff geometry.
-   * Left: 50px margin, brace, clef at the original offset, then a
+   * Left: 30px margin, brace, clef 15px into the staff, then a
    * key-signature column to the RIGHT of the clef. Time, color guide,
    * and notes shift right by that column width.
    */
   function computeStaffLayout(scale, opts) {
     var s = scale || 1;
     var extent = (opts && opts.extent) || 'full';
-    var LEFT_MARGIN = 50 * s;
+    var LEFT_MARGIN = 30 * s;
     var KEY_COL_W = 28 * s;
     var BRACE_W = 12 * s;
     var CLEF_W = 42 * s;

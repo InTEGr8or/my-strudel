@@ -1,4 +1,6 @@
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 const { createTrainerStore } = require('../src/js/trainer-store');
 const { computeStaffLayout, ledgerStaffIndices, indexToPitch, quarterBeatsPerBar, nextUnplayedStartBeat, matchMidiAtOnset, staffNoteLabel, metroBeatsPerBar, metroBeatDurationQuarters, metroIntervalMs } = require('../src/js/staff-layout');
 
@@ -85,7 +87,7 @@ assert.strictEqual(metroIntervalMs(120, { top: 6, bottom: 8 }), 750);
 console.log('PASS: metronome pulse follows the time signature, not a hard-coded 4/4');
 
 const layout = computeStaffLayout(1);
-assert.strictEqual(layout.LEFT_MARGIN, 50, '50px left of the staff');
+assert.strictEqual(layout.LEFT_MARGIN, 30, '30px left of the staff');
 assert.strictEqual(layout.BOT_EXTRA, 75, '75 extra pixels below the staff');
 assert.ok(layout.BOT_PAD >= 80 + 75, `BOT_PAD is ${layout.BOT_PAD}, expected >= 155`);
 assert.strictEqual(layout.extent, 'full', 'default staff is the full grand staff');
@@ -97,22 +99,29 @@ assert.ok(base.BOT_PAD < layout.BOT_PAD, 'base staff drops the extra region belo
 assert.strictEqual(base.BOT_EXTRA, 0);
 assert.ok(base.TOP_PAD <= 24, 'base top pad is about one stem/ledger');
 assert.strictEqual(base.clefX, layout.clefX, 'base staff keeps the same clef column');
-assert.strictEqual(layout.clefX, 65, 'clef stays at original 15px offset after the 50px left margin');
+assert.strictEqual(layout.clefX, 45, 'clef stays 15px into the staff after the left margin');
 assert.ok(layout.keyX > layout.clefX, `key column x ${layout.keyX} must be right of clef x ${layout.clefX}`);
 assert.ok(layout.clefX < layout.timeX, `clef x ${layout.clefX} must be left of time x ${layout.timeX}`);
 assert.ok(layout.keyX < layout.timeX, 'key column is left of the time signature');
 assert.ok(layout.timeX < layout.COLOR_X, 'time signature left of color guide');
 assert.ok(layout.COLOR_X < layout.LEFT_PAD, 'color guide left of note content');
 assert.ok(layout.LEFT_PAD - layout.clefX >= layout.KEY_COL_W + 42, 'key column width pushes notes right of the clef');
-assert.strictEqual(layout.STAFF_L, 50, 'staff lines start after the 50px left margin');
+assert.strictEqual(layout.STAFF_L, 30, 'staff lines start after the left margin');
 
 const scaled = computeStaffLayout(2);
-assert.strictEqual(scaled.LEFT_MARGIN, 100);
+assert.strictEqual(scaled.LEFT_MARGIN, 60);
 assert.strictEqual(scaled.BOT_EXTRA, 150);
 assert.ok(scaled.keyX > scaled.clefX);
-assert.strictEqual(scaled.clefX, 50 * 2 + 15 * 2);
+assert.strictEqual(scaled.clefX, 30 * 2 + 15 * 2);
 
-console.log('PASS: staff layout has 50px left margin, +75px below, key column right of clef');
+const noteChart = fs.readFileSync(path.join(__dirname, '../src/js/note-chart.js'), 'utf-8');
+assert.ok(noteChart.includes('computeStaffLayout'), 'note-chart draws the staff from computeStaffLayout');
+assert.strictEqual(noteChart.includes('COLOR_X: 85'), false, 'no leftover pre-margin COLOR_X fallback');
+assert.strictEqual(noteChart.includes('clefX: 94'), false, 'no leftover hardcoded clef x');
+assert.strictEqual(noteChart.includes('layout.keyX : 40'), false, 'annotation rerender does not invent a key x');
+assert.strictEqual(noteChart.includes('layout.clefX : 15'), false, 'annotation rerender does not invent a clef x');
+
+console.log('PASS: staff layout has 30px left margin, +75px below, key column right of clef');
 
 function pitchSet(idxs) {
   return idxs.map((i) => {

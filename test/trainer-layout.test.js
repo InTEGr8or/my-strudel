@@ -148,6 +148,9 @@ assert.ok(layoutSrc.includes('id="calibrate-row"'), 'a calibrate prompt row sits
 assert.ok(layoutSrc.includes('id="calibrate-prompt"'), 'the row tells the player which key to hit');
 assert.ok(layoutCss.includes('.midi-calibrate') || layoutCss.includes('.calibrate-btn'), 'the MIDI+calibrate control is styled');
 assert.ok(layoutCss.includes('.calibrate-row'), 'the calibrate row has layout styles');
+assert.ok(sidebarSrc.includes('class="collapsed"'), 'sidebar starts collapsed');
+assert.ok(uiSrc.includes('sidebar-collapsed'), 'sidebar open/closed is persisted');
+assert.ok(initSrc.includes('sidebar-collapsed'), 'saved sidebar state is restored on load');
 console.log('PASS: Synth tab can toggle bar numbers and remembers the choice');
 
 const synthSrc = fs.readFileSync(path.join(__dirname, '../src/_includes/components/scripts/synth.njk'), 'utf-8');

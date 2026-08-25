@@ -4,6 +4,7 @@ test('keyboard picker dims the on-screen piano to the chosen range', async ({ pa
   await page.addInitScript(() => localStorage.removeItem('keyboard-id'));
   await page.goto('/lessons/notes-intervals-degrees/');
   await page.waitForSelector('#piano-container .piano-key[data-midi]');
+  await page.locator('#sidebar-toggle').click();
   await page.locator('.tab[data-tab="synth"]').click();
   await expect(page.locator('#keyboard-range')).toBeVisible();
   await expect(page.locator('#keyboard-range')).toHaveValue('32-key');
@@ -67,6 +68,7 @@ test('Calibrate learns the range from the lowest then highest key', async ({ pag
   expect(await dimmed(72)).toBe(false);
   expect(await dimmed(73)).toBe(true);
 
+  await page.locator('#sidebar-toggle').click();
   await page.locator('.tab[data-tab="synth"]').click();
   await expect(page.locator('#keyboard-range')).toHaveValue('custom');
   await expect(page.locator('#keyboard-range-hint')).toContainText('F2');
